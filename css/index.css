@@ -1,0 +1,134 @@
+* {
+    -webkit-tap-highlight-color: rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+}
+
+@font-face{
+    font-family: "TimeBurner";
+    src: url("../fonts/TimeBurner/timeburner.ttf");
+}
+
+@font-face{
+    font-family: "TimeBurnerBold";
+    src: url("../fonts/TimeBurner/timeburnerbold.ttf");
+}
+
+/*--------When mobile is in Portrait--------*/
+#infoSplash{
+    display:none;
+}
+
+#infoSplashCircle{
+    position: absolute;
+    width:250px;
+    height:250px;
+}
+
+#infoSplashCircle div{
+    height:50%;
+}
+
+#infoSplashCircle div p{
+    font-size: 120%;
+}
+
+@media screen and (orientation:portrait) {
+    #infoSplash{
+        display:inline-block;
+        height:100%;
+        width:100%;
+        position:fixed;
+        top:0;
+        bottom:0;
+        background:#37474f;
+        text-align:center;
+        z-index:2147483641; /* mobile info screen takes precedence*/
+    }
+}
+
+html, body {
+    -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
+    -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
+    -webkit-user-select: none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
+    /*background-color:#E4E4E4;
+    background-image:linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
+    background-image:-webkit-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
+    background-image:-ms-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
+    background-image:-webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #A7A7A7),
+        color-stop(0.51, #E4E4E4)
+    );
+    */
+    background-attachment:fixed;
+    font-family: 'TimeBurner', Helvetica, Calibri, Arial, sans-serif;
+    font-size:15px;
+    height:100%;
+    width:100%;
+    margin:0px;
+    padding:0px;
+
+    color:#FFF;
+	background:#aacbda;
+    overflow: hidden;
+}
+
+canvas{
+    border: 0;
+    background: #cfd8dc;
+
+    position: absolute;
+    margin:auto;
+    top:0; bottom:0; left:0; right:0;
+}
+
+/*----------------------*/
+.hr-divider{
+    height:0px;
+    border-top:1px #CCC dotted;
+    width:100%;
+    clear:both;
+    /*box-shadow:0px 0px 20px 1px #FFF;   */
+}
+
+.hr-divider.pad{
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+.hr-divider.pad-top{
+    margin-top:10px;
+}
+
+.hr-divider.pad-bottom{
+    margin-bottom:10px;
+}
+
+.invertedColor, .circle:not(.invertedCircleColor){
+	background:#FFF;
+	color:#37474f;
+}
+
+.circle.invertedCircleColor{
+    color:#FFF;
+	background:#37474f;
+}
+
+.circle{
+	border-radius:100%;
+	position:fixed;
+    box-sizing:content-box;
+	text-align:center;
+
+    font: "TimeBurner";
+}
+
+.center{
+	position:absolute;
+	top:0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin:auto;
+}
