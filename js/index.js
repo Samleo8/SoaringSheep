@@ -1,10 +1,62 @@
 var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
 var isApp = false;
-
 var isMobile = false;
 
 var game;
+
+var app = {
+    // Application Constructor
+    initialize: function() {
+		game = new Game();
+
+        //Init Event Listeners
+        this.bindEvents();
+    },
+
+    bindEvents: function() {
+        window.addEventListener('DOMContentLoaded', this.onDeviceReady, false);
+        document.addEventListener('deviceready', this.onDeviceReady, false);
+
+        if(MobileAndTabletCheck()){
+            window.addEventListener('touchmove', function(e) {
+                // Prevent scrolling
+                //e.preventDefault();
+            }, false);
+
+			isMobile = true;
+            console.log("Mobile device detected");
+        }
+    },
+
+    onDeviceReady: function() {
+        isApp = !((typeof device)=="undefined");
+
+		console.log((isApp)?"Device Ready!":"DOM Loaded...");
+
+		game.initStage();
+		/*
+        if(isApp){
+            document.addEventListener("pause", function(){ //when app moves to background
+                game.togglePause(true);
+            }, false);
+            document.addEventListener("resume", function(){ //when app moves back to background
+                //this.togglePause(false);
+            }, false);
+        }
+        else{
+            window.addEventListener("blur", function(){ //when window is off-focus
+                game.audio["mainMusic"].pause();
+                //game.audio["mainMusic"].release();
+                game.togglePause(true);
+            }, false);
+            window.addEventListener("focus", function(){ //when app window is in focus
+                //game.togglePause(false);
+            }, false);
+        }
+		*/
+    }
+};
 
 var Game = function(){
 	var self = this;
@@ -129,10 +181,16 @@ var Game = function(){
 
 		window.addEventListener("resize", this.resizeCanvas.bind(this), false);
 		window.addEventListener("keyup", this.keyEvent.bind(this), false);
-		window.addEventListener("blur", this.togglePause.bind(this,true), false)
 
-		renderer.view.addEventListener("mouseup", this.heroJump.bind(this), false);
-		renderer.view.addEventListener("touchend", this.heroJump.bind(this), false);
+		if(isApp){
+			document.addEventListener("pause", this.togglePause.bind(this,true), false);
+			//document.addEventListener("resume", this.togglePause.bind(this,false), false);
+		}
+		else{
+			window.addEventListener("blur", this.togglePause.bind(this,true), false);
+		}
+
+		renderer.view.addEventListener((isMobile)?"touchend":"mouseup", this.heroJump.bind(this), false);
 
 		//LOAD IMAGES, FONTS AND MUSIC
 		this.loadFonts(); //(load fonts first to make sure start screen has proper fonts)
@@ -229,8 +287,7 @@ var Game = function(){
 			this.pauseOverlay.addChild(text2);
 
 			//-Add Event Listener
-			this.pauseOverlay.on("touchend",this.togglePause.bind(this,false));
-			this.pauseOverlay.on("mouseup",this.togglePause.bind(this,false));
+			this.pauseOverlay.on((isMobile)?"touchend":"mouseup",this.togglePause.bind(this,false));
 
 			//SPRITES
 			//-Background
@@ -263,8 +320,7 @@ var Game = function(){
 			this.pauseButton.interactive = true;
 			this.pauseButton.buttonMode = true;
 
-			this.pauseButton.on("touchend",this.togglePause.bind(this));
-			this.pauseButton.on("mouseup",this.togglePause.bind(this));
+			this.pauseButton.on((isMobile)?"touchend":"mouseup",this.togglePause.bind(this));
 
 			this.pauseButton.position.set(this.canvasWidth-60,50);
 
@@ -277,8 +333,7 @@ var Game = function(){
 			this.muteMusicButton.interactive = true;
 			this.muteMusicButton.buttonMode = true;
 
-			this.muteMusicButton.on("touchend",this.toggleMuteMain.bind(this));
-			this.muteMusicButton.on("mouseup",this.toggleMuteMain.bind(this));
+			this.muteMusicButton.on((isMobile)?"touchend":"mouseup",this.toggleMuteMain.bind(this));
 
 			this.muteMusicButton.position.set(this.canvasWidth-145,50);
 
@@ -306,8 +361,7 @@ var Game = function(){
 			this.muteFXButton.interactive = true;
 			this.muteFXButton.buttonMode = true;
 
-			this.muteFXButton.on("touchend",this.toggleMuteFX.bind(this));
-			this.muteFXButton.on("mouseup",this.toggleMuteFX.bind(this));
+			this.muteFXButton.on((isMobile)?"touchend":"mouseup",this.toggleMuteFX.bind(this));
 
 			this.muteFXButton.position.set(this.canvasWidth-235,50);
 
@@ -700,16 +754,17 @@ var Game = function(){
 	};
 
 	this.heroJump = function(event){
+		if(this.preventHeroJump){
+			this.preventHeroJump--; //makes sure that all false clicks which have been triggered are accounted for
+			return;
+		}
+
 		if(this.jumpToStartGame){
 			this.jumpToStartGame = false;
 			this.startGame();
 		}
 		if(!this._gameStarted) return;
 
-		if(this.preventHeroJump){
-			this.preventHeroJump--; //makes sure that all false clicks which have been triggered are accounted for
-			return;
-		}
 		if(this._paused) return;
 
 		this.audio["jump"].play();
@@ -1108,15 +1163,6 @@ var Game = function(){
 	};
 }
 
-game = new Game();
-
-//ENSURE DOM LOADED BEFORE STARTING GAME.
-window.addEventListener('DOMContentLoaded', function(){
-	console.log("DOM Loaded...");
-
-	game.initStage();
-}, false);
-
 //*--------UNIVERSAL FUNCTIONS--------*//
 function MobileCheck() {
 	if(isApp) return true;
@@ -1145,3 +1191,6 @@ function getRandomInt(min, max) {
 function parseBoolean(str){
 	return (str.toString().toLowerCase() == "true");
 }
+
+//INITIALIZE APP
+app.initialize();
