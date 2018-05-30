@@ -111,6 +111,8 @@ var Game = function(){
 
 	this.startScreen;
 	this.loadingBar;
+
+    this.this.fadeObjects;
 	this.fadeInTimer;
 
 	this.animations = {
@@ -535,8 +537,10 @@ var Game = function(){
 
 			this.sprites.background.alpha = 0;
 
+            this.postLoadedStartScreen = {};
+
 			//Sheep
-			var sheep = new PIXI.Sprite(this.animations.jumping.frames[0]);
+			sheep = new PIXI.Sprite(this.animations.jumping.frames[0]);
 			sheep.anchor.set(0.5,0.5);
 			sheep.scale.set(0.35,0.35);
 			sheep.rotation = -Math.PI/40;
@@ -593,43 +597,54 @@ var Game = function(){
 			this.loadOptions();
 
 			//Fade In Animation
-			var fadeObjects = [sheep, this.muteMusicButton, this.muteFXButton, speech_bubble];
+			this.fadeObjects = [sheep, this.muteMusicButton, this.muteFXButton, speech_bubble];
 
-			for(i=0;i<fadeObjects.length;i++){
-				fadeObjects[i].alpha = 0;
-				stage.addChild(fadeObjects[i]);
+			for(i=0;i<this.fadeObjects.length;i++){
+				this.fadeObjects[i].alpha = 0;
+				stage.addChild(this.fadeObjects[i]);
 			}
 
-			this.fadeInTimer = setInterval(function(){
-				var _fadeInc = 0.025;
+            var _fadeTimeInc = 10; //ms
+            this.fadeInTimer = new Date().getTime();
 
-				for(i=0;i<fadeObjects.length;i++){
-					fadeObjects[i].alpha += _fadeInc;
-				}
-
-				renderer.render(stage);
-
-				//Once fade in animation is complete, allow user to "jump" to start game
-				if(sheep.alpha>=1){
-					sheep.alpha=1;
-					this.muteFXButton.alpha=1;
-					this.muteMusicButton.alpha=1;
-
-					this.startScreen.interactive = true;
-					this.startScreen.buttonMode = true;
-
-                    this._jumpToStartGame = true;
-                    renderer.render(stage);
-
-                    console.log("Fade in animation complete");
-
-                    //SERIOUS BUG: fadeInTimer not clearing on cordova
-					clearInterval(this.fadeInTimer);
-
-                    return;
-				}
-			}.bind(this),10);
+            //Begin fade in via requestAnimationFrame.
+            //WARNING: DO NOT USE SET INTERVAL
+            //--After animation is complete, user can now "jump" to start the game.
+            requestAnimationFrame(this.fadeInAnimation.bind(this,_fadeTimeInc));
 	}
+
+    this.fadeInAnimation = function(timeInc){
+        var t = new Date().getTime();
+        if(t-this.fadeInTimer>=timeInc){
+            this.fadeInTimer = t;
+        }
+
+        var _fadeInc = 0.025;
+
+        for(i=0;i<this.fadeObjects.length;i++){
+            this.fadeObjects[i].alpha += _fadeInc;
+        }
+
+        renderer.render(stage);
+
+        //Once fade in animation is complete, allow user to "jump" to start game
+        if(sheep.alpha>=1){
+            sheep.alpha=1;
+            this.muteFXButton.alpha=1;
+            this.muteMusicButton.alpha=1;
+
+            this.startScreen.interactive = true;
+            this.startScreen.buttonMode = true;
+
+            this._jumpToStartGame = true;
+            renderer.render(stage);
+
+            console.log("Fade in animation complete");
+
+            return;
+        }
+        requestAnimationFrame(this.fadeInAnimation.bind(this));
+    }
 
 	this.startGame = function(){
 		console.log("Starting Game!");
@@ -859,7 +874,6 @@ var Game = function(){
 		//RENDER AND UPDATE
 		renderer.render(stage);
 
-		//requestAnimationFrame(function(){ self.update() });
 		requestAnimationFrame(this.update.bind(this));
 	};
 
