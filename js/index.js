@@ -25,36 +25,16 @@ var app = {
             console.log("Mobile device detected");
         }
 
-        window.addEventListener('DOMContentLoaded', this.onDeviceReady, false);
+        window.addEventListener('DOMContentLoaded', this.onDeviceReady.bind(this), false);
         //document.addEventListener('deviceready', this.onDeviceReady, false);
     },
 
     onDeviceReady: function() {
         isApp = !((typeof device)=="undefined");
 
-		console.log((isApp)?"Device Ready!":"DOM Loaded...");
+	    console.log((isApp)?"Device Ready!":"DOM Loaded...");
 
 		game.initStage();
-		/*
-        if(isApp){
-            document.addEventListener("pause", function(){ //when app moves to background
-                game.togglePause(true);
-            }, false);
-            document.addEventListener("resume", function(){ //when app moves back to background
-                //this.togglePause(false);
-            }, false);
-        }
-        else{
-            window.addEventListener("blur", function(){ //when window is off-focus
-                game.audio["mainMusic"].pause();
-                //game.audio["mainMusic"].release();
-                game.togglePause(true);
-            }, false);
-            window.addEventListener("focus", function(){ //when app window is in focus
-                //game.togglePause(false);
-            }, false);
-        }
-		*/
     }
 };
 
@@ -166,8 +146,7 @@ var Game = function(){
 			transparent: false,
 			resolution: window.devicePixelRatio,
 			autoResize: true,
-			backgroundColor: 0x90a4ae,
-			//forceCanvas: isApp
+			backgroundColor: 0x90a4ae
 		}
 
 		renderer = PIXI.autoDetectRenderer(rendererOptions);
@@ -184,13 +163,7 @@ var Game = function(){
 		window.addEventListener("resize", this.resizeCanvas.bind(this), false);
 		window.addEventListener("keyup", this.keyEvent.bind(this), false);
 
-		if(isApp){
-			document.addEventListener("pause", this.togglePause.bind(this,true), false);
-			//document.addEventListener("resume", this.togglePause.bind(this,false), false);
-		}
-		else{
-			window.addEventListener("blur", this.togglePause.bind(this,true), false);
-		}
+		document.addEventListener((isApp)?"pause":"blur", this.togglePause.bind(this,true), false);
 
 		renderer.view.addEventListener((isMobile)?"touchend":"mouseup", this.heroJump.bind(this), false);
 
@@ -533,7 +506,6 @@ var Game = function(){
 			var i;
 
 			console.log("All assets loaded.");
-			console.log("Ready to Start Game!");
 
 			this.sprites.background.alpha = 0;
 
@@ -543,15 +515,6 @@ var Game = function(){
 			sheep.scale.set(0.35,0.35);
 			sheep.rotation = -Math.PI/40;
 			sheep.position.set(this.canvasWidth/2-200,this.canvasHeight/2-90);
-
-			/*
-			var lightbulb = new PIXI.Graphics();
-			lightbulb.beginFill(0xfff8e1,0.05);
-			lightbulb.drawCircle(0,0,250);
-			lightbulb.endFill();
-			lightbulb.x=-10;
-			sheep.addChild(lightbulb);
-			//*/
 
 			//Speech bubble
 			var speech_bubble = new PIXI.Container();
@@ -608,7 +571,7 @@ var Game = function(){
 	}
 
     this.fadeInAnimation = function(timeInc){
-        //*
+        /*
         var t = new Date().getTime();
         if(t-this.fadeInTimer>=timeInc){
             this.fadeInTimer = t;
@@ -637,7 +600,7 @@ var Game = function(){
 
             //renderer.render(stage);
 
-            console.log("Ready to go! Jump to start!");
+            console.log("Ready: Jump to start!");
 
             return;
         }
@@ -648,7 +611,7 @@ var Game = function(){
 	this.startGame = function(){
         var i;
 
-		console.log("Starting Game!");
+		console.log("Let the games begin!");
 
         if(this._gameStarted) return;
 
@@ -673,8 +636,6 @@ var Game = function(){
 	}
 
 	this.newGame = function(){
-        console.log("New Game!");
-
 		renderer.view.focus();
 
 		//BG
@@ -1148,7 +1109,7 @@ var Game = function(){
 			if(opt=="all" || opt=="muteMain") window.localStorage["muteMain"] = this._musicMuted;
 		}
 		else{
-			console.log("Browser does not support localStorage!");
+			console.log("WARNING: Browser does not support localStorage! Highscores and options will not be saved.");
 			return false;
 		}
 	};
