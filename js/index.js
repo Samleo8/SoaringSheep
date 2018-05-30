@@ -83,7 +83,7 @@ var Game = function(){
 	this.highscoreText;
 
 	this.speedInc = 1.1;
-	this.maxSpeed = 18;
+	this.maxSpeed = 16;
 
 	this._paused = false;
 	this._musicMuted = false;
@@ -917,7 +917,12 @@ var Game = function(){
 		obs.vx = 0;
 		obs.vy = 0;
 		obs.ax = 0;
-		obs.ay = Math.random()*0.15+0.03;
+
+        //TODO: Ramp up as score increases
+        var _startG = 0.07;
+        var _maxG = 0.20;
+		obs.ay = getRandomFloat(_startG,Math.min(_startG+this.score*0.01,_maxG));
+        console.log(obs.ay);
 
 		this.obstacles.addChild(obs);
 	};
