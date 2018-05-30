@@ -130,6 +130,9 @@ var Game = function(){
 	this.obstacleSectionActive = [];
 	this.nObstacleSections = 3;
 
+    this.powerups;
+    this.powerupChance = 0.3;
+
 	this.pauseTime;
 	this.pauseTimer;
 	this.pauseOverlay;
@@ -677,11 +680,15 @@ var Game = function(){
 		this.overSym.y = this.canvasHeight/2+50;
 		stage.addChild(this.overSym);
 
-		//CREATE OBSTACLE CONTAINER AND TIMER
+		//CREATE OBSTACLE CONTAINER
 		this.obstacles = new PIXI.Container();
 		this.showObstacleSections();
 
 		stage.addChild(this.obstacles);
+
+        //CREATE POWERUP Container
+        this.powerups = new PIXI.Container();
+        stage.addChild(this.powerups);
 
 		//HERO INITIALIZE
 		this.hero.x = this.canvasWidth/2;
@@ -792,8 +799,6 @@ var Game = function(){
 	};
 
 	this.update = function(){
-		//TODO: Add ""+1" and coins
-
 		var i,j;
 
 		if(this._paused || !this._gameStarted) return;
@@ -808,7 +813,7 @@ var Game = function(){
 		this.hero.y += this.hero.vy;
 		this.hero.x += this.hero.vx;
 
-		//OBSTACLE MOVEMENT
+		//OBSTACLE MOVEMENT AND COLLISION TEST
 		for(i=0;i<this.obstacles.children.length;i++){
 			var obs = this.obstacles.children[i];
 
@@ -830,7 +835,29 @@ var Game = function(){
 			}
 		};
 
-		//HERO AND OBSTACLE CHECKS
+        //POWERUP MOVEMENT AND COLLISION TEST
+        for(i=0;i<this.powerups.children.length;i++){
+            var obs = this.obstacles.children[i];
+
+            //Check for hero and obstacle hitTest
+            if(this.hitTest(this.hero,obs,10,10)){
+                this.gameover();
+                return;
+            }
+
+            obs.vx += obs.ax;
+            obs.vy += obs.ay;
+
+            obs.y += obs.vy;
+            obs.x += obs.vx;
+
+            if(obs.y>=this.canvasHeight+obs.height){
+                this.obstacles.removeChild(obs);
+                this.obstacleSectionActive[obs.section] = false;
+            }
+        };
+
+		//HERO BOUNDS CHECKS
 		//Check for hero x-direction bounds, and bounce off wall
 		if(this.hero.x<=this.hero.width/2 || this.hero.x>=(this.canvasWidth-this.hero.width/2)){
 			this.hero.vx*=-this.speedInc;
@@ -935,8 +962,6 @@ var Game = function(){
 		obs.section = section;
 		this.obstacleSectionActive[section] = true;
 
-        //TODO: Spawn powerup a few pixels above the spike. It'll fall at the same speed as the spike.
-
 		var startX = section*(this.canvasWidth/(this.nObstacleSections+1));
 		var startY = obs.height/2;
 
@@ -947,11 +972,39 @@ var Game = function(){
 		obs.vy = 0;
 		obs.ax = 0;
 
-        //TODO: Ramp up as score increases
+        //Ramp up acceleration as score increases
         var _startG = 0.07;
         var _maxG = 0.20;
 		obs.ay = getRandomFloat(_startG,Math.min(_startG+this.score*0.01,_maxG));
         console.log(obs.ay);
+
+        //TODO: Spawn powerup a few pixels above the spike. It'll fall at the same speed as the spike. Not easy to attain tho...
+        /* --POWERUPS--
+        0: Shield
+        1: +1 (to score)
+        */
+        if(Math.random()<this.powerupChance){
+            //Add powerup
+            var type = getRandomInt(0,1);
+            var texture;
+
+            console.log(( (type)?"Shield":"+1" )+"Powerup attached to spike!");
+            /*
+            switch(type){
+                case 0:
+                    texture = this.sprites.powerups.shield;
+                    break;
+                case 1:
+                    texture = this.sprites.powerups.plusOne;
+                    break;
+                default:
+                    return;
+            }
+            var powerup = new PIXI.Sprite(texture);
+
+            this.powerups
+            */
+        }
 
 		this.obstacles.addChild(obs);
 	};
