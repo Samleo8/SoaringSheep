@@ -30,7 +30,7 @@ var app = {
     },
 
     onDeviceReady: function() {
-        isApp = !((typeof device)=="undefined");
+        //isApp = !((typeof device)=="undefined");
 
 		console.log((isApp)?"Device Ready!":"DOM Loaded...");
 
@@ -62,7 +62,7 @@ var Game = function(){
 	var self = this;
 
 	this._gameStarted = false;
-	this.jumpToStartGame = false;
+	this._jumpToStartGame = false;
 
 	this.hwratio = 9/16; //most screens are of game resolution
 	this.canvasWidth = 1600;
@@ -160,12 +160,12 @@ var Game = function(){
 		var rendererOptions = {
 			width: this.canvasWidth,
 			height: this.canvasHeight,
-			antialias: true,
+			antialias: false,
 			transparent: false,
 			resolution: window.devicePixelRatio,
 			autoResize: true,
-			backgroundColor:0x90a4ae,
-			forceCanvas: isApp
+			backgroundColor: 0x90a4ae,
+			//forceCanvas: isApp
 		}
 
 		renderer = PIXI.autoDetectRenderer(rendererOptions);
@@ -615,18 +615,29 @@ var Game = function(){
 					this.muteFXButton.alpha=1;
 					this.muteMusicButton.alpha=1;
 
-					clearInterval(this.fadeInTimer);
-
 					this.startScreen.interactive = true;
 					this.startScreen.buttonMode = true;
 
-					this.jumpToStartGame = true;
+                    this._jumpToStartGame = true;
+                    renderer.render(stage);
+
+                    console.log("Fade in animation complete");
+
+                    //SERIOUS BUG: fadeInTimer not clearing on cordova
+					clearInterval(this.fadeInTimer);
+
+                    return;
 				}
 			}.bind(this),10);
 	}
 
 	this.startGame = function(){
 		console.log("Starting Game!");
+
+        if(this._gameStarted) return;
+
+		this._jumpToStartGame = false;
+		this._gameStarted = true;
 
 		stage.removeChild(this.startScreen);
 
@@ -640,13 +651,14 @@ var Game = function(){
 		this.muteMusicButton.x -= this.startScreen.buttonsOffset;
 		this.muteFXButton.x -= this.startScreen.buttonsOffset;
 
-		this.jumpToStartGame = false;
-		this._gameStarted = true;
+        renderer.render(stage);
 
 		this.newGame();
 	}
 
 	this.newGame = function(){
+        console.log("New Game!");
+
 		renderer.view.focus();
 
 		//BG
@@ -756,13 +768,18 @@ var Game = function(){
 	this.heroJump = function(event){
 		if(this.preventHeroJump){
 			this.preventHeroJump--; //makes sure that all false clicks which have been triggered are accounted for
+            console.log("False click prevented: "+this.preventHeroJump);
 			return;
 		}
 
-		if(this.jumpToStartGame){
-			this.jumpToStartGame = false;
+		if(this._jumpToStartGame){
+			this._jumpToStartGame = false;
+
+            console.log("User started game by clicking. "+this._jumpToStartGame);
 			this.startGame();
+            return;
 		}
+
 		if(!this._gameStarted) return;
 
 		if(this._paused) return;
