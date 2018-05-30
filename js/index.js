@@ -15,9 +15,6 @@ var app = {
     },
 
     bindEvents: function() {
-        window.addEventListener('DOMContentLoaded', this.onDeviceReady, false);
-        document.addEventListener('deviceready', this.onDeviceReady, false);
-
         if(MobileAndTabletCheck()){
             window.addEventListener('touchmove', function(e) {
                 // Prevent scrolling
@@ -27,10 +24,13 @@ var app = {
 			isMobile = true;
             console.log("Mobile device detected");
         }
+
+        window.addEventListener('DOMContentLoaded', this.onDeviceReady, false);
+        //document.addEventListener('deviceready', this.onDeviceReady, false);
     },
 
     onDeviceReady: function() {
-        //isApp = !((typeof device)=="undefined");
+        isApp = !((typeof device)=="undefined");
 
 		console.log((isApp)?"Device Ready!":"DOM Loaded...");
 
@@ -112,7 +112,7 @@ var Game = function(){
 	this.startScreen;
 	this.loadingBar;
 
-    this.this.fadeObjects;
+    this.fadeObjects;
 	this.fadeInTimer;
 
 	this.animations = {
@@ -537,8 +537,6 @@ var Game = function(){
 
 			this.sprites.background.alpha = 0;
 
-            this.postLoadedStartScreen = {};
-
 			//Sheep
 			sheep = new PIXI.Sprite(this.animations.jumping.frames[0]);
 			sheep.anchor.set(0.5,0.5);
@@ -554,8 +552,6 @@ var Game = function(){
 			lightbulb.x=-10;
 			sheep.addChild(lightbulb);
 			//*/
-
-			sheep.name = "sheep";
 
 			//Speech bubble
 			var speech_bubble = new PIXI.Container();
@@ -586,8 +582,6 @@ var Game = function(){
 			speech_bubble.addChild(bubble);
 			speech_bubble.addChild(text);
 
-			speech_bubble.name = "speech_bubble";
-
 			//Re-position mute buttons
 			this.startScreen.buttonsOffset = 70;
 
@@ -614,11 +608,14 @@ var Game = function(){
 	}
 
     this.fadeInAnimation = function(timeInc){
+        //*
         var t = new Date().getTime();
         if(t-this.fadeInTimer>=timeInc){
             this.fadeInTimer = t;
         }
+        //*/
 
+        var i;
         var _fadeInc = 0.025;
 
         for(i=0;i<this.fadeObjects.length;i++){
@@ -629,24 +626,28 @@ var Game = function(){
 
         //Once fade in animation is complete, allow user to "jump" to start game
         if(sheep.alpha>=1){
-            sheep.alpha=1;
-            this.muteFXButton.alpha=1;
-            this.muteMusicButton.alpha=1;
+            for(i=0;i<this.fadeObjects.length;i++){
+                this.fadeObjects[i].alpha = 1;
+            }
 
             this.startScreen.interactive = true;
             this.startScreen.buttonMode = true;
 
             this._jumpToStartGame = true;
-            renderer.render(stage);
 
-            console.log("Fade in animation complete");
+            //renderer.render(stage);
+
+            console.log("Ready to go! Jump to start!");
 
             return;
         }
+
         requestAnimationFrame(this.fadeInAnimation.bind(this));
     }
 
 	this.startGame = function(){
+        var i;
+
 		console.log("Starting Game!");
 
         if(this._gameStarted) return;
@@ -654,15 +655,15 @@ var Game = function(){
 		this._jumpToStartGame = false;
 		this._gameStarted = true;
 
+        //Remove start screen items
 		stage.removeChild(this.startScreen);
 
-		this.sprites.background.alpha = 1;
-		stage.removeChild(this.muteMusicButton);
-		stage.removeChild(this.muteFXButton);
+        for(i=0;i<this.fadeObjects.length;i++){
+            stage.removeChild(this.fadeObjects[i]);
+        }
 
-		stage.removeChild(stage.getChildByName("sheep"));
-		stage.removeChild(stage.getChildByName("speech_bubble"));
-
+        //Reinstate buttons and background
+        this.sprites.background.alpha = 1;
 		this.muteMusicButton.x -= this.startScreen.buttonsOffset;
 		this.muteFXButton.x -= this.startScreen.buttonsOffset;
 
@@ -783,14 +784,13 @@ var Game = function(){
 	this.heroJump = function(event){
 		if(this.preventHeroJump){
 			this.preventHeroJump--; //makes sure that all false clicks which have been triggered are accounted for
-            console.log("False click prevented: "+this.preventHeroJump);
+            //console.log("False click prevented: "+this.preventHeroJump);
 			return;
 		}
 
 		if(this._jumpToStartGame){
 			this._jumpToStartGame = false;
-
-            console.log("User started game by clicking. "+this._jumpToStartGame);
+            //console.log("User started game by clicking. "+this._jumpToStartGame);
 			this.startGame();
             return;
 		}
