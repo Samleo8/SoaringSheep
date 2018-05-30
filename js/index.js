@@ -130,6 +130,7 @@ var Game = function(){
 	this.obstacleSectionActive = [];
 	this.nObstacleSections = 3;
 
+    this.powerupNames = ["shield","plusOne"];
     this.powerups;
     this.powerupChance = 0.3;
 
@@ -182,6 +183,10 @@ var Game = function(){
 		this.loader = new PIXI.loaders.Loader();
 		this.loader.add("sprite_background","img/background.png");
 		this.loader.add("sprite_spike","img/spike.png");
+
+        for(i=0;i<this.powerupNames.length;i++){
+            this.loader.add("powerup_"+this.powerupNames[i].toString(),"img/powerups/"+this.powerupNames[i]+".png");
+        }
 
 		for(i=0;i<this.iconNames.length;i++){
 			this.loader.add("icon_"+this.iconNames[i].toString(),"img/icons/"+this.iconNames[i]+".png");
@@ -280,8 +285,21 @@ var Game = function(){
 
 			stage.addChild(this.sprites.background);
 
+            var nm;
+
+            //POWERUPS
+            this.sprites.powerups = {};
+            for(i=0;i<this.powerupNames.length;i++){
+                nm = this.powerupNames[i].toString();
+                this.sprites.powerups[nm] = new PIXI.Sprite(resources["powerup_"+nm].texture);
+                this.sprites.powerups[nm].anchor.set(0.5);
+                this.sprites.powerups[nm].scale.set(1,1);
+                this.sprites.powerups[nm].alpha = 0;
+                this.sprites.powerups[nm].tint = 0x90a4ae;
+                this.sprites.powerups[nm].name = nm;
+            }
+
 			//-ICONS/BUTTONS
-			var nm;
 			this.sprites.icons = {};
 			for(i=0;i<this.iconNames.length;i++){
 				nm = this.iconNames[i].toString();
@@ -988,8 +1006,8 @@ var Game = function(){
             var type = getRandomInt(0,1);
             var texture;
 
-            console.log(( (type)?"Shield":"+1" )+"Powerup attached to spike!");
-            /*
+            console.log(( (type)?"Shield":"+1" )+" Powerup attached to spike!");
+            //*
             switch(type){
                 case 0:
                     texture = this.sprites.powerups.shield;
@@ -1002,8 +1020,7 @@ var Game = function(){
             }
             var powerup = new PIXI.Sprite(texture);
 
-            this.powerups
-            */
+            //*/
         }
 
 		this.obstacles.addChild(obs);
