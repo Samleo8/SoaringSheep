@@ -630,15 +630,11 @@ var Game = function(){
 		this.muteMusicButton.x -= this.startScreen.buttonsOffset;
 		this.muteFXButton.x -= this.startScreen.buttonsOffset;
 
-        renderer.render(stage);
+        /* ADDING OBJECTS FOR ACTUAL GAME */
+        //--CRITICAL PERFORMANCE BOOST: ADD ALL THE ITEMS REQUIRED FOR THE GAME ONCE.
+        //--THEN RESET VARIABLES, COORDINATES ETC IN newGame()
 
-		this.newGame();
-	}
-
-	this.newGame = function(){
-		renderer.view.focus();
-
-		//BG
+        //BG
 		this.sprites.background.scrollingSpeed = 0.5;
 
 		//LOAD SCORES AND OPTIONS
@@ -683,12 +679,8 @@ var Game = function(){
 
 		//CREATE OBSTACLE CONTAINER AND TIMER
 		this.obstacles = new PIXI.Container();
-		var i;
-		for(i=0;i<=this.nObstacleSections;i++){
-			this.obstacleSectionActive[i] = false;
-		}
-
 		this.showObstacleSections();
+
 		stage.addChild(this.obstacles);
 
 		//HERO INITIALIZE
@@ -718,6 +710,39 @@ var Game = function(){
 		stage.addChild(this.pauseButton);
 		stage.addChild(this.muteMusicButton);
 		stage.addChild(this.muteFXButton);
+
+		this.newGame();
+	}
+
+	this.newGame = function(){
+		renderer.view.focus();
+
+        //RESET VARIABLES AND OBJECT POSITIONS
+        //-Score
+        this.score = 0;
+        this.scoreText.text = "0";
+
+        //-Hero
+        this.hero.x = this.canvasWidth/2;
+		this.hero.y = this.canvasHeight/2;
+		this.hero.scale.x = Math.abs(this.hero.scale.x);
+
+		this.hero.vx = 8;
+		this.hero.ax = 0;
+		this.hero.vy = 0;
+		this.hero.ay = 0.10;
+		this.hero.jumpStrength = 4;
+
+		this.preventHeroJump = 0;
+
+        //-Pause Overlay
+        this.pauseOverlay.alpha = 0;
+
+        //-Obstacles
+        var i;
+		for(i=0;i<=this.nObstacleSections;i++){
+			this.obstacleSectionActive[i] = false;
+		}
 
 		//START UPDATE LOOP
 		this._paused = false;
@@ -860,6 +885,8 @@ var Game = function(){
 		var startX, endX;
 
 		for(i=1;i<=this.nObstacleSections;i++){
+            this.obstacleSectionActive[i] = false;
+
 			var rect = new PIXI.Graphics();
 			rect.beginFill(0xd3d8dc,0.3);
 			startX = i*(this.canvasWidth/(this.nObstacleSections+1))-obsSecWidth/2-padd/2;
@@ -882,7 +909,7 @@ var Game = function(){
 
 		//Ensure obstacle does not appear twice in the section at one time.
 		var hasEmptySection = false;
-		for(i=0;i<this.nObstacleSections;i++){
+		for(i=1;i<this.nObstacleSections;i++){
 			if(!this.obstacleSectionActive[i]){
 				hasEmptySection = true;
 				break;
@@ -907,6 +934,8 @@ var Game = function(){
 
 		obs.section = section;
 		this.obstacleSectionActive[section] = true;
+
+        //TODO: Spawn powerup a few pixels above the spike. It'll fall at the same speed as the spike.
 
 		var startX = section*(this.canvasWidth/(this.nObstacleSections+1));
 		var startY = obs.height/2;
@@ -1067,14 +1096,12 @@ var Game = function(){
 		console.log("Highscore: "+this.highscore);
 		console.log("---------------");
 
-		//REMOVE ELEMENTS
-		stage.removeChild(this.hero);
-		stage.removeChild(this.obstacles);
-		stage.removeChild(this.obstacleSections);
-		stage.removeChild(this.scoreText);
-		stage.removeChild(this.highscoreText);
-		stage.removeChild(this.overSym);
-		stage.removeChild(this.pauseOverlay);
+        //CLEAR OBSTACLES
+        var i;
+        for(i=this.obstacles.children.length-1;i>=0;i--){
+            var obs = this.obstacles.children[i];
+            this.obstacles.removeChild(obs);
+        }
 
 		//RESTART GAME
 		this.newGame();
