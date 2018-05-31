@@ -113,8 +113,8 @@ var Game = function(){
 
 	};
 
-	this.audioLib = ["main_music","jump","bounce","die"];
-	this.audioVol = [0.4,0.15,0.1 ,0.8];
+	this.audioLib = ["main_music","jump","bounce","die","shield"];
+	this.audioVol = [0.4,0.15,0.1,0.8,0.6];
 	this.audio = {
 
 	}
@@ -894,6 +894,7 @@ var Game = function(){
                     case 0: //SHIELD
                         this.heroShield.alpha = 1;
                         this.shieldTimer = new Date().getTime();
+                        this.audio["shield"].play();
                         break;
                     case 1: //+1
                         this.incScore();
