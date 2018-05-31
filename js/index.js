@@ -34,6 +34,7 @@ var app = {
 
 	    console.log((isApp)?"Device Ready!":"DOM Loaded...");
 
+        FastClick.attach(document.body);
 		game.initStage();
     }
 };
