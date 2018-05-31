@@ -68,6 +68,7 @@ var Game = function(){
 	}
 
 	this.hero = null;
+    this.heroShield = null;
 	this.preventHeroJump = 0;
 
 	this.defOptions = {
@@ -78,9 +79,9 @@ var Game = function(){
 	this.score = 0;
 	this.highscore = 0;
 
-	this.scoreText;
-	this.overSym;
-	this.highscoreText;
+	this.scoreText = null;
+	this.overSym = null;
+	this.highscoreText = null;
 
 	this.speedInc = 1.1;
 	this.maxSpeed = 16;
@@ -89,11 +90,11 @@ var Game = function(){
 	this._musicMuted = false;
 	this._FXMuted = false;
 
-	this.startScreen;
-	this.loadingBar;
+	this.startScreen = null;
+	this.loadingBar = null;
 
-    this.fadeObjects;
-	this.fadeInTimer;
+    this.fadeObjects = null;
+	this.fadeInTimer = null;
 
 	this.animations = {
 		"jumping":{
@@ -132,7 +133,7 @@ var Game = function(){
 
     this.powerupNames = ["shield","plusOne"];
     this.powerups;
-    this.powerupChance = 0.3;
+    this.powerupChance = 1;
 
 	this.pauseTime;
 	this.pauseTimer;
@@ -292,12 +293,9 @@ var Game = function(){
             for(i=0;i<this.powerupNames.length;i++){
                 nm = this.powerupNames[i].toString();
                 this.sprites.powerups[nm] = new PIXI.Sprite(resources["powerup_"+nm].texture);
-                this.sprites.powerups[nm].anchor.set(0.5);
-                this.sprites.powerups[nm].scale.set(1,1);
-                this.sprites.powerups[nm].alpha = 0;
-                this.sprites.powerups[nm].tint = 0x90a4ae;
-                this.sprites.powerups[nm].name = nm;
             }
+
+            this.powerupOffset = this.sprites.spike.height/100+this.sprites.powerups[this.powerupNames[0]].height*(0.3)+50;
 
 			//-ICONS/BUTTONS
 			this.sprites.icons = {};
@@ -721,6 +719,14 @@ var Game = function(){
 
 		this.preventHeroJump = 0;
 
+        //-Hero Shield
+        this.heroShield = new PIXI.Graphics();
+        this.heroShield.beginFill(0xffecb3,0.6)
+            .drawCircle(0,0,this.hero.width/2+30)
+        .endFill();
+        this.heroShield.position = this.hero.position;
+
+        stage.addChild(this.heroShield);
 		stage.addChild(this.hero);
 
 		//ADD PAUSE OVERLAY TO STAGE
@@ -757,6 +763,9 @@ var Game = function(){
 		this.hero.vy = 0;
 		this.hero.ay = 0.10;
 		this.hero.jumpStrength = 4;
+
+        //--Hero's shield
+        this.heroShield.alpha = 0;
 
 		this.preventHeroJump = 0;
 
@@ -831,23 +840,31 @@ var Game = function(){
 		this.hero.y += this.hero.vy;
 		this.hero.x += this.hero.vx;
 
+        this.heroShield.position = this.hero.position;
+
 		//OBSTACLE MOVEMENT AND COLLISION TEST
 		for(i=0;i<this.obstacles.children.length;i++){
 			var obs = this.obstacles.children[i];
 
 			//Check for hero and obstacle hitTest
 			if(this.hitTest(this.hero,obs,10,10)){
-				this.gameover();
-				return;
+                if(this.heroShield.alpha){
+                    this.obstacles.removeChild(obs);
+    				this.obstacleSectionActive[obs.section] = false;
+
+                    this.powerups.removeChild(obs.attachedPowerup);
+                    this.heroShield.alpha = 0;
+                }
+                else{
+                    this.gameover();
+                    return;
+                }
 			}
 
-			obs.vx += obs.ax;
 			obs.vy += obs.ay;
-
 			obs.y += obs.vy;
-			obs.x += obs.vx;
 
-			if(obs.y>=this.canvasHeight+obs.height){
+			if(obs.y>=this.canvasHeight+obs.height+this.powerupOffset){
 				this.obstacles.removeChild(obs);
 				this.obstacleSectionActive[obs.section] = false;
 			}
@@ -855,23 +872,25 @@ var Game = function(){
 
         //POWERUP MOVEMENT AND COLLISION TEST
         for(i=0;i<this.powerups.children.length;i++){
-            var obs = this.obstacles.children[i];
+            var pwr = this.powerups.children[i];
 
-            //Check for hero and obstacle hitTest
-            if(this.hitTest(this.hero,obs,10,10)){
-                this.gameover();
-                return;
+            //Check for hero and powerup hitTest
+            if(this.hitTest(this.hero,pwr,10,10)){
+                switch(pwr.type){
+                    case 0: //SHIELD
+                        this.heroShield.alpha = 1;
+                        break;
+                    case 1: //+1
+                        this.incScore();
+                        break;
+                }
+                this.powerups.removeChild(pwr);
             }
 
-            obs.vx += obs.ax;
-            obs.vy += obs.ay;
+            pwr.y = pwr.attachedObs.y-this.powerupOffset;
 
-            obs.y += obs.vy;
-            obs.x += obs.vx;
-
-            if(obs.y>=this.canvasHeight+obs.height){
-                this.obstacles.removeChild(obs);
-                this.obstacleSectionActive[obs.section] = false;
+            if(pwr.y>=this.canvasHeight+pwr.height){
+                this.powerups.removeChild(pwr);
             }
         };
 
@@ -985,41 +1004,40 @@ var Game = function(){
 
 		obs.x = startX;
 		obs.y = startY;
-
-		obs.vx = 0;
 		obs.vy = 0;
-		obs.ax = 0;
 
         //Ramp up acceleration as score increases
         var _startG = 0.07;
         var _maxG = 0.20;
 		obs.ay = getRandomFloat(_startG,Math.min(_startG+this.score*0.01,_maxG));
-        console.log(obs.ay);
 
         //TODO: Spawn powerup a few pixels above the spike. It'll fall at the same speed as the spike. Not easy to attain tho...
         /* --POWERUPS--
         0: Shield
         1: +1 (to score)
         */
-        if(Math.random()<this.powerupChance){
+        var powerup;
+
+        if(Math.random()<=this.powerupChance){
             //Add powerup
-            var type = getRandomInt(0,1);
+            var type = getRandomInt(0,this.powerupNames.length-1);
             var texture;
 
-            console.log(( (type)?"Shield":"+1" )+" Powerup attached to spike!");
+            console.log(this.powerupNames[type].toUpperCase()+" powerup attached to spike!");
             //*
-            switch(type){
-                case 0:
-                    texture = this.sprites.powerups.shield;
-                    break;
-                case 1:
-                    texture = this.sprites.powerups.plusOne;
-                    break;
-                default:
-                    return;
-            }
-            var powerup = new PIXI.Sprite(texture);
+            powerup = new PIXI.Sprite(this.sprites.powerups[this.powerupNames[type]].texture);
 
+            powerup.scale.set(0.3,0.3);
+            powerup.anchor.set(0.5);
+
+            powerup.x = obs.x;
+            powerup.y = obs.y-this.powerupOffset;
+
+            powerup.type = type;
+            powerup.attachedObs = obs;
+            obs.attachedPowerup = powerup;
+
+            this.powerups.addChild(powerup);
             //*/
         }
 
@@ -1169,8 +1187,12 @@ var Game = function(){
         //CLEAR OBSTACLES
         var i;
         for(i=this.obstacles.children.length-1;i>=0;i--){
-            var obs = this.obstacles.children[i];
-            this.obstacles.removeChild(obs);
+            this.obstacles.removeChild(this.obstacles.children[i]);
+        }
+
+        //CLEAR POWERUPS
+        for(i=this.powerups.children.length-1;i>=0;i--){
+            this.powerups.removeChild(this.powerups.children[i]);
         }
 
 		//RESTART GAME
