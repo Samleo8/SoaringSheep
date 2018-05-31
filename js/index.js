@@ -114,7 +114,7 @@ var Game = function(){
 	};
 
 	this.audioLib = ["main_music","jump","bounce","die","shield"];
-	this.audioVol = [0.4,0.15,0.1,0.8,0.6];
+	this.audioVol = [0.4,0.15,0.1,0.8,0.8];
 	this.audio = {
 
 	}
