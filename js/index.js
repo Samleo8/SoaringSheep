@@ -69,6 +69,11 @@ var Game = function(){
 
 	this.hero = null;
     this.heroShield = null;
+
+    this.shieldTimer;
+    this.shieldTimeInc = 500; //ms
+    this.shieldFadeInc = 0.1;
+
 	this.preventHeroJump = 0;
 
 	this.defOptions = {
@@ -133,7 +138,7 @@ var Game = function(){
 
     this.powerupNames = ["shield","plusOne"];
     this.powerups;
-    this.powerupChance = 1;
+    this.powerupChance = 0.4;
 
 	this.pauseTime;
 	this.pauseTimer;
@@ -726,6 +731,7 @@ var Game = function(){
         .endFill();
         this.heroShield.position = this.hero.position;
 
+
         stage.addChild(this.heroShield);
 		stage.addChild(this.hero);
 
@@ -765,7 +771,10 @@ var Game = function(){
 		this.hero.jumpStrength = 4;
 
         //--Hero's shield
+        this.heroShield.position = this.hero.position;
         this.heroShield.alpha = 0;
+
+        this.shieldTimer = null;
 
 		this.preventHeroJump = 0;
 
@@ -782,7 +791,10 @@ var Game = function(){
 		this._paused = false;
 
 			//TIMERS
-			this.pauseTime = 0;
+            this.pauseTime = {
+                "obstacle":0,
+                "shield":0
+            };
 			this.obstacleTimer = new Date().getTime();
 
 		requestAnimationFrame(this.update.bind(this));
@@ -854,6 +866,7 @@ var Game = function(){
 
                     this.powerups.removeChild(obs.attachedPowerup);
                     this.heroShield.alpha = 0;
+                    this.pauseTime["shield"] = 0;
                 }
                 else{
                     this.gameover();
@@ -879,6 +892,7 @@ var Game = function(){
                 switch(pwr.type){
                     case 0: //SHIELD
                         this.heroShield.alpha = 1;
+                        this.shieldTimer = new Date().getTime();
                         break;
                     case 1: //+1
                         this.incScore();
@@ -917,9 +931,17 @@ var Game = function(){
 		//TIMERS
 			var t=new Date().getTime();
 			//OBSTACLE SPAWN
-			if(t-this.obstacleTimer>=this.obstacleSpawnTime+this.pauseTime){
+			if(t-this.obstacleTimer>=this.obstacleSpawnTime+this.pauseTime["obstacle"]){
 				this.spawnObstacle();
 			}
+
+            //SHIELD FADE AWAY
+            if(this.heroShield.alpha && t-this.shieldTimer>=this.shieldTimeInc+this.pauseTime["shield"]){
+                this.shieldTimer = t;
+                this.pauseTime["shield"] = 0;
+
+                this.heroShield.alpha = Math.max(0,this.heroShield.alpha-this.shieldFadeInc);
+            }
 
 		//RENDER AND UPDATE
 		renderer.render(stage);
@@ -982,7 +1004,7 @@ var Game = function(){
 		if(!hasEmptySection) return;
 
 		//RESET TIMERS
-		this.pauseTime = 0;
+		this.pauseTime["obstacle"] = 0;
 		this.obstacleTimer = new Date().getTime();
 
 		var section;
@@ -1011,7 +1033,7 @@ var Game = function(){
         var _maxG = 0.20;
 		obs.ay = getRandomFloat(_startG,Math.min(_startG+this.score*0.01,_maxG));
 
-        //TODO: Spawn powerup a few pixels above the spike. It'll fall at the same speed as the spike. Not easy to attain tho...
+        //Spawn powerup a few pixels above the spike. It'll fall at the same speed as the spike. Not easy to attain tho...
         /* --POWERUPS--
         0: Shield
         1: +1 (to score)
@@ -1023,8 +1045,7 @@ var Game = function(){
             var type = getRandomInt(0,this.powerupNames.length-1);
             var texture;
 
-            console.log(this.powerupNames[type].toUpperCase()+" powerup attached to spike!");
-            //*
+            //console.log(this.powerupNames[type].split("_").join(" ").toUpperCase()+" powerup attached to spike!");
             powerup = new PIXI.Sprite(this.sprites.powerups[this.powerupNames[type]].texture);
 
             powerup.scale.set(0.3,0.3);
@@ -1038,7 +1059,6 @@ var Game = function(){
             obs.attachedPowerup = powerup;
 
             this.powerups.addChild(powerup);
-            //*/
         }
 
 		this.obstacles.addChild(obs);
@@ -1129,6 +1149,8 @@ var Game = function(){
 	};
 
 	this.togglePause = function(forcedVal,event){
+        var i;
+
 		if(!this._gameStarted) return;
 
 		if(typeof event == "object" || typeof forcedVal == "object"){
@@ -1152,7 +1174,9 @@ var Game = function(){
 			this.pauseButton.getChildByName("pause").alpha=1;
 			this.pauseButton.getChildByName("play").alpha=0;
 
-			this.pauseTime += (new Date().getTime())-this.pauseTimer;
+            for(i=0;i<this.pauseTime.length;i++){
+			    this.pauseTime[i] += (new Date().getTime())-this.pauseTimer;
+            }
 			this._paused = false;
 
 			requestAnimationFrame(this.update.bind(this));
@@ -1178,11 +1202,7 @@ var Game = function(){
 		this._paused = true;
 		this.audio["die"].play();
 
-		console.log("---------------");
-		console.log("GAME OVER!");
-		console.log("Score: "+this.score);
-		console.log("Highscore: "+this.highscore);
-		console.log("---------------");
+		console.log("GAME OVER!\nScore: "+this.score+"\nHighscore: "+this.highscore+"\n");
 
         //CLEAR OBSTACLES
         var i;
