@@ -174,7 +174,8 @@ var Game = function(){
 		window.addEventListener("resize", this.resizeCanvas.bind(this), false);
 		window.addEventListener("keyup", this.keyEvent.bind(this), false);
 
-		document.addEventListener((isApp)?"pause":"blur", this.togglePause.bind(this,true), false);
+        window.addEventListener((isApp)?"resume":"focus", this.appFocus.bind(this), false);
+		window.addEventListener((isApp)?"pause":"blur", this.appBlur.bind(this), false);
 
 		renderer.view.addEventListener((isMobile)?"touchend":"mouseup", this.heroJump.bind(this), false);
 
@@ -1065,6 +1066,18 @@ var Game = function(){
 
 		this.obstacles.addChild(obs);
 	};
+
+    this.appBlur = function(){
+        //Turn off music otherwise it will play in the background
+        this.audio["main_music"].pause();
+
+        this.togglePause(true);
+    }
+
+    this.appFocus = function(){
+        //Turn back on music, checking if it was playing originally
+        if(!this._musicMuted) this.audio["main_music"].play();
+    }
 
 	this.toggleMuteMain = function(forcedVal){
 		if(typeof forcedVal == "object"){
