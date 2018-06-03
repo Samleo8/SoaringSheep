@@ -117,10 +117,12 @@ var Game = function(){
 
 	}
 
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info"];
 	this.pauseButton;
 	this.muteMusicButton;
 	this.muteFXButton;
+	this.infoButton;
+	this.gamesButton;
 
 	this.fonts = {};
 	this.totalFonts;
@@ -378,6 +380,47 @@ var Game = function(){
 			text.y = 55;
 			this.muteFXButton.addChild(text);
 
+
+            //--Games Button
+			this.gamesButton = new PIXI.Container();
+
+			this.gamesButton.interactive = true;
+			this.gamesButton.buttonMode = true;
+
+			this.gamesButton.on((isMobile)?"touchend":"mouseup",this.initPlayGames.bind(this));
+
+			this.gamesButton.position.set(80,50);
+
+            this.gamesButton.addChild(this.sprites.icons["games"]);
+            this.gamesButton.getChildByName("games").alpha = 1;
+
+            //--Text
+            text = new PIXI.Text("PLAY\nGAMES",textOpt);
+			text.anchor.set(0.5,0.5);
+			text.alpha = 1;
+			text.y = 67.5;
+			this.gamesButton.addChild(text);
+
+            //--Info Button
+			this.infoButton = new PIXI.Container();
+
+			this.infoButton.interactive = true;
+			this.infoButton.buttonMode = true;
+
+			this.infoButton.on((isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
+
+			this.infoButton.position.set(187.5,50);
+
+            this.infoButton.addChild(this.sprites.icons["info"]);
+            this.infoButton.getChildByName("info").alpha = 1;
+
+            //--Text
+            text = new PIXI.Text("INFO",textOpt);
+            text.anchor.set(0.5,0.5);
+            text.alpha = 1;
+            text.y = 55;
+            this.infoButton.addChild(text);
+
 			//ANIMATIONS
 			for (i=0;i<this.animations.jumping.totalFrames;i++) {
 				this.animations.jumping.frames.push(resources["sheep_"+i].texture);
@@ -581,7 +624,7 @@ var Game = function(){
 			this.loadOptions();
 
 			//Fade In Animation
-			this.fadeObjects = [sheep, this.muteMusicButton, this.muteFXButton, speech_bubble];
+			this.fadeObjects = [sheep, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton, speech_bubble];
 
 			for(i=0;i<this.fadeObjects.length;i++){
 				this.fadeObjects[i].alpha = 0;
@@ -750,6 +793,8 @@ var Game = function(){
 		stage.addChild(this.pauseButton);
 		stage.addChild(this.muteMusicButton);
 		stage.addChild(this.muteFXButton);
+        stage.addChild(this.infoButton);
+        stage.addChild(this.gamesButton);
 
 		this.newGame();
 	}
@@ -1081,6 +1126,30 @@ var Game = function(){
             this.audio["main_music"].play();
         }
     }
+
+    this.showInfo = function(e){
+		var i,nm;
+
+		if(typeof event == "object"){
+			if(e.type=="mouseup" || e.type=="touchend"){
+				this.preventHeroJump++;
+			}
+		}
+
+
+	};
+
+    this.initPlayGames = function(e){
+        var i,nm;
+
+        if(typeof event == "object"){
+            if(e.type=="mouseup" || e.type=="touchend"){
+                this.preventHeroJump++;
+            }
+        }
+
+
+    };
 
 	this.toggleMuteMain = function(forcedVal){
 		if(typeof forcedVal == "object"){
