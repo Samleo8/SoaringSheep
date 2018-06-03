@@ -63,6 +63,10 @@ var Game = function(){
 		"muteFX":{
 			"keys":["M".charCodeAt()], //M
 			"callback":"toggleMuteFX"
+		},
+		"info":{
+			"keys":["I".charCodeAt()], //M
+			"callback":"showInfo"
 		}
 	}
 
@@ -121,8 +125,11 @@ var Game = function(){
 	this.pauseButton;
 	this.muteMusicButton;
 	this.muteFXButton;
-	this.infoButton;
+
 	this.gamesButton;
+
+    this.infoButton;
+    this.infoOverlay;
 
 	this.fonts = {};
 	this.totalFonts;
@@ -283,6 +290,90 @@ var Game = function(){
 			//-Add Event Listener
 			this.pauseOverlay.on((isMobile)?"touchend":"mouseup",this.togglePause.bind(this,false));
 
+            //-INFO OVERLAY
+			this.infoOverlay = new PIXI.Container();
+
+			var rect = new PIXI.Graphics();
+			rect.beginFill(0x263238,0.98)
+			    .drawRect(0,0,this.canvasWidth,this.canvasHeight)
+            .endFill();
+
+			this.infoOverlay.addChild(rect);
+
+			var textOpt = {
+				fontFamily: 'TimeBurnerBold',
+				fill: "#cfd8dc",
+				stroke: "#90a4ae",
+				strokeThickness: 10,
+				letterSpacing: 10,
+				align: 'center',
+                padding:10
+			};
+
+			var text = new PIXI.Text("INFO",Object.assign(textOpt,{fontSize:75}));
+			text.anchor.set(0.5,0.5);
+			text.alpha = 0.98;
+			text.x = this.canvasWidth/2;
+			text.y = this.canvasHeight/8;
+
+			this.infoOverlay.addChild(text);
+
+            var textOpt2 = {
+                fontFamily: 'TimeBurner',
+                fill: "#cfd8dc",
+                letterSpacing: 5,
+                align: 'center',
+                wordWrap: true,
+                wordWrapWidth: this.canvasWidth*0.6,
+                padding: 10,
+                fontSize: 30
+            };
+            var text2 = new PIXI.Text("This game was created by Samuel Leong Chee Weng\nusing PIXI.js renderer library.\n\nThe web version is available on my website at\n https://samleo8.github.io/SoaringSheep",textOpt2);
+            text2.anchor.set(0.5,0);
+            text2.alpha = 0.98;
+			text2.x = this.canvasWidth/2;
+			text2.y = this.canvasHeight/6+35;
+
+            this.infoOverlay.addChild(text2);
+
+            var textOpt3 = Object.assign(textOpt,{strokeThickness:7,fontSize:45});
+
+            var text3 = new PIXI.Text("MUSIC",textOpt3);
+            text3.anchor.set(0.5,0.5);
+            text3.alpha = 0.98;
+            text3.x = this.canvasWidth/2;
+            text3.y = this.canvasHeight/2;
+
+            this.infoOverlay.addChild(text3);
+
+            text2 = new PIXI.Text("http://www.noiseforfun.com/\nhttp://www.playonloop.com/",textOpt2);
+            text2.anchor.set(0.5,0);
+            text2.alpha = 0.98;
+            text2.x = this.canvasWidth/2;
+            text2.y = this.canvasHeight/2+45;
+
+            this.infoOverlay.addChild(text2);
+
+            text3 = new PIXI.Text("SPRITES",textOpt3);
+            text3.anchor.set(0.5,0);
+            text3.alpha = 0.98;
+            text3.x = this.canvasWidth/2;
+            text3.y = this.canvasHeight/2+160;
+
+            this.infoOverlay.addChild(text3);
+
+            text2 = new PIXI.Text("Google Material Icons\nSpike: http://scribblenauts.wikia.com/wiki/File:Steel_Spike.png",textOpt2);
+            text2.anchor.set(0.5,0);
+            text2.alpha = 0.98;
+            text2.x = this.canvasWidth/2;
+            text2.y = this.canvasHeight/2+230;
+
+            this.infoOverlay.addChild(text2);
+
+            this.infoOverlay.on((isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
+
+            this.infoOverlay.alpha = 0;
+
 			//SPRITES
 			//-Background
 		    this.sprites.background = new PIXI.extras.TilingSprite(
@@ -379,7 +470,6 @@ var Game = function(){
 			text.alpha = 1;
 			text.y = 55;
 			this.muteFXButton.addChild(text);
-
 
             //--Games Button
 			this.gamesButton = new PIXI.Container();
@@ -624,7 +714,8 @@ var Game = function(){
 			this.loadOptions();
 
 			//Fade In Animation
-			this.fadeObjects = [sheep, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton, speech_bubble];
+			this.fadeObjects = [sheep, speech_bubble, this.infoOverlay, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton];
+                //in order of intended z-index
 
 			for(i=0;i<this.fadeObjects.length;i++){
 				this.fadeObjects[i].alpha = 0;
@@ -652,6 +743,8 @@ var Game = function(){
         var _fadeInc = 0.025;
 
         for(i=0;i<this.fadeObjects.length;i++){
+            if(this.fadeObjects[i] == this.infoOverlay) continue;
+
             this.fadeObjects[i].alpha += _fadeInc;
         }
 
@@ -660,6 +753,8 @@ var Game = function(){
         //Once fade in animation is complete, allow user to "jump" to start game
         if(sheep.alpha>=1){
             for(i=0;i<this.fadeObjects.length;i++){
+                if(this.fadeObjects[i] == this.infoOverlay) continue;
+
                 this.fadeObjects[i].alpha = 1;
             }
 
@@ -668,7 +763,7 @@ var Game = function(){
 
             this._jumpToStartGame = true;
 
-            //renderer.render(stage);
+            renderer.render(stage);
 
             console.log("Ready: Jump to start!");
 
@@ -777,15 +872,17 @@ var Game = function(){
         .endFill();
         this.heroShield.position = this.hero.position;
 
-
         stage.addChild(this.heroShield);
 		stage.addChild(this.hero);
 
-		//ADD PAUSE OVERLAY TO STAGE
+		//ADD OVERLAYS TO STAGE
 		//..GRAPHICS FOR PAUSE OVERLAY IS DONE IN INITIALISATION FOR PERFORMANCE
 		//..ADDING DONE HERE FOR Z-INDEX
 		this.pauseOverlay.alpha = 0;
 		stage.addChild(this.pauseOverlay);
+
+        this.infoOverlay.alpha = 0;
+        stage.addChild(this.infoOverlay);
 
 		//ADD BUTTONS
 		//..GRAPHICS FOR BUTTONS IS DONE IN INITIALISATION FOR PERFORMANCE
@@ -826,8 +923,9 @@ var Game = function(){
 
 		this.preventHeroJump = 0;
 
-        //-Pause Overlay
+        //-Overlays
         this.pauseOverlay.alpha = 0;
+        this.infoOverlay.alpha = 0;
 
         //-Obstacles
         var i;
@@ -1130,13 +1228,32 @@ var Game = function(){
     this.showInfo = function(e){
 		var i,nm;
 
-		if(typeof event == "object"){
+		if(typeof e == "object"){
 			if(e.type=="mouseup" || e.type=="touchend"){
 				this.preventHeroJump++;
 			}
 		}
 
+        //Toggle the display of the info page, along with the pausing
+        if(this.infoOverlay.alpha){
+            this.infoOverlay.alpha = 0;
 
+            this.infoOverlay.buttonMode = false;
+            this.infoOverlay.interactive = false;
+
+            this.togglePause(false);
+        }
+        else{
+            this.infoOverlay.alpha = 1;
+
+            this.infoOverlay.buttonMode = true;
+            this.infoOverlay.interactive = true;
+
+            this.togglePause(true);
+        }
+
+        //Render the stage to show the info screen
+        renderer.render(stage);
 	};
 
     this.initPlayGames = function(e){
@@ -1254,6 +1371,10 @@ var Game = function(){
 		}
 
 		if(this._paused){
+            this.infoOverlay.alpha = 0;
+            this.infoOverlay.buttonMode = false;
+            this.infoOverlay.interactive = false;
+
 			this.pauseOverlay.alpha = 0;
 			this.pauseOverlay.interactive = false;
 			this.pauseOverlay.buttonMode = false;
