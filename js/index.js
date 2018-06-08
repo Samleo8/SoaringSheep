@@ -37,11 +37,6 @@ var app = {
     onDeviceReady: function() {
         console.log((isApp())?"Device Ready!":"DOM Loaded...");
 
-        if(isAndroid()){
-            GPlay = new GooglePlayServices();
-            GPlay.auth();
-        }
-
         FastClick.attach(document.body);
 		game.initStage();
     }
@@ -488,7 +483,7 @@ var SoaringSheepGame = function(){
 			this.gamesButton.interactive = true;
 			this.gamesButton.buttonMode = true;
 
-			this.gamesButton.on((_isMobile)?"touchend":"mouseup",this.initPlayGames.bind(this));
+			this.gamesButton.on((_isMobile)?"touchend":"mouseup",this.showPlayGamesMenu.bind(this));
 
 			this.gamesButton.position.set(80,50);
 
@@ -797,6 +792,8 @@ var SoaringSheepGame = function(){
             renderer.render(stage);
 
             console.log("Ready: Jump to start!");
+
+            this.initPlayGames();
 
             return;
         }
@@ -1289,6 +1286,11 @@ var SoaringSheepGame = function(){
 	};
 
     this.initPlayGames = function(e){
+        GPlay = new GooglePlayServices();
+        GPlay.init();
+    }
+
+    this.showPlayGamesMenu = function(e){
         var i,nm;
 
         if(typeof event == "object"){
@@ -1563,29 +1565,47 @@ var SoaringSheepGame = function(){
 var GooglePlayServices = function(){
     this.client_id = {
         "android":"514509972850-9cdi9qajgltk7foscdns8jf1ffe83go6.apps.googleusercontent.com",
-        "web":"514509972850-jma6151g1177bolmfpi9a150dbm7atr3.apps.googleusercontent.com"
+        "web":"514509972850-jma6151g1177bolmfpi9a150dbm7atr3.apps.googleusercontent.com",
+        "web_test":"514509972850-nkv4v47360fp75rmbiubld0lq0kp078e.apps.googleusercontent.com"
     }
 
+    this.initialized = false;
     this.loggedIn = false;
     this.playerData;
 
     //General Functions
-    this.init = function(){
-        gapi.load('auth2', function(){
-          // Retrieve the singleton for the GoogleAuth library and set up the client.
-          var initOptions = {
-              "client_id": this.client_id[(isAndroid())?"android":"web"]
-          }
+    this.init = function(login){
+        if(login==null || typeof login == "undefined"){
+            login = true;
+        }
 
-          this.GoogleAuth = gapi.auth2.init(initOptions).then(
-            this.login.bind(this),
-            this.onError.bind(this)
-        );
-      }.bind(this));
+        gapi.load('auth2', function(){
+            // Retrieve the singleton for the GoogleAuth library and set up the client.
+            var initOptions = {
+              //"client_id": this.client_id["web_test"]
+              this.client_id[(isApp())?"android":"web"]
+            }
+
+            gapi.auth2.init(initOptions).then(
+                function(){
+                    this.initialized = true;
+                    this.login.bind(this)
+                }.bind(this),
+                this.onError.bind(this)
+            );
+        }.bind(this));
     }
 
     this.login = function(){
+        if(!this.initialized){
+            this.init();
+            return;
+        }
+
+        this.GoogleAuth = gapi.auth2.getAuthInstance();
+
         this.GoogleAuth.signIn({
+            "app_package_name": "io.samleo8.SoaringSheep",
             "scope": "games email"
         });
     }
@@ -1594,16 +1614,12 @@ var GooglePlayServices = function(){
         this.GoogleAuth.signOut();
     }
 
-    this.onError = function(error){
-        console.log("Error with Google Play Services!");
-        console.log(error);
+    this.isLoggedIn = this.isSignedIn = function(){
+        return this.GoogleAuth.isSignedIn.get();
     }
 
-    this.showPlayerInfo = function(){
-        window.plugins.playGamesServices.showPlayer(function (playerData) {
-        	console.log("Authenticated as "+playerData['displayName']);
-            this.playerData = playerData;
-        }.bind(this));
+    this.onError = function(error){
+        console.log("ERROR "+error.error+":\n"+error.details);
     }
 
     //Scores and Leaderboards
@@ -1611,15 +1627,7 @@ var GooglePlayServices = function(){
         "highscore": "CgkI8sq82fwOEAIQAg" //leaderboardID
     }
 
-    this.showLeaderboard = function(name){
-        if(name == null || typeof name == "undefined" || name.toLowerCase()=="all"){
-            window.plugins.playGamesServices.showAllLeaderboards();
-            return;
-        }
-        else{
-            window.plugins.playGamesServices.showLeaderboard(this.leaderboards[name]);
-        }
-    }
+
 }
 
 //*--------UNIVERSAL FUNCTIONS--------*//
