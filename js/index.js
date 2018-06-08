@@ -1469,7 +1469,7 @@ var SoaringSheepGame = function(){
 
         //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
         if(GPlay.isGamesAPILoaded()){
-            GPlay.sendScore(this.highscore,"highscore");
+            GPlay.sendScore(this.score,"highscore");
         }
 
 		//RESTART GAME
@@ -1652,7 +1652,7 @@ var GooglePlayServices = function(){
 
     this.sendScore = function(score, leaderboard_name){
         var self = this;
-        
+
         if(score == null || typeof score == "undefined") return;
         if(leaderboard_name == null || typeof leaderboard_name == "undefined"){
             leaderboard_name = "highscore";
