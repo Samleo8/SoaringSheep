@@ -158,6 +158,9 @@ var SoaringSheepGame = function(){
 	this.pauseTimer;
 	this.pauseOverlay;
 
+    //Ads
+    this.totalGamesPlayed = 0;
+
 	this.initStage = function(){
 		//CHECK MOBILE
 		_isMobile = MobileAndTabletCheck();
@@ -876,7 +879,7 @@ var SoaringSheepGame = function(){
 
 		stage.addChild(this.obstacles);
 
-        //CREATE POWERUP Container
+        //CREATE POWERUP CONTAINER
         this.powerups = new PIXI.Container();
         stage.addChild(this.powerups);
 
@@ -922,6 +925,8 @@ var SoaringSheepGame = function(){
         stage.addChild(this.gamesButton);
         stage.addChild(this.webButton);
 
+        this.totalGamesPlayed = 0;
+
 		this.newGame();
 	}
 
@@ -961,6 +966,9 @@ var SoaringSheepGame = function(){
 		for(i=0;i<=this.nObstacleSections;i++){
 			this.obstacleSectionActive[i] = false;
 		}
+
+        //-Games Played
+        this.totalGamesPlayed++;
 
 		//START UPDATE LOOP
 		this._paused = false;
@@ -1242,7 +1250,8 @@ var SoaringSheepGame = function(){
 
     this.appBlur = function(){
         //Turn off music otherwise it will play in the background
-        this.audio["main_music"].pause();
+        if(this.audio["main_music"])
+            this.audio["main_music"].pause();
 
         this.togglePause(true);
     }
@@ -1250,7 +1259,8 @@ var SoaringSheepGame = function(){
     this.appFocus = function(){
         //Turn back on music, checking if it was playing originally
         if(!this._musicMuted){
-            this.audio["main_music"].play();
+            if(this.audio["main_music"])
+                this.audio["main_music"].play();
         }
     }
 
@@ -1459,10 +1469,7 @@ var SoaringSheepGame = function(){
 
         //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
         if(GPlay.isGamesAPILoaded()){
-            if(this.highscore == this.score){
-                //New Highscore!
-                GPlay.sendScore(this.highscore,"highscore");
-            }
+            GPlay.sendScore(this.highscore,"highscore");
         }
 
 		//RESTART GAME
@@ -1644,12 +1651,13 @@ var GooglePlayServices = function(){
     }
 
     this.sendScore = function(score, leaderboard_name){
+        var self = this;
+        
         if(score == null || typeof score == "undefined") return;
         if(leaderboard_name == null || typeof leaderboard_name == "undefined"){
             leaderboard_name = "highscore";
         }
 
-        self = this;
         gapi.client.games.scores.submit({
             "leaderboardId": self.leaderboards[leaderboard_name],
             "score": score
@@ -1659,6 +1667,8 @@ var GooglePlayServices = function(){
     }
 
     this.getScores = function(leaderboard_name, type){
+        var self = this;
+
         if(leaderboard_name == null || typeof leaderboard_name == "undefined"){
             leaderboard_name = "highscore";
         }
@@ -1675,7 +1685,7 @@ var GooglePlayServices = function(){
             "maxResults": 30
         }).then( function(response) {
                 // Handle the results here (response.result has the parsed body).
-                console.log("Response: "+response);
+                console.log("Response "+response);
                 return RESPONSE = response;
             },
             this.onError.bind(this)
