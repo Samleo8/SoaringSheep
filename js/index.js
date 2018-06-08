@@ -1457,6 +1457,14 @@ var SoaringSheepGame = function(){
             this.powerups.removeChild(this.powerups.children[i]);
         }
 
+        //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
+        if(GPlay.isGamesAPILoaded()){
+            if(this.highscore == this.score){
+                //New Highscore!
+                GPlay.sendScore(this.highscore,"highscore");
+            }
+        }
+
 		//RESTART GAME
 		this.newGame();
 	};
@@ -1644,10 +1652,36 @@ var GooglePlayServices = function(){
         self = this;
         gapi.client.games.scores.submit({
             "leaderboardId": self.leaderboards[leaderboard_name],
-            "score":score
+            "score": score
         }).execute(function(response){
             console.log(response);
         });
+    }
+
+    this.getScores = function(leaderboard_name, type){
+        if(leaderboard_name == null || typeof leaderboard_name == "undefined"){
+            leaderboard_name = "highscore";
+        }
+        if(type == null || typeof type == "undefined"){
+            type = "PUBLIC";
+        }
+
+        var RESPONSE = "ERROR!";
+
+        gapi.client.games.scores.list({
+            "leaderboardId": self.leaderboards[leaderboard_name],
+            "timeSpan": "ALL_TIME",
+            "collection": type,
+            "maxResults": 30
+        }).then( function(response) {
+                // Handle the results here (response.result has the parsed body).
+                console.log("Response: "+response);
+                return RESPONSE = response;
+            },
+            this.onError.bind(this)
+        );
+
+        return RESPONSE;
     }
 
     //-Achievements
