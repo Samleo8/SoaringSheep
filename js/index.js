@@ -158,6 +158,9 @@ var SoaringSheepGame = function(){
 	this.pauseTimer;
 	this.pauseOverlay;
 
+    //Google Play
+    this.playGamesOverlay;
+
     //Ads
     this.totalGamesPlayed = 0;
 
@@ -1586,7 +1589,7 @@ var GooglePlayServices = function(){
 
     this.GoogleAuth;
 
-    this.playerData;
+    this.scoresList;
 
     //General Functions (Login, Logout, Init)
     this.init = function(login){
@@ -1676,22 +1679,16 @@ var GooglePlayServices = function(){
             type = "PUBLIC";
         }
 
-        var RESPONSE = "ERROR!";
-
-        gapi.client.games.scores.list({
+        return gapi.client.games.scores.list({
             "leaderboardId": self.leaderboards[leaderboard_name],
             "timeSpan": "ALL_TIME",
             "collection": type,
             "maxResults": 30
         }).then( function(response) {
-                // Handle the results here (response.result has the parsed body).
-                console.log("Response "+response);
-                return RESPONSE = response;
+                game.showHighscoreTable();
             },
             this.onError.bind(this)
         );
-
-        return RESPONSE;
     }
 
     //-Achievements
