@@ -1569,7 +1569,6 @@ var GooglePlayServices = function(){
         "web_test":"514509972850-nkv4v47360fp75rmbiubld0lq0kp078e.apps.googleusercontent.com"
     }
 
-    this.GamesAPI;
     this.GoogleAuth;
 
     this.playerData;
@@ -1608,7 +1607,6 @@ var GooglePlayServices = function(){
 
     this.logout = function(){
         this.GoogleAuth = null;
-        this.GamesAPI = null;
 
         this.GoogleAuth.signOut().then(function(){
             console.log("Signed Out!");
@@ -1625,13 +1623,35 @@ var GooglePlayServices = function(){
 
         gapi.client.load('games','v1', function(response){
             console.log("Play Games API Ready!");
-            self.GamesAPI = gapi.client.games;
         });
     }
 
     this.isGamesAPILoaded = function(){
         return (gapi.client.games == null || typeof gapi.client.games == "undefined");
     }
+
+    //-Scores
+    this.leaderboards = {
+        "highscore": "CgkI8sq82fwOEAIQAg" //leaderboardID
+    }
+
+    this.sendScore = function(score, leaderboard_name){
+        if(score == null || typeof score == "undefined") return;
+        if(leaderboard_name == null || typeof leaderboard_name == "undefined"){
+            leaderboard_name = "highscore";
+        }
+
+        self = this;
+        gapi.client.games.scores.submit({
+            "leaderboardId": self.leaderboards[leaderboard_name],
+            "score":score
+        }).execute(function(response){
+            console.log(response);
+        });
+    }
+
+    //-Achievements
+    //TODO: achievements
 
     //Error Handling
     this.onError = function(error){
@@ -1646,13 +1666,6 @@ var GooglePlayServices = function(){
 
         console.log("ERROR "+error.error+":\n"+error.details);
     }
-
-    //Scores and Leaderboards
-    this.leaderboards = {
-        "highscore": "CgkI8sq82fwOEAIQAg" //leaderboardID
-    }
-
-
 }
 
 //*--------UNIVERSAL FUNCTIONS--------*//
