@@ -1569,11 +1569,12 @@ var GooglePlayServices = function(){
         "web_test":"514509972850-nkv4v47360fp75rmbiubld0lq0kp078e.apps.googleusercontent.com"
     }
 
-    this.initialized = false;
-    this.loggedIn = false;
+    this.GamesAPI;
+    this.GoogleAuth;
+
     this.playerData;
 
-    //General Functions
+    //General Functions (Login, Logout, Init)
     this.init = function(login){
         if(login==null || typeof login == "undefined"){
             login = true;
@@ -1582,43 +1583,67 @@ var GooglePlayServices = function(){
         gapi.load('auth2', function(){
             // Retrieve the singleton for the GoogleAuth library and set up the client.
             var initOptions = {
-              //"client_id": this.client_id["web_test"]
+              "client_id":
+              //this.client_id["web_test"]
               this.client_id[(isApp())?"android":"web"]
             }
 
             gapi.auth2.init(initOptions).then(
-                function(){
-                    this.initialized = true;
-                    this.login.bind(this)
-                }.bind(this),
+                this.login.bind(this),
                 this.onError.bind(this)
             );
         }.bind(this));
     }
 
     this.login = function(){
-        if(!this.initialized){
-            this.init();
-            return;
-        }
+        console.log("Logging into Google Play Games...");
 
         this.GoogleAuth = gapi.auth2.getAuthInstance();
 
-        this.GoogleAuth.signIn({
-            "app_package_name": "io.samleo8.SoaringSheep",
-            "scope": "games email"
-        });
+        this.GoogleAuth.signIn().then(
+            this.initGamesAPI.bind(this),
+            this.onError.bind(this)
+        );
     }
 
     this.logout = function(){
-        this.GoogleAuth.signOut();
+        this.GoogleAuth = null;
+        this.GamesAPI = null;
+
+        this.GoogleAuth.signOut().then(function(){
+            console.log("Signed Out!");
+        }, this.onError.bind(this));
     }
 
-    this.isLoggedIn = this.isSignedIn = function(){
+    this.isLoggedIn = function(){
         return this.GoogleAuth.isSignedIn.get();
     }
 
+    //Play Games
+    this.initGamesAPI = function(){
+        var self = this;
+
+        gapi.client.load('games','v1', function(response){
+            console.log("Play Games API Ready!");
+            self.GamesAPI = gapi.client.games;
+        });
+    }
+
+    this.isGamesAPILoaded = function(){
+        return (gapi.client.games == null || typeof gapi.client.games == "undefined");
+    }
+
+    //Error Handling
     this.onError = function(error){
+        var errorCodes = {
+            "initialization":[
+                "idpiframe_initialization_failed",
+                "access_denied",
+                "immediate_failed",
+                "popup_closed_by_user"
+            ]
+        }
+
         console.log("ERROR "+error.error+":\n"+error.details);
     }
 
