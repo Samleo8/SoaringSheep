@@ -1,14 +1,19 @@
 var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
 var forceIsApp = false;
-var isMobile = false;
+
+var _isApp = null;
+var _isAndroid = null;
+
+var _isMobile = false;
 
 var game;
+var GPlay;
 
 var app = {
     // Application Constructor
     initialize: function() {
-		game = new Game();
+		game = new SoaringSheepGame();
 
         //Init Event Listeners
         this.bindEvents();
@@ -21,7 +26,7 @@ var app = {
                 e.preventDefault();
             }, false);
 
-			isMobile = true;
+			_isMobile = true;
             console.log("Mobile device detected");
         }
 
@@ -32,12 +37,17 @@ var app = {
     onDeviceReady: function() {
         console.log((isApp())?"Device Ready!":"DOM Loaded...");
 
+        if(isAndroid()){
+            GPlay = new GooglePlayServices();
+            GPlay.auth();
+        }
+
         FastClick.attach(document.body);
 		game.initStage();
     }
 };
 
-var Game = function(){
+var SoaringSheepGame = function(){
 	var self = this;
 
 	this._gameStarted = false;
@@ -155,7 +165,7 @@ var Game = function(){
 
 	this.initStage = function(){
 		//CHECK MOBILE
-		isMobile = MobileAndTabletCheck();
+		_isMobile = MobileAndTabletCheck();
 
 		//INIT RENDERER
 		var rendererOptions = {
@@ -188,7 +198,7 @@ var Game = function(){
         document.addEventListener("resume", this.appFocus.bind(this), false);
 		document.addEventListener("pause", this.appBlur.bind(this), false);
 
-		renderer.view.addEventListener((isMobile)?"touchend":"mouseup", this.heroJump.bind(this), false);
+		renderer.view.addEventListener((_isMobile)?"touchend":"mouseup", this.heroJump.bind(this), false);
 
 		//LOAD IMAGES, FONTS AND MUSIC
 		this.loadFonts(); //(load fonts first to make sure start screen has proper fonts)
@@ -274,7 +284,7 @@ var Game = function(){
 			line.lineStyle(1,0xeceff1).moveTo(0,0).lineTo(468,0);
 			this.pauseOverlay.addChild(line);
 
-			text2 = new PIXI.Text(((isMobile)?"Tap":"Click")+" to continue ",
+			text2 = new PIXI.Text(((_isMobile)?"Tap":"Click")+" to continue ",
 			Object.assign(textOpt,{
 				fontFamily:'TimeBurner',
 				fontSize:40,
@@ -289,7 +299,7 @@ var Game = function(){
 			this.pauseOverlay.addChild(text2);
 
 			//-Add Event Listener
-			this.pauseOverlay.on((isMobile)?"touchend":"mouseup",this.togglePause.bind(this,false));
+			this.pauseOverlay.on((_isMobile)?"touchend":"mouseup",this.togglePause.bind(this,false));
 
             //-INFO OVERLAY
 			this.infoOverlay = new PIXI.Container();
@@ -371,7 +381,7 @@ var Game = function(){
 
             this.infoOverlay.addChild(text2);
 
-            this.infoOverlay.on((isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
+            this.infoOverlay.on((_isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
 
             this.infoOverlay.alpha = 0;
 
@@ -416,7 +426,7 @@ var Game = function(){
 			this.pauseButton.interactive = true;
 			this.pauseButton.buttonMode = true;
 
-			this.pauseButton.on((isMobile)?"touchend":"mouseup",this.togglePause.bind(this));
+			this.pauseButton.on((_isMobile)?"touchend":"mouseup",this.togglePause.bind(this));
 
 			this.pauseButton.position.set(this.canvasWidth-60,50);
 
@@ -429,7 +439,7 @@ var Game = function(){
 			this.muteMusicButton.interactive = true;
 			this.muteMusicButton.buttonMode = true;
 
-			this.muteMusicButton.on((isMobile)?"touchend":"mouseup",this.toggleMuteMain.bind(this));
+			this.muteMusicButton.on((_isMobile)?"touchend":"mouseup",this.toggleMuteMain.bind(this));
 
 			this.muteMusicButton.position.set(this.canvasWidth-145,50);
 
@@ -457,7 +467,7 @@ var Game = function(){
 			this.muteFXButton.interactive = true;
 			this.muteFXButton.buttonMode = true;
 
-			this.muteFXButton.on((isMobile)?"touchend":"mouseup",this.toggleMuteFX.bind(this));
+			this.muteFXButton.on((_isMobile)?"touchend":"mouseup",this.toggleMuteFX.bind(this));
 
 			this.muteFXButton.position.set(this.canvasWidth-235,50);
 
@@ -478,7 +488,7 @@ var Game = function(){
 			this.gamesButton.interactive = true;
 			this.gamesButton.buttonMode = true;
 
-			this.gamesButton.on((isMobile)?"touchend":"mouseup",this.initPlayGames.bind(this));
+			this.gamesButton.on((_isMobile)?"touchend":"mouseup",this.initPlayGames.bind(this));
 
 			this.gamesButton.position.set(80,50);
 
@@ -498,7 +508,7 @@ var Game = function(){
 			this.infoButton.interactive = true;
 			this.infoButton.buttonMode = true;
 
-			this.infoButton.on((isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
+			this.infoButton.on((_isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
 
 			this.infoButton.position.set(190,50);
 
@@ -518,9 +528,9 @@ var Game = function(){
             this.webButton.interactive = true;
             this.webButton.buttonMode = true;
 
-            this.webButton.on((isMobile)?"touchend":"mouseup",this.gotoURL.bind(this,"https://samleo8.github.io/games/"));
+            this.webButton.on((_isMobile)?"touchend":"mouseup",this.gotoURL.bind(this,"https://samleo8.github.io/games/"));
 
-            this.webButton.position.set(290,50);
+            this.webButton.position.set(292,50);
 
             this.webButton.addChild(this.sprites.icons["web"]);
             this.webButton.getChildByName("web").alpha = 1;
@@ -720,7 +730,7 @@ var Game = function(){
 				fontSize:38
 			};
 
-			var text = new PIXI.Text("Avoid the falling spikes!\nScore by bouncing off the sides.\n"+((isMobile)?"Tap":"Click/[SPACE]")+" to JUMP\n\n- JUMP to Start! -",textOpt);
+			var text = new PIXI.Text("Avoid the falling spikes!\nScore by bouncing off the sides.\n"+((_isMobile)?"Tap":"Click/[SPACE]")+" to JUMP\n\n- JUMP to Start! -",textOpt);
 			text.anchor.set(0.5,0.5);
 
 			speech_bubble.addChild(bubble);
@@ -1549,9 +1559,79 @@ var Game = function(){
     }
 }
 
+//*-------GOOGLE PLAY SERVICES--------*//
+var GooglePlayServices = function(){
+    this.client_id = {
+        "android":"514509972850-9cdi9qajgltk7foscdns8jf1ffe83go6.apps.googleusercontent.com",
+        "web":"514509972850-jma6151g1177bolmfpi9a150dbm7atr3.apps.googleusercontent.com"
+    }
+
+    this.loggedIn = false;
+    this.playerData;
+
+    //General Functions
+    this.init = function(){
+        gapi.load('auth2', function(){
+          // Retrieve the singleton for the GoogleAuth library and set up the client.
+          var initOptions = {
+              "client_id": this.client_id[(isAndroid())?"android":"web"]
+          }
+
+          this.GoogleAuth = gapi.auth2.init(initOptions).then(
+            this.login.bind(this),
+            this.onError.bind(this)
+        );
+      }.bind(this));
+    }
+
+    this.login = function(){
+        this.GoogleAuth.signIn({
+            "scope": "games email"
+        });
+    }
+
+    this.logout = function(){
+        this.GoogleAuth.signOut();
+    }
+
+    this.onError = function(error){
+        console.log("Error with Google Play Services!");
+        console.log(error);
+    }
+
+    this.showPlayerInfo = function(){
+        window.plugins.playGamesServices.showPlayer(function (playerData) {
+        	console.log("Authenticated as "+playerData['displayName']);
+            this.playerData = playerData;
+        }.bind(this));
+    }
+
+    //Scores and Leaderboards
+    this.leaderboards = {
+        "highscore": "CgkI8sq82fwOEAIQAg" //leaderboardID
+    }
+
+    this.showLeaderboard = function(name){
+        if(name == null || typeof name == "undefined" || name.toLowerCase()=="all"){
+            window.plugins.playGamesServices.showAllLeaderboards();
+            return;
+        }
+        else{
+            window.plugins.playGamesServices.showLeaderboard(this.leaderboards[name]);
+        }
+    }
+}
+
 //*--------UNIVERSAL FUNCTIONS--------*//
 function isApp(){
-    return (forceIsApp || (typeof device) != "undefined");
+    if(_isApp == true) return true;
+
+    return _isApp = (forceIsApp || (typeof device) != "undefined");
+}
+
+function isAndroid(try_anyway){
+    if(_isAndroid!=null && !try_anyway) return _isAndroid;
+    else return _isAndroid=(isApp() && (device.platform.toUpperCase() === 'ANDROID'));
 }
 
 function MobileCheck() {
