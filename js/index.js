@@ -1648,14 +1648,13 @@ var SoaringSheepGame = function(){
             //Games API is working!
 
             //Make menu appear, and pause game
+            this.playGamesMenu.alpha = 1;
             this.playGamesMenu.visible = true;
 
             this.togglePause(true);
-
-
-
         }
         else{
+            this.playGamesMenu.alpha = 0;
             this.playGamesMenu.visible = false;
             //this.togglePause(false);
         }
