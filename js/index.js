@@ -1603,8 +1603,6 @@ var SoaringSheepGame = function(){
     this.switchPlayGamesTabs = function(tab_name){
         var i;
 
-        this.preventHeroJump++;
-
         if(typeof tab_name != "string") return;
 
         for(i in this.playGamesMenu.tabs){
