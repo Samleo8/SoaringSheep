@@ -30,8 +30,8 @@ var app = {
             console.log("Mobile device detected");
         }
 
-        window.addEventListener('online', this.gameOnline.bind(this) );
-        window.addEventListener('offline', this.gameOffline.bind(this) );
+        window.addEventListener('online', this.connectionChange.bind(this) );
+        window.addEventListener('offline', this.connectionChange.bind(this) );
 
         if(isApp()) window.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
         else window.addEventListener('DOMContentLoaded', this.onDeviceReady.bind(this), false);
@@ -46,23 +46,28 @@ var app = {
 		game.initStage();
     },
 
-    gameOnline: function(){
-        GPlay.noConnection = false;
-        game.isOnline = true;
+    connectionChange: function(e){
+        if(event.type == "offline"){
+            console.log("Oh no, you lost connection.");
 
-        if(game._gameStarted) GPlay.init();
-    },
+            GPlay.noConnection = true;
+            game.isOnline = false;
+        }
+        else if(event.type == "online"){
+            console.log("Yay you are now back online!");
 
-    gameOffline: function(){
-        GPlay.noConnection = true;
-        game.isOnline = false;
+            GPlay.noConnection = false;
+            game.isOnline = true;
+
+            if(game._gameStarted) GPlay.init();
+        }
     }
 };
 
 var SoaringSheepGame = function(){
 	var self = this;
 
-    this.isOnline;
+    this.isOnline = navigator.onLine;
 
 	this._gameStarted = false;
 	this._jumpToStartGame = false;
@@ -180,6 +185,15 @@ var SoaringSheepGame = function(){
 
     //Google Play
     this.playGamesMenu;
+    this.leaderboard = {
+        "maxResults": 10,
+        "self":{
+            "rank":{},
+            "name":{},
+            "score":{}
+        },
+        "others":[]
+    }
 
     //Ads
     this.totalGamesPlayed = 0;
@@ -763,6 +777,9 @@ var SoaringSheepGame = function(){
             fontSize: 30
         };
 
+        this.playGamesMenu.tabsContentBG = new PIXI.Graphics();
+        this.playGamesMenu.addChild(this.playGamesMenu.tabsContentBG);
+
         for(i=0;i<tabsNamesArr.length;i++){
             _nm = tabsNamesArr[i].toLowerCase();
             tab = this.playGamesMenu.tabs[_nm];
@@ -775,7 +792,7 @@ var SoaringSheepGame = function(){
 
             tab.bg = new PIXI.Graphics();
             tab.bg.beginFill(0xcfd8dc,0.98)
-                .drawRect(0,0,tab._width,tab._height)
+                .drawRect(0,0,tab._width-2,tab._height)
             .endFill();
 
             tab.icon = this.sprites.icons[_nm];
@@ -789,7 +806,7 @@ var SoaringSheepGame = function(){
             tab.text.anchor.set(0.5,0.5);
             tab.text.position.set(tab._width/2, tab._height/2);
 
-            tab.position.set(i*tab._width,175);
+            tab.position.set(i*(tab._width+1),175);
 
             tab.overlay = new PIXI.Graphics();
             tab.overlay.beginFill(0x455A64,0.7)
@@ -810,82 +827,155 @@ var SoaringSheepGame = function(){
 
         this.playGamesMenu.tabs["leaderboard"].overlay.alpha = 0;
 
-/*
-            //Logout
-            //--Button
-            this.playGamesMenu.logoutButton = new PIXI.Container();
-            this.playGamesMenu.logoutButton.interactive = true;
-            this.playGamesMenu.logoutButton.buttonMode = true;
-
-            this.playGamesMenu.logoutButton.on((_isMobile)?"touchend":"mouseup", function(){
-                GPlay.logout.bind(GPlay);
-            });
-
-            this.playGamesMenu.logoutButton.position.set(this.canvasWidth-340,60);
-
-            this.playGamesMenu.logoutButton.addChild(this.sprites.icons["logout"]);
-            this.playGamesMenu.logoutButton.getChildByName("logout").alpha = 1;
-
-            //--Text
-            textOpt2 = {
-                fontFamily: 'TimeBurnerBold',
-                fill: "0x90a4ae",
-                letterSpacing: 5,
-                align: 'center',
-                fontSize: 20
-            };
-
-            text = new PIXI.Text("LOGOUT",textOpt2);
-            text.anchor.set(0.5,0.5);
-            text.alpha = 1;
-            text.y = 55;
-            this.playGamesMenu.logoutButton.addChild(text);
-
-        this.playGamesMenu.addChild(this.playGamesMenu.logoutButton);
-
-        this.playGamesMenu.tabHeight = 75;
-        this.playGamesMenu.tabPadding = 150;
-
-        //Table Header Text
-        textOpt3 = {
-            fontFamily: 'TimeBurnerBold',
-            fill: "0xcfd8dc",
-            letterSpacing: 5,
-            align: 'center',
-            fontSize: 28
-        };
-
-        this.playGamesMenu.headerText = {};
-        this.playGamesMenu.headerText["rank"] = new PIXI.Text("RANK",textOpt3);
-        this.playGamesMenu.headerText["rank"].anchor.set(0.5,1);
-        this.playGamesMenu.headerText["rank"].position.set(this.playGamesMenu.tabPadding+50, 210);
-        this.playGamesMenu.headerText["rank"].alpha = 1;
-
-        for(i in this.playGamesMenu.headerText) this.playGamesMenu.addChild(this.playGamesMenu.headerText[i]);
-
-        //Self rank
-        this.playGamesMenu.selfRank = new PIXI.Container();
-        this.playGamesMenu.selfRank = new PIXI.Graphics();
-        this.playGamesMenu.selfRank.beginFill(0xcfd8dc,0.98)
-            .drawRect(this.playGamesMenu.tabPadding,220,this.canvasWidth-2*this.playGamesMenu.tabPadding,this.playGamesMenu.tabHeight)
+        this.playGamesMenu.tabsContentBG.beginFill(0xcfd8dc,0.98)
+            .drawRect(0,tab._height+tab.y-1,this.canvasWidth,this.canvasHeight-tab._height/2-tab.y)
         .endFill();
 
-        this.playGamesMenu.selfRank.lineStyle(4,0x90a4ae)
-			.moveTo(this.playGamesMenu.tabPadding+100,220)
-            .lineTo(this.playGamesMenu.tabPadding+100,220+this.playGamesMenu.tabHeight)
+        //Tabs Content
+        this.playGamesMenu.tabsContent = {
+            "leaderboard": new PIXI.Container(),
+            "achievements": new PIXI.Container(),
+            "settings": new PIXI.Container()
+        }
 
+        for(i in this.playGamesMenu.tabsContent){
+            if(!this.playGamesMenu.tabsContent.hasOwnProperty(i)) continue;
 
+            this.playGamesMenu.tabsContent[i].position.set(0,tab._height+tab.y-1);
+        }
 
-        this.playGamesMenu.addChild(this.playGamesMenu.selfRank);
-*/
+            //Leaderboard
+            var leaderboardContent = this.playGamesMenu.tabsContent["leaderboard"];
+            leaderboardContent.y += 25;
+
+            leaderboardContent.tableHeaderWidths = {
+                //Percentage of width
+                "rank": 0.2,
+                "name": 0.5,
+                "score": 0.3
+            }
+
+            //Table Header Text
+            textOpt3 = {
+                fontFamily: 'TimeBurnerBold',
+                fill: "0x455A64",
+                letterSpacing: 5,
+                align: 'center',
+                fontSize: 28
+            };
+
+            var headerText, cell, _width, _nm, _x;
+            var cellHeight = 40;
+            var cellPadd = 2;
+            var tablePadd = 60;
+            var tableWidth = this.canvasWidth-2*tablePadd;
+
+            _x = tablePadd;
+
+            //Ranking box text
+            textOpt4 = {
+                fontFamily: 'TimeBurnerBold',
+                fill: "0x455A64",
+                letterSpacing: 5,
+                align: 'center',
+                fontSize: 24
+            };
+
+            for(i=0;i<this.leaderboard.maxResults;i++){
+                this.leaderboard["others"].push({
+                    "rank":{},
+                    "name":{},
+                    "score":{}
+                });
+            }
+
+            for(i in leaderboardContent.tableHeaderWidths){
+                if(!leaderboardContent.tableHeaderWidths.hasOwnProperty(i)) continue;
+
+                _name = i.toString();
+                _width = leaderboardContent.tableHeaderWidths[_name]*tableWidth;
+
+                _x += _width/2;
+
+                //Header text
+                headerText = new PIXI.Text(_name.toUpperCase(), textOpt3);
+                headerText.anchor.set(0.5,0);
+                headerText.position.set(_x,20);
+
+                leaderboardContent.addChild(headerText);
+
+                //Cells
+                    //Self
+                    var selfCell = new PIXI.Container();
+                    selfCell.position.set(_x-_width/2,headerText.y+cellHeight);
+
+                    selfCell.bg = new PIXI.Graphics();
+                    selfCell.bg.beginFill(0xb0bec5)
+                        .drawRect(0,0,_width-2,cellHeight)
+                    .endFill();
+
+                    selfCell.tb = new PIXI.Text("-",textOpt4);
+                    selfCell.tb.anchor.set(0.5,0.5);
+                    selfCell.tb.position.set(_width/2,cellHeight/2);
+
+                    this.leaderboard["self"][_name].textBox = selfCell.tb;
+
+                    selfCell.addChild(selfCell.bg);
+                    selfCell.addChild(selfCell.tb);
+
+                    leaderboardContent.addChild(selfCell);
+
+                    //Line Separator
+                    var ln = new PIXI.Graphics();
+                    ln._padd = 7.5;
+                    ln._yy = selfCell.y+cellHeight+ln._padd;
+                    ln.lineStyle(2,0xb0bec5)
+            			.moveTo(tablePadd/2,ln._yy)
+                        .lineTo(this.canvasWidth-tablePadd/2,ln._yy);
+
+                    leaderboardContent.addChild(ln);
+
+                    //Global Ranking
+                    var _yy = ln._yy+ln._padd;
+
+                    for(i=0;i<this.leaderboard.maxResults;i++){
+                        cell = new PIXI.Container();
+
+                        _yy += cellPadd;
+                        cell.position.set(_x-_width/2,_yy);
+
+                        cell.bg = new PIXI.Graphics();
+                        cell.bg.beginFill(0x90a4ae)
+                            .drawRect(0,0,_width-2,cellHeight)
+                        .endFill();
+
+                        cell.tb = new PIXI.Text("-",textOpt4);
+                        cell.tb.anchor.set(0.5,0.5);
+                        cell.tb.position.set(_width/2,cellHeight/2);
+
+                        this.leaderboard["others"][i][_name].textBox = cell.tb;
+
+                        cell.addChild(cell.bg);
+                        cell.addChild(cell.tb);
+
+                        _yy += cellHeight;
+
+                        leaderboardContent.addChild(cell);
+                    }
+
+                _x += _width/2;
+            }
+
+            this.playGamesMenu.tabsContent["leaderboard"] = leaderboardContent;
+
+            this.playGamesMenu.addChild(leaderboardContent);
+
 
         this.playGamesMenu.interactive = true;
         this.playGamesMenu.buttonMode = true;
         this.playGamesMenu.on((_isMobile)?"touchend":"mouseup",function(){
             this.preventHeroJump++;
         }.bind(this));
-
-        this.playGamesMenu.alpha = 1;
     };
 
 	this.allAssetsLoaded = function(){
@@ -983,10 +1073,13 @@ var SoaringSheepGame = function(){
         if(sheep.alpha>=1){
             for(i=0;i<this.fadeObjects.length;i++){
                 if(this.fadeObjects[i] == this.infoOverlay) continue;
-                if(this.fadeObjects[i] == this.playGamesMenu) continue;
+                //if(this.fadeObjects[i] == this.playGamesMenu) continue;
 
                 this.fadeObjects[i].alpha = 1;
             }
+
+
+            this.playGamesMenu.visible = false;
 
             this.startScreen.interactive = true;
             this.startScreen.buttonMode = true;
@@ -1501,7 +1594,7 @@ var SoaringSheepGame = function(){
 	};
 
     this.initPlayGames = function(e){
-        this.playGamesMenu.alpha = 1;
+        //this.playGamesMenu.alpha = 1;
         renderer.render(stage);
 
         GPlay.init();
@@ -1519,6 +1612,11 @@ var SoaringSheepGame = function(){
         }
         this.playGamesMenu.tabs[tab_name.toString()].overlay.alpha = 0;
 
+        for(i in this.playGamesMenu.tabsContent){
+            this.playGamesMenu.tabsContent[i].visible = false;
+        }
+        this.playGamesMenu.tabsContent[tab_name.toString()].visible = true;
+
         renderer.render(stage);
     }
 
@@ -1532,9 +1630,10 @@ var SoaringSheepGame = function(){
         }
 
         //Toggle the display of the info page, along with the pausing
-        if(!this.playGamesMenu.alpha){
+        if(!this.playGamesMenu.visible){
+            //*
             //If we are not logged in, or games API is not working, reinit, but don't show menu.
-            if(this.isOnline)
+            if(!this.isOnline) return;
 
             if(!GPlay.isLoggedIn()){
                 GPlay.init();
@@ -1544,19 +1643,20 @@ var SoaringSheepGame = function(){
                 GPlay.initGamesAPI();
                 return;
             }
+            //*/
 
             //Games API is working!
 
             //Make menu appear, and pause game
-            this.playGamesMenu.alpha = 1;
+            this.playGamesMenu.visible = true;
+
             this.togglePause(true);
 
 
 
         }
         else{
-            this.playGamesMenu.alpha = 0;
-
+            this.playGamesMenu.visible = false;
             //this.togglePause(false);
         }
 
@@ -1958,11 +2058,11 @@ var GooglePlayServices = function(){
             type = "PUBLIC";
         }
 
-        return gapi.client.games.scores.list({
+        gapi.client.games.scores.list({
             "leaderboardId": self.leaderboards[leaderboard_name],
             "timeSpan": "ALL_TIME",
             "collection": type,
-            "maxResults": 30
+            "maxResults": 10
         }).then( function(response) {
                 game.showHighscoreTable();
             },
