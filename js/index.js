@@ -30,6 +30,9 @@ var app = {
             console.log("Mobile device detected");
         }
 
+        window.addEventListener('online', this.gameOnline.bind(this) );
+        window.addEventListener('offline', this.gameOffline.bind(this) );
+
         if(isApp()) window.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
         else window.addEventListener('DOMContentLoaded', this.onDeviceReady.bind(this), false);
     },
@@ -41,11 +44,25 @@ var app = {
 
         FastClick.attach(document.body);
 		game.initStage();
+    },
+
+    gameOnline: function(){
+        GPlay.noConnection = false;
+        game.isOnline = true;
+
+        if(game._gameStarted) GPlay.init();
+    },
+
+    gameOffline: function(){
+        GPlay.noConnection = true;
+        game.isOnline = false;
     }
 };
 
 var SoaringSheepGame = function(){
 	var self = this;
+
+    this.isOnline;
 
 	this._gameStarted = false;
 	this._jumpToStartGame = false;
@@ -128,7 +145,7 @@ var SoaringSheepGame = function(){
 
 	}
 
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","trophy"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings"];
 
 	this.pauseButton;
 	this.muteMusicButton;
@@ -728,6 +745,72 @@ var SoaringSheepGame = function(){
 
         this.playGamesMenu.addChild(text);
 
+        //Tabs
+        this.playGamesMenu.tabs = {
+            "leaderboard": new PIXI.Container(),
+            "achievements": new PIXI.Container(),
+            "settings": new PIXI.Container()
+        }
+        var tabsNamesArr = ["Leaderboard","Achievements","Settings"];
+        var tab, _nm;
+
+        textOpt2 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0x455A64",
+            letterSpacing: 5,
+            padding:10,
+            align: 'center',
+            fontSize: 30
+        };
+
+        for(i=0;i<tabsNamesArr.length;i++){
+            _nm = tabsNamesArr[i].toLowerCase();
+            tab = this.playGamesMenu.tabs[_nm];
+            tab.name = _nm;
+
+            tab.alpha = 1;
+
+            tab._height = 70;
+            tab._width = this.canvasWidth/tabsNamesArr.length;
+
+            tab.bg = new PIXI.Graphics();
+            tab.bg.beginFill(0xcfd8dc,0.98)
+                .drawRect(0,0,tab._width,tab._height)
+            .endFill();
+
+            tab.icon = this.sprites.icons[_nm];
+            tab.icon.anchor.set(0.5,0.5);
+            tab.icon.scale.set(0.6,0.6);
+            tab.icon.tint = 0x455A64;
+            tab.icon.alpha = 1;
+            tab.icon.position.set(tab._width/2-30*tabsNamesArr[i].length/2, tab._height/2);
+
+            tab.text = new PIXI.Text(tabsNamesArr[i],textOpt2);
+            tab.text.anchor.set(0.5,0.5);
+            tab.text.position.set(tab._width/2, tab._height/2);
+
+            tab.position.set(i*tab._width,175);
+
+            tab.overlay = new PIXI.Graphics();
+            tab.overlay.beginFill(0x455A64,0.7)
+                .drawRect(0,0,tab._width,tab._height)
+            .endFill();
+
+            tab.addChild(tab.bg);
+            tab.addChild(tab.text);
+            tab.addChild(tab.icon);
+            tab.addChild(tab.overlay);
+
+            this.playGamesMenu.addChild(tab);
+
+            tab.interactive = true;
+            tab.buttonMode = true;
+            tab.on((_isMobile)?"touchend":"mouseup",this.switchPlayGamesTabs.bind(this,tab.name));
+        }
+
+        this.playGamesMenu.tabs["leaderboard"].overlay.alpha = 0;
+
+/*
             //Logout
             //--Button
             this.playGamesMenu.logoutButton = new PIXI.Container();
@@ -794,7 +877,7 @@ var SoaringSheepGame = function(){
 
 
         this.playGamesMenu.addChild(this.playGamesMenu.selfRank);
-
+*/
 
         this.playGamesMenu.interactive = true;
         this.playGamesMenu.buttonMode = true;
@@ -1424,6 +1507,21 @@ var SoaringSheepGame = function(){
         GPlay.init();
     }
 
+    this.switchPlayGamesTabs = function(tab_name){
+        var i;
+
+        this.preventHeroJump++;
+
+        if(typeof tab_name != "string") return;
+
+        for(i in this.playGamesMenu.tabs){
+            this.playGamesMenu.tabs[i].overlay.alpha = 1;
+        }
+        this.playGamesMenu.tabs[tab_name.toString()].overlay.alpha = 0;
+
+        renderer.render(stage);
+    }
+
     this.showPlayGamesMenu = function(e){
         var i,nm;
 
@@ -1436,6 +1534,8 @@ var SoaringSheepGame = function(){
         //Toggle the display of the info page, along with the pausing
         if(!this.playGamesMenu.alpha){
             //If we are not logged in, or games API is not working, reinit, but don't show menu.
+            if(this.isOnline)
+
             if(!GPlay.isLoggedIn()){
                 GPlay.init();
                 return;
@@ -1624,8 +1724,8 @@ var SoaringSheepGame = function(){
         }
 
         //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
-        if(GPlay.isGamesAPILoaded()){
-            GPlay.sendScore(this.score,"highscore");
+        if(game.isOnline && GPlay.isLoggedIn() && GPlay.isGamesAPILoaded()){
+            GPlay.sendScore(this.score, "highscore");
         }
 
 		//RESTART GAME
@@ -1800,7 +1900,7 @@ var GooglePlayServices = function(){
     }
 
     this.isLoggedIn = function(){
-        if(this.noConnection) return;
+        if(this.noConnection) return false;
 
         if(this.GoogleAuth == null) return false;
 
@@ -1819,6 +1919,7 @@ var GooglePlayServices = function(){
     }
 
     this.isGamesAPILoaded = function(){
+        if(this.noConnection) return false;
         return !(gapi.client.games == null || typeof gapi.client.games == "undefined");
     }
 
