@@ -128,7 +128,8 @@ var SoaringSheepGame = function(){
 
 	}
 
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","trophy"];
+
 	this.pauseButton;
 	this.muteMusicButton;
 	this.muteFXButton;
