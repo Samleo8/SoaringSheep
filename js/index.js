@@ -37,6 +37,8 @@ var app = {
     onDeviceReady: function() {
         console.log((isApp())?"Device Ready!":"DOM Loaded...");
 
+        GPlay = new GooglePlayServices();
+
         FastClick.attach(document.body);
 		game.initStage();
     }
@@ -126,7 +128,7 @@ var SoaringSheepGame = function(){
 
 	}
 
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout"];
 	this.pauseButton;
 	this.muteMusicButton;
 	this.muteFXButton;
@@ -159,7 +161,7 @@ var SoaringSheepGame = function(){
 	this.pauseOverlay;
 
     //Google Play
-    this.playGamesOverlay;
+    this.playGamesMenu;
 
     //Ads
     this.totalGamesPlayed = 0;
@@ -250,141 +252,6 @@ var SoaringSheepGame = function(){
 
 		this.loader.load((loader, resources) => {
 		    //NOTE: "resources" is an object where the key is the name of the resource loaded and the value is the resource object.
-
-			//GENERATE OVERLAYS
-			//-PAUSE OVERLAY
-			this.pauseOverlay = new PIXI.Container();
-
-			var rect = new PIXI.Graphics();
-			rect.beginFill(0x263238,0.7);
-			rect.drawRect(0,0,this.canvasWidth,this.canvasHeight);
-			rect.endFill();
-
-			this.pauseOverlay.addChild(rect);
-
-			var textOpt = {
-				fontFamily: 'TimeBurnerBold',
-				fill: "#cfd8dc",
-				stroke: "#90a4ae",
-				strokeThickness: 10,
-				letterSpacing: 10,
-				align: 'center'
-			};
-
-			var text = new PIXI.Text("PAUSED",Object.assign(textOpt,{fontSize:120}));
-			text.anchor.set(0.5,0.5);
-			text.alpha = 0.75;
-			text.x = this.canvasWidth/2;
-			text.y = this.canvasHeight/2-30;
-
-			this.pauseOverlay.addChild(text);
-
-			var line = new PIXI.Graphics();
-			line.alpha = 0.85;
-			line.position.set(this.canvasWidth/2-243,this.canvasHeight/2+35);
-			line.lineStyle(1,0xeceff1).moveTo(0,0).lineTo(468,0);
-			this.pauseOverlay.addChild(line);
-
-			text2 = new PIXI.Text(((_isMobile)?"Tap":"Click")+" to continue ",
-			Object.assign(textOpt,{
-				fontFamily:'TimeBurner',
-				fontSize:40,
-				strokeThickness:1,
-				letterSpacing: 8
-			}));
-			text2.anchor.set(0.5,0.5);
-			text2.alpha = 0.75;
-			text2.x = this.canvasWidth/2-8;
-			text2.y = this.canvasHeight/2+70;
-
-			this.pauseOverlay.addChild(text2);
-
-			//-Add Event Listener
-			this.pauseOverlay.on((_isMobile)?"touchend":"mouseup",this.togglePause.bind(this,false));
-
-            //-INFO OVERLAY
-			this.infoOverlay = new PIXI.Container();
-
-			var rect = new PIXI.Graphics();
-			rect.beginFill(0x263238,0.98)
-			    .drawRect(0,0,this.canvasWidth,this.canvasHeight)
-            .endFill();
-
-			this.infoOverlay.addChild(rect);
-
-			var textOpt = {
-				fontFamily: 'TimeBurnerBold',
-				fill: "#cfd8dc",
-				stroke: "#90a4ae",
-				strokeThickness: 10,
-				letterSpacing: 10,
-				align: 'center',
-                padding:10
-			};
-
-			var text = new PIXI.Text("INFO",Object.assign(textOpt,{fontSize:75}));
-			text.anchor.set(0.5,0.5);
-			text.alpha = 0.98;
-			text.x = this.canvasWidth/2;
-			text.y = this.canvasHeight/8;
-
-			this.infoOverlay.addChild(text);
-
-            var textOpt2 = {
-                fontFamily: 'TimeBurner',
-                fill: "#cfd8dc",
-                letterSpacing: 5,
-                align: 'center',
-                wordWrap: true,
-                wordWrapWidth: this.canvasWidth*0.6,
-                padding: 10,
-                fontSize: 30
-            };
-            var text2 = new PIXI.Text("This game was created by Samuel Leong Chee Weng\nusing PIXI.js renderer library.\n\nThe web version is available on my website at\n https://samleo8.github.io/SoaringSheep",textOpt2);
-            text2.anchor.set(0.5,0);
-            text2.alpha = 0.98;
-			text2.x = this.canvasWidth/2;
-			text2.y = this.canvasHeight/6+35;
-
-            this.infoOverlay.addChild(text2);
-
-            var textOpt3 = Object.assign(textOpt,{strokeThickness:7,fontSize:45});
-
-            var text3 = new PIXI.Text("MUSIC",textOpt3);
-            text3.anchor.set(0.5,0.5);
-            text3.alpha = 0.98;
-            text3.x = this.canvasWidth/2;
-            text3.y = this.canvasHeight/2;
-
-            this.infoOverlay.addChild(text3);
-
-            text2 = new PIXI.Text("http://www.noiseforfun.com/\nhttp://www.playonloop.com/",textOpt2);
-            text2.anchor.set(0.5,0);
-            text2.alpha = 0.98;
-            text2.x = this.canvasWidth/2;
-            text2.y = this.canvasHeight/2+45;
-
-            this.infoOverlay.addChild(text2);
-
-            text3 = new PIXI.Text("SPRITES",textOpt3);
-            text3.anchor.set(0.5,0);
-            text3.alpha = 0.98;
-            text3.x = this.canvasWidth/2;
-            text3.y = this.canvasHeight/2+160;
-
-            this.infoOverlay.addChild(text3);
-
-            text2 = new PIXI.Text("Google Material Icons\nSpike: http://scribblenauts.wikia.com/wiki/File:Steel_Spike.png",textOpt2);
-            text2.anchor.set(0.5,0);
-            text2.alpha = 0.98;
-            text2.x = this.canvasWidth/2;
-            text2.y = this.canvasHeight/2+230;
-
-            this.infoOverlay.addChild(text2);
-
-            this.infoOverlay.on((_isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
-
-            this.infoOverlay.alpha = 0;
 
 			//SPRITES
 			//-Background
@@ -589,6 +456,7 @@ var SoaringSheepGame = function(){
 	};
 
 	this.checkAllFontsLoaded = function(success){
+
 		if(success) this.totalFontsLoaded++;
 		else this.totalFontsFailed++;
 
@@ -694,8 +562,252 @@ var SoaringSheepGame = function(){
 		stage.addChild(this.startScreen);
 	}
 
+    //GENERATE OVERLAYS
+    this.generateOverlays = function(){
+        /* PAUSE OVERLAY */
+        this.pauseOverlay = new PIXI.Container();
+
+        var rect = new PIXI.Graphics();
+        rect.beginFill(0x263238,0.7);
+        rect.drawRect(0,0,this.canvasWidth,this.canvasHeight);
+        rect.endFill();
+
+        this.pauseOverlay.addChild(rect);
+
+        var textOpt = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "#cfd8dc",
+            stroke: "#90a4ae",
+            strokeThickness: 10,
+            letterSpacing: 10,
+            align: 'center'
+        };
+
+        var text = new PIXI.Text("PAUSED",Object.assign(textOpt,{fontSize:120}));
+        text.anchor.set(0.5,0.5);
+        text.alpha = 0.75;
+        text.x = this.canvasWidth/2;
+        text.y = this.canvasHeight/2-30;
+
+        this.pauseOverlay.addChild(text);
+
+        var line = new PIXI.Graphics();
+        line.alpha = 0.85;
+        line.position.set(this.canvasWidth/2-243,this.canvasHeight/2+35);
+        line.lineStyle(1,0xeceff1).moveTo(0,0).lineTo(468,0);
+        this.pauseOverlay.addChild(line);
+
+        text2 = new PIXI.Text(((_isMobile)?"Tap":"Click")+" to continue ",
+        Object.assign(textOpt,{
+            fontFamily:'TimeBurner',
+            fontSize:40,
+            strokeThickness:1,
+            letterSpacing: 8
+        }));
+        text2.anchor.set(0.5,0.5);
+        text2.alpha = 0.75;
+        text2.x = this.canvasWidth/2-8;
+        text2.y = this.canvasHeight/2+70;
+
+        this.pauseOverlay.addChild(text2);
+
+        //-Add Event Listener
+        this.pauseOverlay.on((_isMobile)?"touchend":"mouseup",this.togglePause.bind(this,false));
+
+        /* INFO OVERLAY */
+        this.infoOverlay = new PIXI.Container();
+
+        var rect = new PIXI.Graphics();
+        rect.beginFill(0x263238,0.98)
+            .drawRect(0,0,this.canvasWidth,this.canvasHeight)
+        .endFill();
+
+        this.infoOverlay.addChild(rect);
+
+        var textOpt = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "#cfd8dc",
+            stroke: "#90a4ae",
+            strokeThickness: 10,
+            letterSpacing: 10,
+            align: 'center',
+            padding:10
+        };
+
+        var text = new PIXI.Text("INFO",Object.assign(textOpt,{fontSize:75}));
+        text.anchor.set(0.5,0.5);
+        text.alpha = 0.98;
+        text.x = this.canvasWidth/2;
+        text.y = this.canvasHeight/8;
+
+        this.infoOverlay.addChild(text);
+
+        var textOpt2 = {
+            fontFamily: 'TimeBurner',
+            fill: "#cfd8dc",
+            letterSpacing: 5,
+            align: 'center',
+            wordWrap: true,
+            wordWrapWidth: this.canvasWidth*0.6,
+            padding: 10,
+            fontSize: 30
+        };
+        var text2 = new PIXI.Text("This game was created by Samuel Leong Chee Weng\nusing PIXI.js renderer library.\n\nThe web version is available on my website at\n https://samleo8.github.io/SoaringSheep",textOpt2);
+        text2.anchor.set(0.5,0);
+        text2.alpha = 0.98;
+        text2.x = this.canvasWidth/2;
+        text2.y = this.canvasHeight/6+35;
+
+        this.infoOverlay.addChild(text2);
+
+        var textOpt3 = Object.assign(textOpt,{strokeThickness:7,fontSize:45});
+
+        var text3 = new PIXI.Text("MUSIC",textOpt3);
+        text3.anchor.set(0.5,0.5);
+        text3.alpha = 0.98;
+        text3.x = this.canvasWidth/2;
+        text3.y = this.canvasHeight/2;
+
+        this.infoOverlay.addChild(text3);
+
+        text2 = new PIXI.Text("http://www.noiseforfun.com/\nhttp://www.playonloop.com/",textOpt2);
+        text2.anchor.set(0.5,0);
+        text2.alpha = 0.98;
+        text2.x = this.canvasWidth/2;
+        text2.y = this.canvasHeight/2+45;
+
+        this.infoOverlay.addChild(text2);
+
+        text3 = new PIXI.Text("SPRITES",textOpt3);
+        text3.anchor.set(0.5,0);
+        text3.alpha = 0.98;
+        text3.x = this.canvasWidth/2;
+        text3.y = this.canvasHeight/2+160;
+
+        this.infoOverlay.addChild(text3);
+
+        text2 = new PIXI.Text("Material Design Icons\nSpike: http://scribblenauts.wikia.com/wiki/File:Steel_Spike.png",textOpt2);
+        text2.anchor.set(0.5,0);
+        text2.alpha = 0.98;
+        text2.x = this.canvasWidth/2;
+        text2.y = this.canvasHeight/2+230;
+
+        this.infoOverlay.addChild(text2);
+
+        this.infoOverlay.on((_isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
+
+        this.infoOverlay.alpha = 0;
+
+        /* PLAY GAMES MENU */
+        this.playGamesMenu = new PIXI.Container();
+
+        rect = new PIXI.Graphics();
+        rect.beginFill(0x263238,0.98)
+            .drawRect(0,0,this.canvasWidth,this.canvasHeight)
+        .endFill();
+
+        this.playGamesMenu.addChild(rect);
+
+        textOpt = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "#cfd8dc",
+            stroke: "#90a4ae",
+            strokeThickness: 10,
+            letterSpacing: 10,
+            align: 'center',
+            padding:10
+        };
+
+            //Title
+        text = new PIXI.Text("GOOGLE PLAY GAMES",Object.assign(textOpt,{fontSize:60}));
+        text.anchor.set(0.5,0);
+        text.alpha = 0.98;
+        text.x = this.canvasWidth/2;
+        text.y = 25;
+
+        this.playGamesMenu.addChild(text);
+
+            //Logout
+            //--Button
+            this.playGamesMenu.logoutButton = new PIXI.Container();
+            this.playGamesMenu.logoutButton.interactive = true;
+            this.playGamesMenu.logoutButton.buttonMode = true;
+
+            this.playGamesMenu.logoutButton.on((_isMobile)?"touchend":"mouseup", function(){
+                GPlay.logout.bind(GPlay);
+            });
+
+            this.playGamesMenu.logoutButton.position.set(this.canvasWidth-340,60);
+
+            this.playGamesMenu.logoutButton.addChild(this.sprites.icons["logout"]);
+            this.playGamesMenu.logoutButton.getChildByName("logout").alpha = 1;
+
+            //--Text
+            textOpt2 = {
+                fontFamily: 'TimeBurnerBold',
+                fill: "0x90a4ae",
+                letterSpacing: 5,
+                align: 'center',
+                fontSize: 20
+            };
+
+            text = new PIXI.Text("LOGOUT",textOpt2);
+            text.anchor.set(0.5,0.5);
+            text.alpha = 1;
+            text.y = 55;
+            this.playGamesMenu.logoutButton.addChild(text);
+
+        this.playGamesMenu.addChild(this.playGamesMenu.logoutButton);
+
+        this.playGamesMenu.tabHeight = 75;
+        this.playGamesMenu.tabPadding = 150;
+
+        //Table Header Text
+        textOpt3 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0xcfd8dc",
+            letterSpacing: 5,
+            align: 'center',
+            fontSize: 28
+        };
+
+        this.playGamesMenu.headerText = {};
+        this.playGamesMenu.headerText["rank"] = new PIXI.Text("RANK",textOpt3);
+        this.playGamesMenu.headerText["rank"].anchor.set(0.5,1);
+        this.playGamesMenu.headerText["rank"].position.set(this.playGamesMenu.tabPadding+50, 210);
+        this.playGamesMenu.headerText["rank"].alpha = 1;
+
+        for(i in this.playGamesMenu.headerText) this.playGamesMenu.addChild(this.playGamesMenu.headerText[i]);
+
+        //Self rank
+        this.playGamesMenu.selfRank = new PIXI.Container();
+        this.playGamesMenu.selfRank = new PIXI.Graphics();
+        this.playGamesMenu.selfRank.beginFill(0xcfd8dc,0.98)
+            .drawRect(this.playGamesMenu.tabPadding,220,this.canvasWidth-2*this.playGamesMenu.tabPadding,this.playGamesMenu.tabHeight)
+        .endFill();
+
+        this.playGamesMenu.selfRank.lineStyle(4,0x90a4ae)
+			.moveTo(this.playGamesMenu.tabPadding+100,220)
+            .lineTo(this.playGamesMenu.tabPadding+100,220+this.playGamesMenu.tabHeight)
+
+
+
+        this.playGamesMenu.addChild(this.playGamesMenu.selfRank);
+
+
+        this.playGamesMenu.interactive = true;
+        this.playGamesMenu.buttonMode = true;
+        this.playGamesMenu.on((_isMobile)?"touchend":"mouseup",function(){
+            this.preventHeroJump++;
+        }.bind(this));
+
+        this.playGamesMenu.alpha = 1;
+    };
+
 	this.allAssetsLoaded = function(){
 			var i;
+
+            this.generateOverlays();
 
 			console.log("All assets loaded.");
 
@@ -746,7 +858,7 @@ var SoaringSheepGame = function(){
 			this.loadOptions();
 
 			//Fade In Animation
-			this.fadeObjects = [sheep, speech_bubble, this.infoOverlay, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton, this.webButton];
+			this.fadeObjects = [sheep, speech_bubble, this.infoOverlay, this.playGamesMenu, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton, this.webButton];
                 //in order of intended z-index
 
 			for(i=0;i<this.fadeObjects.length;i++){
@@ -776,6 +888,7 @@ var SoaringSheepGame = function(){
 
         for(i=0;i<this.fadeObjects.length;i++){
             if(this.fadeObjects[i] == this.infoOverlay) continue;
+            if(this.fadeObjects[i] == this.playGamesMenu) continue;
 
             this.fadeObjects[i].alpha += _fadeInc;
         }
@@ -786,6 +899,7 @@ var SoaringSheepGame = function(){
         if(sheep.alpha>=1){
             for(i=0;i<this.fadeObjects.length;i++){
                 if(this.fadeObjects[i] == this.infoOverlay) continue;
+                if(this.fadeObjects[i] == this.playGamesMenu) continue;
 
                 this.fadeObjects[i].alpha = 1;
             }
@@ -918,6 +1032,9 @@ var SoaringSheepGame = function(){
         this.infoOverlay.alpha = 0;
         stage.addChild(this.infoOverlay);
 
+        this.playGamesMenu.alpha = 0;
+        stage.addChild(this.playGamesMenu);
+
 		//ADD BUTTONS
 		//..GRAPHICS FOR BUTTONS IS DONE IN INITIALISATION FOR PERFORMANCE
 		//..ADDING DONE HERE FOR Z-INDEX
@@ -963,6 +1080,7 @@ var SoaringSheepGame = function(){
         //-Overlays
         this.pauseOverlay.alpha = 0;
         this.infoOverlay.alpha = 0;
+        this.playGamesMenu.alpha = 0;
 
         //-Obstacles
         var i;
@@ -1299,7 +1417,9 @@ var SoaringSheepGame = function(){
 	};
 
     this.initPlayGames = function(e){
-        GPlay = new GooglePlayServices();
+        this.playGamesMenu.alpha = 1;
+        renderer.render(stage);
+
         GPlay.init();
     }
 
@@ -1312,8 +1432,40 @@ var SoaringSheepGame = function(){
             }
         }
 
+        //Toggle the display of the info page, along with the pausing
+        if(!this.playGamesMenu.alpha){
+            //If we are not logged in, or games API is not working, reinit, but don't show menu.
+            if(!GPlay.isLoggedIn()){
+                GPlay.init();
+                return;
+            }
+            if(!GPlay.isGamesAPILoaded()){
+                GPlay.initGamesAPI();
+                return;
+            }
 
+            //Games API is working!
+
+            //Make menu appear, and pause game
+            this.playGamesMenu.alpha = 1;
+            this.togglePause(true);
+
+
+
+        }
+        else{
+            this.playGamesMenu.alpha = 0;
+
+            //this.togglePause(false);
+        }
+
+        //Render the stage to show the info screen
+        renderer.render(stage);
     };
+
+    this.showHighscoreTable = function(e){
+
+    }
 
 	this.toggleMuteMain = function(forcedVal){
 		if(typeof forcedVal == "object"){
@@ -1587,6 +1739,8 @@ var GooglePlayServices = function(){
         "web_test":"514509972850-nkv4v47360fp75rmbiubld0lq0kp078e.apps.googleusercontent.com"
     }
 
+    this.noConnection = false;
+
     this.GoogleAuth;
 
     this.scoresList;
@@ -1595,6 +1749,13 @@ var GooglePlayServices = function(){
     this.init = function(login){
         if(login==null || typeof login == "undefined"){
             login = true;
+        }
+
+        if(gapi == null || typeof gapi == "undefined"){
+            //Likely internet connection lost
+            console.log("Bad internet connection: Cannot connect to Google API!");
+            this.noConnection = true;
+            return;
         }
 
         gapi.load('auth2', function(){
@@ -1613,6 +1774,8 @@ var GooglePlayServices = function(){
     }
 
     this.login = function(){
+        if(this.noConnection) return;
+
         console.log("Logging into Google Play Games...");
 
         this.GoogleAuth = gapi.auth2.getAuthInstance();
@@ -1624,6 +1787,10 @@ var GooglePlayServices = function(){
     }
 
     this.logout = function(){
+        game.playGamesMenu.alpha = 0;
+
+        if(this.noConnection) return;
+
         this.GoogleAuth = null;
 
         this.GoogleAuth.signOut().then(function(){
@@ -1632,11 +1799,17 @@ var GooglePlayServices = function(){
     }
 
     this.isLoggedIn = function(){
+        if(this.noConnection) return;
+
+        if(this.GoogleAuth == null) return false;
+
         return this.GoogleAuth.isSignedIn.get();
     }
 
     //Play Games
     this.initGamesAPI = function(){
+        if(this.noConnection) return;
+
         var self = this;
 
         gapi.client.load('games','v1', function(response){
@@ -1645,7 +1818,7 @@ var GooglePlayServices = function(){
     }
 
     this.isGamesAPILoaded = function(){
-        return (gapi.client.games == null || typeof gapi.client.games == "undefined");
+        return !(gapi.client.games == null || typeof gapi.client.games == "undefined");
     }
 
     //-Scores
@@ -1654,6 +1827,8 @@ var GooglePlayServices = function(){
     }
 
     this.sendScore = function(score, leaderboard_name){
+        if(this.noConnection) return;
+
         var self = this;
 
         if(score == null || typeof score == "undefined") return;
@@ -1670,6 +1845,8 @@ var GooglePlayServices = function(){
     }
 
     this.getScores = function(leaderboard_name, type){
+        if(this.noConnection) return;
+
         var self = this;
 
         if(leaderboard_name == null || typeof leaderboard_name == "undefined"){
@@ -1705,7 +1882,7 @@ var GooglePlayServices = function(){
             ]
         }
 
-        console.log("ERROR "+error.error+":\n"+error.details);
+        console.error("Google Play Error ("+error.error+"):\n"+error.details);
     }
 }
 
