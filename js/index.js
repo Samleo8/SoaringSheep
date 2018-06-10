@@ -1661,8 +1661,8 @@ var SoaringSheepGame = function(){
         renderer.render(stage);
     };
 
-    this.showHighscoreTable = function(e){
-
+    this.showHighscoreTable = function(response){
+        console.log(response);
     }
 
 	this.toggleMuteMain = function(forcedVal){
@@ -2061,7 +2061,7 @@ var GooglePlayServices = function(){
             "collection": type,
             "maxResults": 10
         }).then( function(response) {
-                game.showHighscoreTable();
+                game.showHighscoreTable(response);
             },
             this.onError.bind(this)
         );
