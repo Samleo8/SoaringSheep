@@ -1663,6 +1663,7 @@ var SoaringSheepGame = function(){
 
     this.showHighscoreTable = function(response){
         console.log(response);
+        console.log(this);
     }
 
 	this.toggleMuteMain = function(forcedVal){
@@ -2055,12 +2056,15 @@ var GooglePlayServices = function(){
             type = "PUBLIC";
         }
 
+        console.log("Retrieving "+type+" scores from"+leaderboard_name.toUpperCase()+" leaderboard");
+
         gapi.client.games.scores.list({
             "leaderboardId": self.leaderboards[leaderboard_name],
             "timeSpan": "ALL_TIME",
             "collection": type,
             "maxResults": 10
         }).then( function(response) {
+                console.log("1: "+response);
                 game.showHighscoreTable(response);
             },
             this.onError.bind(this)
