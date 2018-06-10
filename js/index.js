@@ -184,6 +184,7 @@ var SoaringSheepGame = function(){
 	this.pauseOverlay;
 
     //Google Play
+    this.hasPlayGamesSetup = false;
     this.playGamesMenu;
     this.leaderboard = {
         "id":"CgkI8sq82fwOEAIQAg", //GPlay leaderboardID
@@ -1602,7 +1603,10 @@ var SoaringSheepGame = function(){
             return;
         }
 
-        window.game.setUp();
+        if(!this.hasPlayGamesSetup){
+            window.game.setUp();
+            this.hasPlayGamesSetup = true;
+        }
         window.game.login();
 
         //Also send the player's locally-stored highscore if it's higher than the current one
@@ -1835,6 +1839,9 @@ var SoaringSheepGame = function(){
 			this.pauseOverlay.alpha = 0;
 			this.pauseOverlay.interactive = false;
 			this.pauseOverlay.buttonMode = false;
+
+            this.playGamesMenu.alpha = 0;
+            this.playGamesMenu.visible = false;
 
 			this.pauseButton.getChildByName("pause").alpha=1;
 			this.pauseButton.getChildByName("play").alpha=0;
