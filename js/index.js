@@ -7,13 +7,13 @@ var _isAndroid = null;
 
 var _isMobile = false;
 
-var game;
+var Game;
 var GPlay;
 
 var app = {
     // Application Constructor
     initialize: function() {
-		game = new SoaringSheepGame();
+		Game = new SoaringSheepGame();
 
         //Init Event Listeners
         this.bindEvents();
@@ -40,26 +40,26 @@ var app = {
     onDeviceReady: function() {
         console.log((isApp())?"Device Ready!":"DOM Loaded...");
 
-        GPlay = new GooglePlayServices();
+        //GPlay = new GooglePlayServices();
 
         FastClick.attach(document.body);
-		game.initStage();
+		Game.initStage();
     },
 
     connectionChange: function(e){
         if(event.type == "offline"){
             console.log("Oh no, you lost connection.");
 
-            GPlay.noConnection = true;
-            game.isOnline = false;
+            //GPlay.noConnection = true;
+            Game.isOnline = false;
         }
         else if(event.type == "online"){
             console.log("Yay you are now back online!");
 
-            GPlay.noConnection = false;
-            game.isOnline = true;
+            //GPlay.noConnection = false;
+            Game.isOnline = true;
 
-            if(game._gameStarted) GPlay.init();
+            //if(game._gameStarted) GPlay.init();
         }
     }
 };
@@ -1597,7 +1597,7 @@ var SoaringSheepGame = function(){
         //this.playGamesMenu.alpha = 1;
         renderer.render(stage);
 
-        GPlay.init();
+        //GPlay.init();
     }
 
     this.switchPlayGamesTabs = function(tab_name){
@@ -1629,9 +1629,14 @@ var SoaringSheepGame = function(){
 
         //Toggle the display of the info page, along with the pausing
         if(!this.playGamesMenu.visible){
-            //*
-            //If we are not logged in, or games API is not working, reinit, but don't show menu.
             if(!this.isOnline) return;
+            if(!isApp()){
+                alert("Google Play Games is only supported in the Mobile App!");
+                return;
+            }
+
+            /*
+            //If we are not logged in, or games API is not working, reinit, but don't show menu.
 
             if(!GPlay.isLoggedIn()){
                 GPlay.init();
@@ -1835,9 +1840,11 @@ var SoaringSheepGame = function(){
         }
 
         //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
+        /*
         if(game.isOnline && GPlay.isLoggedIn() && GPlay.isGamesAPILoaded()){
             GPlay.sendScore(this.score, "highscore");
         }
+        */
 
 		//RESTART GAME
 		this.newGame();
@@ -1944,6 +1951,12 @@ var SoaringSheepGame = function(){
 }
 
 //*-------GOOGLE PLAY SERVICES--------*//
+
+
+//SCORES SENDING FOR CLIENT-ONLY GAMES DOESN'T WORK
+//HOWEVER, CAN STILL USE THIS TO SAVE HIGHSCORES
+
+/*
 var GooglePlayServices = function(){
     this.client_id = {
         "android":"514509972850-9cdi9qajgltk7foscdns8jf1ffe83go6.apps.googleusercontent.com",
@@ -2100,6 +2113,7 @@ var GooglePlayServices = function(){
         console.error("Google Play Error ("+error.error+"):\n"+error.details);
     }
 }
+//*/
 
 //*--------UNIVERSAL FUNCTIONS--------*//
 function isApp(){
