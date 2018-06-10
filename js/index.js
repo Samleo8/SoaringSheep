@@ -184,7 +184,7 @@ var SoaringSheepGame = function(){
 	this.pauseOverlay;
 
     //Google Play
-    this.hasPlayGamesSetup = false;
+    this.isLoggedIn = false;
     this.playGamesMenu;
     this.leaderboard = {
         "id":"CgkI8sq82fwOEAIQAg", //GPlay leaderboardID
@@ -1597,23 +1597,21 @@ var SoaringSheepGame = function(){
     this.initPlayGames = function(e){
         //this.playGamesMenu.alpha = 1;
 
-        if(typeof window.game == "undefined"){
+        if(typeof window.plugins.playGamesServices == "undefined"){
             this.gamesButton.alpha = 0.4;
             renderer.render(stage);
             return;
         }
 
-        if(!this.hasPlayGamesSetup){
-            window.game.setUp();
-            this.hasPlayGamesSetup = true;
-        }
-        window.game.login();
+        window.plugins.playGamesServices.auth(function(){
+            console.log(this);
 
-        //Also send the player's locally-stored highscore if it's higher than the current one
-        if(window.game.isLoggedIn()){
-            var hs = parseInt(window.game.getPlayerScore(leaderboardId));
+            this.isLoggedIn = true;
+
+            //Also send the player's locally-stored highscore if it's higher than the current one
+            var hs = parseInt(window.plugins.playGamesServices.getPlayerScore(leaderboardId));
             if(hs<this.highscore){
-                window.game.submitScore(this.leaderboard.id, this.highscore);//leaderboardId, score
+                window.plugins.playGamesServices.submitScore(this.leaderboard.id, this.highscore);//leaderboardId, score
             }
             else if(hs>this.highscore){
                 this.highscore = hs;
@@ -1622,7 +1620,11 @@ var SoaringSheepGame = function(){
             else{
                 //in sync
             }
-        }
+        }.bind(Game),function(){
+            console.log(this);
+
+            this.isLoggedIn = false;
+        }.bind(Game));
 
         //GPlay.init();
         renderer.render(stage);
@@ -1646,7 +1648,7 @@ var SoaringSheepGame = function(){
         renderer.render(stage);
 
         if(tab_name == "leaderboard"){
-            window.game.showLeaderboard(this.leaderboard.id);
+            window.plugins.playGamesServices.showLeaderboard(this.leaderboard.id);
         }
     }
 
@@ -1659,14 +1661,14 @@ var SoaringSheepGame = function(){
             }
         }
 
-        if((typeof window.game != "undefined") && !window.game.isLoggedIn()){
+        if((typeof window.plugins.playGamesServices != "undefined") && !this.isLoggedIn){
             this.initPlayGames();
         }
 
         //Toggle the display of the info page, along with the pausing
         if(!this.playGamesMenu.visible){
             if(!this.isOnline) return;
-            if(typeof window.game == "undefined"){
+            if(typeof window.plugins.playGamesServices == "undefined"){
                 this.togglePause(true);
 
                 if(confirm("Google Play Games is only supported in the Mobile App! Click 'OK' to be redirected to the Google Play Store. Cancel otherwise.")){
@@ -1888,8 +1890,11 @@ var SoaringSheepGame = function(){
         }
 
         //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
-        if(window.game && window.game.isLoggedIn()){
-            window.game.submitScore(this.leaderboard.id, this.score);
+        if(typeof window.plugins.playGamesServices != "undefined" && this.isLoggedIn){
+            window.plugins.playGamesServices.submitScore({
+                "leaderboardId":this.leaderboard.id,
+                "score":this.score
+            });
         }
         /*
         if(this.isOnline && GPlay.isLoggedIn() && GPlay.isGamesAPILoaded()){
