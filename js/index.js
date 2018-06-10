@@ -186,7 +186,7 @@ var SoaringSheepGame = function(){
     //Google Play
     this.playGamesMenu;
     this.leaderboard = {
-        "id":"CgkI8sq82fwOEAIQAg" //GPlay leaderboardID
+        "id":"CgkI8sq82fwOEAIQAg", //GPlay leaderboardID
         "maxResults": 10,
         "self":{
             "rank":{},
