@@ -1604,7 +1604,7 @@ var SoaringSheepGame = function(){
         }
 
         window.plugins.playGamesServices.auth(function(){
-            console.log(this);
+            console.log("Google Play login success!");
 
             this.isLoggedIn = true;
 
@@ -1621,7 +1621,7 @@ var SoaringSheepGame = function(){
                 //in sync
             }
         }.bind(Game),function(){
-            console.log(this);
+            console.log("Google PLay login failure!");
 
             this.isLoggedIn = false;
         }.bind(Game));
