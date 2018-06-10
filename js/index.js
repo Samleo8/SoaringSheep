@@ -1655,8 +1655,13 @@ var SoaringSheepGame = function(){
         //Toggle the display of the info page, along with the pausing
         if(!this.playGamesMenu.visible){
             if(!this.isOnline) return;
-            if(typeof window.game == undefined){
-                alert("Google Play Games is only supported in the Mobile App!");
+            if(typeof window.game == "undefined"){
+                this.togglePause(true);
+
+                if(confirm("Google Play Games is only supported in the Mobile App! Click 'OK' to be redirected to the Google Play Store. Cancel otherwise.")){
+                    this.gotoURL("https://play.google.com/store/apps/details?id=io.samleo8.SoaringSheep");
+                }
+
                 return;
             }
 
