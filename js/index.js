@@ -186,6 +186,7 @@ var SoaringSheepGame = function(){
     //Google Play
     this.playGamesMenu;
     this.leaderboard = {
+        "id":"CgkI8sq82fwOEAIQAg" //GPlay leaderboardID
         "maxResults": 10,
         "self":{
             "rank":{},
@@ -1597,6 +1598,26 @@ var SoaringSheepGame = function(){
         //this.playGamesMenu.alpha = 1;
         renderer.render(stage);
 
+        if(!window.game) return;
+
+        window.game.setUp();
+        window.game.login();
+
+        //Also send the player's locally-stored highscore if it's higher than the current one
+        if(window.game.isLoggedIn()){
+            var hs = parseInt(window.game.getPlayerScore(leaderboardId));
+            if(hs<this.highscore){
+                window.game.submitScore(this.leaderboard.id, this.highscore);//leaderboardId, score
+            }
+            else if(hs>this.highscore){
+                this.highscore = hs;
+                this.saveOptions();
+            }
+            else{
+                //in sync
+            }
+        }
+
         //GPlay.init();
     }
 
@@ -1616,6 +1637,10 @@ var SoaringSheepGame = function(){
         this.playGamesMenu.tabsContent[tab_name.toString()].visible = true;
 
         renderer.render(stage);
+
+        if(tab_name == "leaderboard"){
+            window.game.showLeaderboard(this.leaderboard.id);
+        }
     }
 
     this.showPlayGamesMenu = function(e){
@@ -1630,10 +1655,12 @@ var SoaringSheepGame = function(){
         //Toggle the display of the info page, along with the pausing
         if(!this.playGamesMenu.visible){
             if(!this.isOnline) return;
-            if(!isApp()){
+            if(typeof window.game == undefined){
                 alert("Google Play Games is only supported in the Mobile App!");
                 return;
             }
+
+            this.switchPlayGamesTabs("leaderboard");
 
             /*
             //If we are not logged in, or games API is not working, reinit, but don't show menu.
@@ -1666,6 +1693,7 @@ var SoaringSheepGame = function(){
         renderer.render(stage);
     };
 
+    /*
     this.showHighscoreTable = function(response){
         var data = response.result;
         var playerData = {};
@@ -1683,6 +1711,7 @@ var SoaringSheepGame = function(){
         console.log("Leaderboard items: ",leaderboardItems);
         console.log("Leaderboard Data: ", leaderboardData);
     }
+    //*/
 
 	this.toggleMuteMain = function(forcedVal){
 		if(typeof forcedVal == "object"){
@@ -1840,8 +1869,11 @@ var SoaringSheepGame = function(){
         }
 
         //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
+        if(window.game && window.game.isLoggedIn()){
+            window.game.submitScore(this.leaderboard.id, this.score);
+        }
         /*
-        if(game.isOnline && GPlay.isLoggedIn() && GPlay.isGamesAPILoaded()){
+        if(this.isOnline && GPlay.isLoggedIn() && GPlay.isGamesAPILoaded()){
             GPlay.sendScore(this.score, "highscore");
         }
         */
