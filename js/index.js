@@ -1079,7 +1079,6 @@ var SoaringSheepGame = function(){
                 this.fadeObjects[i].alpha = 1;
             }
 
-
             this.playGamesMenu.visible = false;
 
             this.startScreen.interactive = true;
@@ -1596,9 +1595,12 @@ var SoaringSheepGame = function(){
 
     this.initPlayGames = function(e){
         //this.playGamesMenu.alpha = 1;
-        renderer.render(stage);
 
-        if(!window.game) return;
+        if(!window.game){
+            this.gamesButton.alpha = 0.4;
+            renderer.render(stage);
+            return;
+        }
 
         window.game.setUp();
         window.game.login();
@@ -1619,6 +1621,7 @@ var SoaringSheepGame = function(){
         }
 
         //GPlay.init();
+        renderer.render(stage);
     }
 
     this.switchPlayGamesTabs = function(tab_name){
