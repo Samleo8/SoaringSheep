@@ -1596,7 +1596,7 @@ var SoaringSheepGame = function(){
     this.initPlayGames = function(e){
         //this.playGamesMenu.alpha = 1;
 
-        if(!window.game){
+        if(typeof window.game == "undefined"){
             this.gamesButton.alpha = 0.4;
             renderer.render(stage);
             return;
@@ -1653,6 +1653,10 @@ var SoaringSheepGame = function(){
             if(e.type=="mouseup" || e.type=="touchend"){
                 this.preventHeroJump++;
             }
+        }
+
+        if((typeof window.game != "undefined") && !window.game.isLoggedIn()){
+            this.initPlayGames();
         }
 
         //Toggle the display of the info page, along with the pausing
