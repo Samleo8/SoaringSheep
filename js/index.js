@@ -1662,8 +1662,21 @@ var SoaringSheepGame = function(){
     };
 
     this.showHighscoreTable = function(response){
-        console.log(response);
-        console.log(this);
+        var data = response.result;
+        var playerData = {};
+        var leaderboardItems = data.numScore;
+        var leaderboardData = data.items;
+
+        console.log(data);
+
+        playerData.highscore = data.playerScore.scoreValue;
+        playerData.name = data.playerScore.player.displayName;
+        playerData.games_id = data.playerScore.player.playerId;
+
+        console.log("Player Data: ", playerData);
+
+        console.log("Leaderboard items: ",leaderboardItems);
+        console.log("Leaderboard Data: ", leaderboardData);
     }
 
 	this.toggleMuteMain = function(forcedVal){
@@ -1990,11 +2003,11 @@ var GooglePlayServices = function(){
 
         if(this.noConnection) return;
 
-        this.GoogleAuth = null;
-
         this.GoogleAuth.signOut().then(function(){
             console.log("Signed Out!");
         }, this.onError.bind(this));
+
+        this.GoogleAuth = null;
     }
 
     this.isLoggedIn = function(){
@@ -2056,7 +2069,7 @@ var GooglePlayServices = function(){
             type = "PUBLIC";
         }
 
-        console.log("Retrieving "+type+" scores from"+leaderboard_name.toUpperCase()+" leaderboard");
+        console.log("Retrieving "+type+" scores from "+leaderboard_name.toUpperCase()+" leaderboard");
 
         gapi.client.games.scores.list({
             "leaderboardId": self.leaderboards[leaderboard_name],
@@ -2064,7 +2077,6 @@ var GooglePlayServices = function(){
             "collection": type,
             "maxResults": 10
         }).then( function(response) {
-                console.log("1: "+response);
                 game.showHighscoreTable(response);
             },
             this.onError.bind(this)
