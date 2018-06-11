@@ -1607,19 +1607,6 @@ var SoaringSheepGame = function(){
             console.log("Google Play login success!");
 
             this.isLoggedIn = true;
-
-            //Also send the player's locally-stored highscore if it's higher than the current one
-            var hs = parseInt(window.plugins.playGamesServices.getPlayerScore(leaderboardId));
-            if(hs<this.highscore){
-                window.plugins.playGamesServices.submitScore(this.leaderboard.id, this.highscore);//leaderboardId, score
-            }
-            else if(hs>this.highscore){
-                this.highscore = hs;
-                this.saveOptions();
-            }
-            else{
-                //in sync
-            }
         }.bind(Game),function(){
             console.log("Google PLay login failure!");
 
@@ -1678,8 +1665,6 @@ var SoaringSheepGame = function(){
                 return;
             }
 
-            this.switchPlayGamesTabs("leaderboard");
-
             /*
             //If we are not logged in, or games API is not working, reinit, but don't show menu.
 
@@ -1698,6 +1683,8 @@ var SoaringSheepGame = function(){
             //Make menu appear, and pause game
             this.playGamesMenu.alpha = 1;
             this.playGamesMenu.visible = true;
+
+            this.switchPlayGamesTabs("leaderboard");
 
             this.togglePause(true);
         }
@@ -1894,6 +1881,10 @@ var SoaringSheepGame = function(){
             window.plugins.playGamesServices.submitScore({
                 "leaderboardId":this.leaderboard.id,
                 "score":this.score
+            },function(){
+                console.log("Score of "+this.score+" submitted to Google Play!");
+            },function(){
+                alert("Failure to submit score to Google Play!");
             });
         }
         /*
