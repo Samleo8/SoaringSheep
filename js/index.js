@@ -120,8 +120,9 @@ var SoaringSheepGame = function(){
 	this.overSym = null;
 	this.highscoreText = null;
 
-	this.speedInc = 1.1;
-	this.maxSpeed = 16;
+	this.speedInc = 0.985; //anything below 0.95 is a problem
+    this.minSpeed = 6.5;
+	this.maxSpeed = 12;
 
 	this._paused = false;
 	this._musicMuted = false;
@@ -1196,7 +1197,7 @@ var SoaringSheepGame = function(){
 		this.hero.y = this.canvasHeight/2;
 		this.hero.scale.x = Math.abs(this.hero.scale.x);
 
-		this.hero.vx = 8;
+		this.hero.vx = this.maxSpeed;
 		this.hero.ax = 0;
 		this.hero.vy = 0;
 		this.hero.ay = 0.10;
@@ -1254,7 +1255,7 @@ var SoaringSheepGame = function(){
 		this.hero.y = this.canvasHeight/2;
 		this.hero.scale.x = Math.abs(this.hero.scale.x);
 
-		this.hero.vx = 8;
+		this.hero.vx = this.maxSpeed;
 		this.hero.ax = 0;
 		this.hero.vy = 0;
 		this.hero.ay = 0.10;
@@ -1407,8 +1408,11 @@ var SoaringSheepGame = function(){
 		//HERO BOUNDS CHECKS
 		//Check for hero x-direction bounds, and bounce off wall
 		if(this.hero.x<=this.hero.width/2 || this.hero.x>=(this.canvasWidth-this.hero.width/2)){
-			this.hero.vx*=-this.speedInc;
-			this.hero.vx = Math.min(this.hero.vx,this.maxSpeed);
+			this.hero.vx *= -this.speedInc;
+
+            var _dir = (this.hero.vx<0)?-1:1;
+
+			this.hero.vx = _dir*Math.max(Math.abs(this.hero.vx),this.minSpeed);
 
 			this.hero.scale.x *= -1;
 			this.sprites.background.scrollingSpeed *= -1;
