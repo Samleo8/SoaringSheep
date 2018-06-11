@@ -186,6 +186,7 @@ var SoaringSheepGame = function(){
     //Google Play
     this.isLoggedIn = false;
     this.playGamesMenu;
+    this.leaderboardID = "CgkI8sq82fwOEAIQAg";
     this.leaderboard = {
         "id":"CgkI8sq82fwOEAIQAg", //GPlay leaderboardID
         "maxResults": 10,
@@ -846,6 +847,18 @@ var SoaringSheepGame = function(){
             this.playGamesMenu.tabsContent[i].position.set(0,tab._height+tab.y-1);
         }
 
+        var leaderboardContent = this.playGamesMenu.tabsContent["leaderboard"];
+
+        //Highscore Text
+        textOpt3 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0x455A64",
+            letterSpacing: 5,
+            align: 'center',
+            fontSize: 60
+        };
+
+            /*
             //Leaderboard
             var leaderboardContent = this.playGamesMenu.tabsContent["leaderboard"];
             leaderboardContent.y += 25;
@@ -971,7 +984,7 @@ var SoaringSheepGame = function(){
             this.playGamesMenu.tabsContent["leaderboard"] = leaderboardContent;
 
             this.playGamesMenu.addChild(leaderboardContent);
-
+            */
 
         this.playGamesMenu.interactive = true;
         this.playGamesMenu.buttonMode = true;
@@ -1635,7 +1648,9 @@ var SoaringSheepGame = function(){
         renderer.render(stage);
 
         if(tab_name == "leaderboard"){
-            window.plugins.playGamesServices.showLeaderboard(this.leaderboard.id);
+            alert("Attempting to show leaderboard "+this.leaderboardID.toString());
+            window.plugins.playGamesServices.showLeaderboard(this.leaderboardID.toString());
+            //window.plugins.playGamesServices.showAllLeaderboards();
         }
     }
 
@@ -1649,6 +1664,7 @@ var SoaringSheepGame = function(){
         }
 
         if((typeof window.plugins.playGamesServices != "undefined") && !this.isLoggedIn){
+            alert("Initiating Play Games...");
             this.initPlayGames();
         }
 
@@ -1863,6 +1879,22 @@ var SoaringSheepGame = function(){
 		this._paused = true;
 		this.audio["die"].play();
 
+        var sc = parseInt(this.score);
+
+        //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
+        var data = {
+            "score": sc,
+            "leaderboardId": this.leaderboardID.toString()
+        };
+
+        if(this.isLoggedIn){
+            window.plugins.playGamesServices.submitScoreNow(data,function(){
+                alert("Score of "+sc+" submitted to Google Play leaderboard  "+this.leaderboardID+"!");
+            }.bind(this),function(){
+                alert("Failure to submit score to Google Play!");
+            });
+        }
+
 		console.log("GAME OVER!\nScore: "+this.score+"\nHighscore: "+this.highscore+"\n");
 
         //CLEAR OBSTACLES
@@ -1876,17 +1908,6 @@ var SoaringSheepGame = function(){
             this.powerups.removeChild(this.powerups.children[i]);
         }
 
-        //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
-        if(typeof window.plugins.playGamesServices != "undefined" && this.isLoggedIn){
-            window.plugins.playGamesServices.submitScore({
-                "leaderboardId":this.leaderboard.id,
-                "score":this.score
-            },function(){
-                console.log("Score of "+this.score+" submitted to Google Play!");
-            },function(){
-                alert("Failure to submit score to Google Play!");
-            });
-        }
         /*
         if(this.isOnline && GPlay.isLoggedIn() && GPlay.isGamesAPILoaded()){
             GPlay.sendScore(this.score, "highscore");
