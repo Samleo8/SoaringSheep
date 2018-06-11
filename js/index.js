@@ -1614,7 +1614,7 @@ var SoaringSheepGame = function(){
     this.initPlayGames = function(e){
         //this.playGamesMenu.alpha = 1;
 
-        if(typeof window.plugins.playGamesServices == "undefined"){
+        if(typeof window.plugins == "undefined"){
             this.gamesButton.alpha = 0.4;
             renderer.render(stage);
             return;
@@ -1667,7 +1667,7 @@ var SoaringSheepGame = function(){
             }
         }
 
-        if((typeof window.plugins.playGamesServices != "undefined") && !this.isLoggedIn){
+        if((typeof window.plugins != "undefined") && !this.isLoggedIn){
             alert("Initiating Play Games...");
             this.initPlayGames();
         }
@@ -1675,7 +1675,7 @@ var SoaringSheepGame = function(){
         //Toggle the display of the info page, along with the pausing
         if(!this.playGamesMenu.visible){
             if(!this.isOnline) return;
-            if(typeof window.plugins.playGamesServices == "undefined"){
+            if(typeof window.plugins == "undefined"){
                 this.togglePause(true);
 
                 if(confirm("Google Play Games is only supported in the Mobile App! Click 'OK' to be redirected to the Google Play Store. Cancel otherwise.")){
