@@ -1613,6 +1613,7 @@ var SoaringSheepGame = function(){
 
     this.initPlayGames = function(e){
         //this.playGamesMenu.alpha = 1;
+        this.loadOptions();
 
         if(typeof window.plugins == "undefined"){
             this.gamesButton.alpha = 0.4;
@@ -1622,8 +1623,36 @@ var SoaringSheepGame = function(){
 
         window.plugins.playGamesServices.auth(function(){
             console.log("Google Play login success!");
-
             this.isLoggedIn = true;
+
+            //Syncing Locally-stored and Cloud-stored scores
+            window.plugins.playGamesServices.getPlayerScore({
+                "leaderboardId":this.leaderbleaderboardID.toString()
+            }, function(result){
+                var sc = parseInt(result.playerScore);
+                alert("Retrieved score: "+sc);
+                if(this.highscore > sc){
+                    //Send the locally-stored highscore since it's the highest
+                    this.sendScoreToGooglePlay(sc);
+                }
+                else if(this.highscore < sc){
+                    //Locally store the Google Play highscore since it's the highest
+                    this.highscore = sc;
+                    this.highscoreText.text = sc;
+
+                    this.saveOptions();
+                    renderer.render(stage);
+                }
+                else{
+                    //SCORES IN SYNC
+                }
+            }.bind(Game), function(){
+                //Score has never been submitted before
+                //Send the locally-stored highscore since it's the highest
+                if(this.highscore){
+                    this.sendScoreToGooglePlay(this.highscore);
+                }
+            }.bind(Game));
         }.bind(Game),function(){
             alert("Google Play login failure: "+(this.isOnline)?"Press the Play Games button to try again!":"Check your connection and try again!");
 
@@ -1889,20 +1918,9 @@ var SoaringSheepGame = function(){
 		this._paused = true;
 		this.audio["die"].play();
 
-        var sc = parseInt(this.score);
-
         //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
-        var data = {
-            "score": sc,
-            "leaderboardId": this.leaderboardID.toString()
-        };
-
         if(this.isLoggedIn){
-            window.plugins.playGamesServices.submitScoreNow(data,function(){
-                console.log("Score of "+sc+" submitted to Google Play leaderboard  "+this.leaderboardID+"!");
-            }.bind(this),function(){
-                console.log("Failure to submit score to Google Play!");
-            });
+            this.sendScoreToGooglePlay(parseInt(this.score));
         }
 
 		console.log("GAME OVER!\nScore: "+this.score+"\nHighscore: "+this.highscore+"\n");
@@ -1966,6 +1984,22 @@ var SoaringSheepGame = function(){
 			return false;
 		}
 	};
+
+    this.sendScoreToGooglePlay = function(score, leaderboardID){
+            if(typeof leaderboardID == "undefined" || leaderboardID == null)
+                leaderboardID = this.leaderboardID.toString();
+
+            var data = {
+                "score": sc,
+                "leaderboardId": leaderboardID
+            };
+
+            window.plugins.playGamesServices.submitScoreNow(data,function(){
+                console.log("Score of "+sc+" submitted to Google Play leaderboard  "+leaderboardID+"!");
+            }.bind(this),function(){
+                console.log("Failure to submit score to Google Play!");
+            });
+    }
 
 	this.hitTest = function(obj1, obj2, leewayX, leewayY){
 		//Ensure both objects anchor points are centered
