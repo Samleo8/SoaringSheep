@@ -763,229 +763,95 @@ var SoaringSheepGame = function(){
 
         this.playGamesMenu.addChild(text);
 
+        //Welcome
+        textOpt2 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0xcfd8dc",
+            letterSpacing: 5,
+            padding:10,
+            align: 'center',
+            fontSize: 24
+        };
+
+        this.playGamesMenu.profile = new PIXI.Container();
+        var profile = this.playGamesMenu.profile;
+
+        profile.position.set(this.canvasWidth/2,225);
+
+        profile.welcome_text = new PIXI.Text("Welcome,",textOpt2);
+        profile.player_text = new PIXI.Text("PLAYER",Object.assign(textOpt2,{fontSize:48}));
+
+        profile.welcome_text.anchor.set(0.5,0.5);
+        profile.player_text.anchor.set(0.5,0.5);
+
+        profile.welcome_text.y -= 55;
+
+        profile.addChild(profile.welcome_text);
+        profile.addChild(profile.player_text);
+
+        this.playGamesMenu.profile = profile;
+        this.playGamesMenu.addChild(this.playGamesMenu.profile);
+
         //Tabs
         this.playGamesMenu.tabs = {
             "leaderboard": new PIXI.Container(),
             "achievements": new PIXI.Container(),
-            "settings": new PIXI.Container()
+            //"saved_games": new PIXI.Container(),
+            "logout": new PIXI.Container()
         }
-        var tabsNamesArr = ["Leaderboard","Achievements","Settings"];
+        var tabsNamesArr = ["Leaderboard","Achievements",/*"Saved Games",*/"Logout"];
         var tab, _nm;
 
-        textOpt2 = {
+        textOpt3 = {
             fontFamily: 'TimeBurnerBold',
             fill: "0x455A64",
             letterSpacing: 5,
             padding:10,
             align: 'center',
-            fontSize: 30
+            fontSize: 32
         };
 
-        this.playGamesMenu.tabsContentBG = new PIXI.Graphics();
-        this.playGamesMenu.addChild(this.playGamesMenu.tabsContentBG);
-
         for(i=0;i<tabsNamesArr.length;i++){
-            _nm = tabsNamesArr[i].toLowerCase();
+            _nm = tabsNamesArr[i].toLowerCase().split(" ").join("_");
             tab = this.playGamesMenu.tabs[_nm];
             tab.name = _nm;
 
             tab.alpha = 1;
 
-            tab._height = 70;
-            tab._width = this.canvasWidth/tabsNamesArr.length;
+            tab._height = 350;
+            tab._width = 350;
+            tab._diff = 80;
+            tab._marginTop = 340;
+            tab._marginLeft = (this.canvasWidth-tabsNamesArr.length*tab._width)/(tabsNamesArr.length+1);
 
             tab.bg = new PIXI.Graphics();
             tab.bg.beginFill(0xcfd8dc,0.98)
                 .drawRect(0,0,tab._width-2,tab._height)
             .endFill();
 
+            tab.text = new PIXI.Text(tabsNamesArr[i],textOpt3);
+            tab.text.anchor.set(0.5,0.5);
+            tab.text.position.set(tab._width/2, tab._height-60);
+
             tab.icon = this.sprites.icons[_nm];
             tab.icon.anchor.set(0.5,0.5);
-            tab.icon.scale.set(0.6,0.6);
+            tab.icon.scale.set(1.3,1.3);
             tab.icon.tint = 0x455A64;
             tab.icon.alpha = 1;
-            tab.icon.position.set(tab._width/2-30*tabsNamesArr[i].length/2, tab._height/2);
+            tab.icon.position.set(tab.text.x, tab._height/2-25);
 
-            tab.text = new PIXI.Text(tabsNamesArr[i],textOpt2);
-            tab.text.anchor.set(0.5,0.5);
-            tab.text.position.set(tab._width/2, tab._height/2);
-
-            tab.position.set(i*(tab._width+1),175);
-
-            tab.overlay = new PIXI.Graphics();
-            tab.overlay.beginFill(0x455A64,0.7)
-                .drawRect(0,0,tab._width,tab._height)
-            .endFill();
+            tab.position.set(tab._marginLeft*(i+1)+tab._width*i, tab._marginTop);
 
             tab.addChild(tab.bg);
             tab.addChild(tab.text);
             tab.addChild(tab.icon);
-            tab.addChild(tab.overlay);
 
             this.playGamesMenu.addChild(tab);
 
             tab.interactive = true;
             tab.buttonMode = true;
-            tab.on((_isMobile)?"touchend":"mouseup",this.switchPlayGamesTabs.bind(this,tab.name));
+            tab.on((_isMobile)?"touchend":"mouseup",this.pressPlayGamesButton.bind(this,tab.name));
         }
-
-        this.playGamesMenu.tabs["leaderboard"].overlay.alpha = 0;
-
-        this.playGamesMenu.tabsContentBG.beginFill(0xcfd8dc,0.98)
-            .drawRect(0,tab._height+tab.y-1,this.canvasWidth,this.canvasHeight-tab._height/2-tab.y)
-        .endFill();
-
-        //Tabs Content
-        this.playGamesMenu.tabsContent = {
-            "leaderboard": new PIXI.Container(),
-            "achievements": new PIXI.Container(),
-            "settings": new PIXI.Container()
-        }
-
-        for(i in this.playGamesMenu.tabsContent){
-            if(!this.playGamesMenu.tabsContent.hasOwnProperty(i)) continue;
-
-            this.playGamesMenu.tabsContent[i].position.set(0,tab._height+tab.y-1);
-        }
-
-        var leaderboardContent = this.playGamesMenu.tabsContent["leaderboard"];
-
-        //Highscore Text
-        textOpt3 = {
-            fontFamily: 'TimeBurnerBold',
-            fill: "0x455A64",
-            letterSpacing: 5,
-            align: 'center',
-            fontSize: 60
-        };
-
-            /*
-            //Leaderboard
-            var leaderboardContent = this.playGamesMenu.tabsContent["leaderboard"];
-            leaderboardContent.y += 25;
-
-            leaderboardContent.tableHeaderWidths = {
-                //Percentage of width
-                "rank": 0.2,
-                "name": 0.5,
-                "score": 0.3
-            }
-
-            //Table Header Text
-            textOpt3 = {
-                fontFamily: 'TimeBurnerBold',
-                fill: "0x455A64",
-                letterSpacing: 5,
-                align: 'center',
-                fontSize: 28
-            };
-
-            var headerText, cell, _width, _nm, _x;
-            var cellHeight = 40;
-            var cellPadd = 2;
-            var tablePadd = 60;
-            var tableWidth = this.canvasWidth-2*tablePadd;
-
-            _x = tablePadd;
-
-            //Ranking box text
-            textOpt4 = {
-                fontFamily: 'TimeBurnerBold',
-                fill: "0x455A64",
-                letterSpacing: 5,
-                align: 'center',
-                fontSize: 24
-            };
-
-            for(i=0;i<this.leaderboard.maxResults;i++){
-                this.leaderboard["others"].push({
-                    "rank":{},
-                    "name":{},
-                    "score":{}
-                });
-            }
-
-            for(i in leaderboardContent.tableHeaderWidths){
-                if(!leaderboardContent.tableHeaderWidths.hasOwnProperty(i)) continue;
-
-                _name = i.toString();
-                _width = leaderboardContent.tableHeaderWidths[_name]*tableWidth;
-
-                _x += _width/2;
-
-                //Header text
-                headerText = new PIXI.Text(_name.toUpperCase(), textOpt3);
-                headerText.anchor.set(0.5,0);
-                headerText.position.set(_x,20);
-
-                leaderboardContent.addChild(headerText);
-
-                //Cells
-                    //Self
-                    var selfCell = new PIXI.Container();
-                    selfCell.position.set(_x-_width/2,headerText.y+cellHeight);
-
-                    selfCell.bg = new PIXI.Graphics();
-                    selfCell.bg.beginFill(0xb0bec5)
-                        .drawRect(0,0,_width-2,cellHeight)
-                    .endFill();
-
-                    selfCell.tb = new PIXI.Text("-",textOpt4);
-                    selfCell.tb.anchor.set(0.5,0.5);
-                    selfCell.tb.position.set(_width/2,cellHeight/2);
-
-                    this.leaderboard["self"][_name].textBox = selfCell.tb;
-
-                    selfCell.addChild(selfCell.bg);
-                    selfCell.addChild(selfCell.tb);
-
-                    leaderboardContent.addChild(selfCell);
-
-                    //Line Separator
-                    var ln = new PIXI.Graphics();
-                    ln._padd = 7.5;
-                    ln._yy = selfCell.y+cellHeight+ln._padd;
-                    ln.lineStyle(2,0xb0bec5)
-            			.moveTo(tablePadd/2,ln._yy)
-                        .lineTo(this.canvasWidth-tablePadd/2,ln._yy);
-
-                    leaderboardContent.addChild(ln);
-
-                    //Global Ranking
-                    var _yy = ln._yy+ln._padd;
-
-                    for(i=0;i<this.leaderboard.maxResults;i++){
-                        cell = new PIXI.Container();
-
-                        _yy += cellPadd;
-                        cell.position.set(_x-_width/2,_yy);
-
-                        cell.bg = new PIXI.Graphics();
-                        cell.bg.beginFill(0x90a4ae)
-                            .drawRect(0,0,_width-2,cellHeight)
-                        .endFill();
-
-                        cell.tb = new PIXI.Text("-",textOpt4);
-                        cell.tb.anchor.set(0.5,0.5);
-                        cell.tb.position.set(_width/2,cellHeight/2);
-
-                        this.leaderboard["others"][i][_name].textBox = cell.tb;
-
-                        cell.addChild(cell.bg);
-                        cell.addChild(cell.tb);
-
-                        _yy += cellHeight;
-
-                        leaderboardContent.addChild(cell);
-                    }
-
-                _x += _width/2;
-            }
-
-            this.playGamesMenu.tabsContent["leaderboard"] = leaderboardContent;
-
-            this.playGamesMenu.addChild(leaderboardContent);
-            */
 
         this.playGamesMenu.interactive = true;
         this.playGamesMenu.buttonMode = true;
@@ -1612,7 +1478,6 @@ var SoaringSheepGame = function(){
 	};
 
     this.initPlayGames = function(e){
-        //this.playGamesMenu.alpha = 1;
         this.loadOptions();
 
         if(typeof window.plugins == "undefined"){
@@ -1622,8 +1487,11 @@ var SoaringSheepGame = function(){
         }
 
         window.plugins.playGamesServices.auth(function(){
-            alert("Google Play login success!");
+            console.log("Google Play login success!");
             this.isLoggedIn = true;
+
+            //Fetch and save player data
+            this.GooglePlayServices.fetchPlayerData();
 
             //Syncing Locally-stored and Cloud-stored scores
             window.plugins.playGamesServices.getPlayerScore({
@@ -1634,7 +1502,7 @@ var SoaringSheepGame = function(){
 
                 if(this.highscore > sc){
                     //Send the locally-stored highscore since it's the highest
-                    this.sendScoreToGooglePlay(sc);
+                    this.GooglePlayServices.sendScore(sc);
                 }
                 else if(this.highscore < sc){
                     //Locally store the Google Play highscore since it's the highest
@@ -1651,7 +1519,7 @@ var SoaringSheepGame = function(){
                 //Score has never been submitted before
                 //Send the locally-stored highscore since it's the highest
                 if(this.highscore){
-                    this.sendScoreToGooglePlay(this.highscore);
+                    this.GooglePlayServices.sendScore(this.highscore);
                 }
             }.bind(Game));
         }.bind(Game),function(){
@@ -1664,33 +1532,26 @@ var SoaringSheepGame = function(){
         renderer.render(stage);
     }
 
-    this.switchPlayGamesTabs = function(tab_name){
+    this.pressPlayGamesButton = function(tab_name){
         var i;
 
         if(typeof tab_name != "string") return;
 
-        for(i in this.playGamesMenu.tabs){
-            this.playGamesMenu.tabs[i].overlay.alpha = 1;
-        }
-        this.playGamesMenu.tabs[tab_name.toString()].overlay.alpha = 0;
-
-        for(i in this.playGamesMenu.tabsContent){
-            this.playGamesMenu.tabsContent[i].visible = false;
-        }
-        this.playGamesMenu.tabsContent[tab_name.toString()].visible = true;
-
-        renderer.render(stage);
-
         if(this.isLoggedIn){
             if(tab_name == "leaderboard"){
-                var data = {
-                    "leaderboardId": this.leaderboardID.toString()
-                }
-                window.plugins.playGamesServices.showLeaderboard(data);
+                this.GooglePlayServices.showLeaderboard(this.leaderboardID.toString());
                 //window.plugins.playGamesServices.showAllLeaderboards();
             }
             else if(tab_name == "achievements"){
-                window.plugins.playGamesServices.showAchievements();
+                this.GooglePlayServices.showAchievements();
+            }
+            else if(tab_name == "logout"){
+                window.plugins.playGamesServices.signout(function(){
+                    this.isLoggedIn = false;
+                    console.log("Logout successful!");
+                }.bind(Game),function(){
+                    console.log("Failed to logout successfully!");
+                });
             }
         }
     }
@@ -1734,13 +1595,13 @@ var SoaringSheepGame = function(){
             }
             //*/
 
-            //Games API is working!
-
             //Make menu appear, and pause game
             this.playGamesMenu.alpha = 1;
             this.playGamesMenu.visible = true;
 
-            this.switchPlayGamesTabs("leaderboard");
+            this.playGamesMenu.profile.player_text.text = this.GooglePlayServices.player.name;
+
+            this.pressPlayGamesButton("leaderboard");
 
             this.togglePause(true);
         }
@@ -1921,7 +1782,7 @@ var SoaringSheepGame = function(){
 
         //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
         if(this.isLoggedIn){
-            this.sendScoreToGooglePlay(parseInt(this.score));
+            this.GooglePlayServices.sendScore(parseInt(this.score));
         }
 
 		console.log("GAME OVER!\nScore: "+this.score+"\nHighscore: "+this.highscore+"\n");
@@ -1986,21 +1847,82 @@ var SoaringSheepGame = function(){
 		}
 	};
 
-    this.sendScoreToGooglePlay = function(score, leaderboardID){
-            if(typeof leaderboardID == "undefined" || leaderboardID == null){
-                leaderboardID = this.leaderboardID.toString();
+    this.GooglePlayServices = {
+        "player":{
+            "id":"",
+            "name":"UNKNOWN",
+            "title":"-",
+            "iconURL":""
+
+        },
+        "fetchPlayerData": function(){
+            var _self = this;
+            window.plugins.playGamesServices.showPlayer( function(data){
+                this.player.name = data['displayName'];
+                this.player.id = data['playerId'];
+                this.player.title = data['title'];
+                this.player.iconURL = data['hiResIconImageUrl'];
+            }.bind(_self));
+        },
+
+        "sendScore": function(score, leaderboardID){
+                if(typeof score == "undefined" || score == null) return;
+
+                if(typeof leaderboardID == "undefined" || leaderboardID == null){
+                    leaderboardID = this.leaderboardID.toString();
+                }
+
+                var data = {
+                    "score": score,
+                    "leaderboardId": leaderboardID
+                };
+
+                window.plugins.playGamesServices.submitScoreNow(data,function(){
+                    console.log("Score of "+score+" submitted to Google Play leaderboard  "+leaderboardID+"!");
+                }.bind(this),function(){
+                    console.log("Failure to submit score to Google Play!");
+                });
+        },
+        "showLeaderboard": function(id){
+            if(typeof id == "undefined" || id == null || id.toString().toUpperCase()=="ALL"){               window.plugins.playGamesServices.showAllLeaderboards();
+            }
+            else{
+                var data = {
+                    "leaderboardId": id
+                }
+                window.plugins.playGamesServices.showLeaderboard(data);
+            }
+        },
+
+        "unlockAchievement": function(achievementID){
+            if(typeof achievementID == "undefined" || achievementID == null){
+                return;
             }
 
             var data = {
-                "score": score,
-                "leaderboardId": leaderboardID
-            };
+                    "achievementId": achievementID.toString()
+            }
 
-            window.plugins.playGamesServices.submitScoreNow(data,function(){
-                console.log("Score of "+score+" submitted to Google Play leaderboard  "+leaderboardID+"!");
-            }.bind(this),function(){
-                console.log("Failure to submit score to Google Play!");
-            });
+            window.plugins.playGamesServices.unlockAchievement(data);
+        },
+        "incrementAchievement": function(achievementID, steps){
+            if(typeof achievementID == "undefined" || achievementID == null){
+                return;
+            }
+            if(typeof steps == "undefined" || steps == null){
+                steps = 1;
+            }
+
+            var data = {
+                    "achievementId": achievementID.toString(),
+                    "numSteps": steps
+            }
+
+            window.plugins.playGamesServices.incrementAchievement(data);
+        },
+        "showAchievements": function(){
+            window.plugins.playGamesServices.showAchievements();
+        }
     }
 
 	this.hitTest = function(obj1, obj2, leewayX, leewayY){
