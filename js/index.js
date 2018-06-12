@@ -1654,7 +1654,7 @@ var SoaringSheepGame = function(){
         if(this.isLoggedIn){
             if(tab_name == "leaderboard"){
                 var data = {
-                    "leaderboardID": this.leaderboardID.toString()
+                    "leaderboardId": this.leaderboardID.toString()
                 }
                 window.plugins.playGamesServices.showLeaderboard(data);
                 //window.plugins.playGamesServices.showAllLeaderboards();
