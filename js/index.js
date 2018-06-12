@@ -1625,7 +1625,7 @@ var SoaringSheepGame = function(){
 
             this.isLoggedIn = true;
         }.bind(Game),function(){
-            console.log("Google PLay login failure!");
+            alert("Google Play login failure: "+(this.isOnline)?"Press the Play Games button to try again!":"Check your connection and try again!");
 
             this.isLoggedIn = false;
         }.bind(Game));
@@ -1651,10 +1651,17 @@ var SoaringSheepGame = function(){
 
         renderer.render(stage);
 
-        if(tab_name == "leaderboard"){
-            alert("Attempting to show leaderboard "+this.leaderboardID.toString());
-            window.plugins.playGamesServices.showLeaderboard(this.leaderboardID.toString());
-            //window.plugins.playGamesServices.showAllLeaderboards();
+        if(this.isLoggedIn){
+            if(tab_name == "leaderboard"){
+                var data = {
+                    "leaderboardID": this.leaderboardID.toString()
+                }
+                window.plugins.playGamesServices.showLeaderboard(data);
+                //window.plugins.playGamesServices.showAllLeaderboards();
+            }
+            else if(tab_name == "achievements"){
+                window.plugins.playGamesServices.showAchievements();
+            }
         }
     }
 
@@ -1668,7 +1675,6 @@ var SoaringSheepGame = function(){
         }
 
         if((typeof window.plugins != "undefined") && !this.isLoggedIn){
-            alert("Initiating Play Games...");
             this.initPlayGames();
         }
 
@@ -1893,9 +1899,9 @@ var SoaringSheepGame = function(){
 
         if(this.isLoggedIn){
             window.plugins.playGamesServices.submitScoreNow(data,function(){
-                alert("Score of "+sc+" submitted to Google Play leaderboard  "+this.leaderboardID+"!");
+                console.log("Score of "+sc+" submitted to Google Play leaderboard  "+this.leaderboardID+"!");
             }.bind(this),function(){
-                alert("Failure to submit score to Google Play!");
+                console.log("Failure to submit score to Google Play!");
             });
         }
 
