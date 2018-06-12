@@ -199,9 +199,214 @@ var SoaringSheepGame = function(){
         "others":[]
     }
 
+    //For generating achievements object:
+    /*
+    var x = document.querySelectorAll("table.GAK3QBB-ad-y tbody td div")
+    for(i=2;i<x.length;i+=7){
+        y = {};
+        y.id = x[i+1].innerHTML;
+        y.name = x[i].getElementsByTagName("a")[0].innerHTML;
+        y.points = parseInt(x[i+2].innerHTML);
+        y.complete = false;
+        y.synced = false;
+        out = '{\n';
+        for(j in y){
+            if(!y.hasOwnProperty(j)) continue;
+            out+="\t'"+j.toString()+"': '"+y[j]+"'\n";
+        }
+        out+="}"
+        console.log(out);
+    }
+    */
+
+    this.achievements = {
+        "single":{
+            "support":[{
+            	'id': 'CgkI8sq82fwOEAIQBg',
+            	'name': 'Supportive Sheep',
+            	'points': 5,
+                'complete': false,
+                'synced': false
+            }],
+            "curiosity":[{
+            	'id': 'CgkI8sq82fwOEAIQBw',
+            	'name': 'Curiosity slayed the lamb',
+            	'points': 5
+            }],
+            "score":[{
+            	'id': 'CgkI8sq82fwOEAIQDQ',
+            	'name': 'Soaring beyond limits 1',
+            	'points': 10,
+            	'complete': false,
+            	'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQDg',
+            	'name': 'Soaring Beyond Limits 2',
+            	'points': 20,
+            	'complete': false,
+            	'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQDw',
+            	'name': 'Soaring Beyond Limits 3',
+            	'points': 50,
+            	'complete': false,
+            	'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQEA',
+            	'name': 'Soaring Beyond Limits - Crazy',
+            	'points': 100,
+            	'complete': false,
+            	'synced': false
+            }],
+            "addicted":[{
+            	'id': 'CgkI8sq82fwOEAIQGw',
+            	'name': 'Clearly Addicted',
+            	'points': 50,
+            	'complete': false,
+            	'synced': false
+            }]
+        },
+        "incremental":{
+            "die":[{
+            	'id': 'CgkI8sq82fwOEAIQCQ',
+            	'name': 'Sacrificial Lamb 1',
+            	'points': 5,
+                'completedSteps': 0,
+                'totalSteps': 0,
+                'complete': false,
+                'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQCA',
+            	'name': 'Sacrificial Lamb 2',
+            	'points': 10,
+                'completedSteps': 0,
+                'totalSteps': 0,
+                'complete': false,
+                'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQCg',
+            	'name': 'Sacrificial Lamb 3',
+            	'points': 15,
+                'completedSteps': 0,
+                'totalSteps': 0,
+                'complete': false,
+                'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQCw',
+            	'name': 'Sacrificial Lamb 4',
+            	'points': 25,
+                'completedSteps': 0,
+                'totalSteps': 0,
+                'complete': false,
+                'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQDA',
+            	'name': 'Sacrificial Lamb -  Extreme',
+            	'points': 50,
+                'completedSteps': 0,
+                'totalSteps': 0,
+                'complete': false,
+                'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQFQ',
+            	'name': 'Sacrificial Lamb - Clearly addicted',
+            	'points': 100,
+                'completedSteps': 0,
+                'totalSteps': 0,
+                'complete': false,
+                'synced': false
+            }],
+            "score_times":[{
+            	'id': 'CgkI8sq82fwOEAIQEQ',
+            	'name': 'Gliding Along 1',
+            	'points': 15,
+                'completedSteps': 0,
+                'totalSteps': 0,
+            	'complete': false,
+            	'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQEg',
+            	'name': 'Gliding Along 2',
+            	'points': 25,
+                'completedSteps': 0,
+                'totalSteps': 0,
+            	'complete': false,
+            	'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQEw',
+            	'name': 'Gliding Along 3',
+            	'points': 40,
+                'completedSteps': 0,
+                'totalSteps': 0,
+            	'complete': false,
+            	'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQFA',
+            	'name': 'Soaring Along!',
+            	'points': 100,
+                'completedSteps': 0,
+                'totalSteps': 0,
+            	'complete': false,
+            	'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQFg',
+            	'name': 'Soaring Along - Clearly Addicted!',
+            	'points': 200,
+                'completedSteps': 0,
+                'totalSteps': 0,
+            	'complete': false,
+            	'synced': false
+            }],
+            "shield":[{
+            	'id': 'CgkI8sq82fwOEAIQFw',
+            	'name': 'Shielded Sheep 1',
+            	'points': 5,
+                'completedSteps': 0,
+                'totalSteps': 0,
+            	'complete': false,
+            	'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQGA',
+            	'name': 'Shielded Sheep 2',
+            	'points': 10,
+                'completedSteps': 0,
+                'totalSteps': 0,
+            	'complete': false,
+            	'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQGQ',
+            	'name': 'Shielded Sheep 3',
+            	'points': 20,
+                'completedSteps': 0,
+                'totalSteps': 0,
+            	'complete': false,
+            	'synced': false
+            }, {
+            	'id': 'CgkI8sq82fwOEAIQGg',
+            	'name': 'Shielded Sheep - Clearly Addicted',
+            	'points': 50,
+                'completedSteps': 0,
+                'totalSteps': 0,
+            	'complete': false,
+            	'synced': false
+            }]
+        },
+        "totalSteps":{} //Dynamically generated based on this.achievements data
+    }
+
+    var ii,jj,_achInc = this.achievements.incremental;
+    for(ii in _achInc){
+        this.achievements.totalSteps[ii] = [];
+        for(jj=0;jj<_achInc[ii].length;jj++){
+            this.achievements.totalSteps[ii].push(_achInc[ii][jj].totalSteps);
+        }
+    }
+
     //Ads
     this.totalGamesPlayed = 0;
 
+
+    //Functions
 	this.initStage = function(){
 		//CHECK MOBILE
 		_isMobile = MobileAndTabletCheck();
@@ -1894,10 +2099,16 @@ var SoaringSheepGame = function(){
             }
         },
 
-        "unlockAchievement": function(achievementID){
-            if(typeof achievementID == "undefined" || achievementID == null){
+        "unlockAchievement": function(achievementName,num){
+            if(typeof achievementName == "undefined" || achievementName == null){
                 return;
             }
+            if(typeof num == "undefined" || num == null){
+                num = 0;
+            }
+
+            var achData = this.achievements.single[achievementName][num];
+            var achievementID = achData.id;
 
             var data = {
                     "achievementId": achievementID.toString()
@@ -1905,13 +2116,19 @@ var SoaringSheepGame = function(){
 
             window.plugins.playGamesServices.unlockAchievement(data);
         },
-        "incrementAchievement": function(achievementID, steps){
-            if(typeof achievementID == "undefined" || achievementID == null){
+        "incrementAchievement": function(achievementName, steps){
+            if(typeof achievementName == "undefined" || achievementName == null){
                 return;
+            }
+            if(typeof num == "undefined" || num == null){
+                num = 0;
             }
             if(typeof steps == "undefined" || steps == null){
                 steps = 1;
             }
+
+            var achData = this.achievements.single[achievementName][num];
+            var achievementID = achData.id;
 
             var data = {
                     "achievementId": achievementID.toString(),
