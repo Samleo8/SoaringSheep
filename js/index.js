@@ -122,7 +122,7 @@ var SoaringSheepGame = function(){
 
 	this.speedInc = 0.985; //anything below 0.95 is a problem
     this.minSpeed = 6.5;
-	this.maxSpeed = 12;
+	this.maxSpeed = 11.5;
 
 	this._paused = false;
 	this._musicMuted = false;
@@ -1622,7 +1622,7 @@ var SoaringSheepGame = function(){
         }
 
         window.plugins.playGamesServices.auth(function(){
-            console.log("Google Play login success!");
+            alert("Google Play login success!");
             this.isLoggedIn = true;
 
             //Syncing Locally-stored and Cloud-stored scores
@@ -1631,6 +1631,7 @@ var SoaringSheepGame = function(){
             }, function(result){
                 var sc = parseInt(result.playerScore);
                 alert("Retrieved score: "+sc);
+
                 if(this.highscore > sc){
                     //Send the locally-stored highscore since it's the highest
                     this.sendScoreToGooglePlay(sc);
@@ -1986,16 +1987,17 @@ var SoaringSheepGame = function(){
 	};
 
     this.sendScoreToGooglePlay = function(score, leaderboardID){
-            if(typeof leaderboardID == "undefined" || leaderboardID == null)
+            if(typeof leaderboardID == "undefined" || leaderboardID == null){
                 leaderboardID = this.leaderboardID.toString();
+            }
 
             var data = {
-                "score": sc,
+                "score": score,
                 "leaderboardId": leaderboardID
             };
 
             window.plugins.playGamesServices.submitScoreNow(data,function(){
-                console.log("Score of "+sc+" submitted to Google Play leaderboard  "+leaderboardID+"!");
+                console.log("Score of "+score+" submitted to Google Play leaderboard  "+leaderboardID+"!");
             }.bind(this),function(){
                 console.log("Failure to submit score to Google Play!");
             });
