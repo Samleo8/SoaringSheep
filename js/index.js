@@ -1,4 +1,4 @@
-console.log(var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
+var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
 var forceIsApp = false;
 
@@ -59,7 +59,9 @@ var app = {
             //GPlay.noConnection = false;
             Game.isOnline = true;
 
-            //if(game._gameStarted) GPlay.init();
+            //Load Play Games and Ads
+            if(!Game.isLoggedIn) Game.initPlayGames();
+            if(!Game.ads.types["banner"].loaded) Game.ads.init();
         }
     }
 };
@@ -404,9 +406,75 @@ var SoaringSheepGame = function(){
 
     //Ads
     this.totalGamesPlayed = 0;
-    this.adIDs = {
-        "banner":"ca-app-pub-1626473425552959/6430092502",
-        "interstitial": "ca-app-pub-1626473425552959/8895284370"
+
+    this.ads = {
+        "testing": false,
+        "types":{
+            "banner":{
+                "id": "ca-app-pub-1626473425552959/6430092502",
+                "autoShow": true,
+                "loaded": false
+            },
+            "interstitial":{
+                "id": "ca-app-pub-1626473425552959/8895284370",
+                "autoShow": false,
+                "loaded": false
+            },
+            "rewardvideo":{
+                "id": "ca-app-pub-1626473425552959/5937948547",
+                "autoShow": false,
+                "loaded": false
+            }
+        },
+        "init": function(){
+            self = this;
+            if(!window.admob) return;
+
+            var i,j,nm;
+            for(i in self.types){
+                if(!self.types.hasOwnProperty(i)) continue;
+
+                nm = i.toString().toLowerCase();
+                data = self.types[i];
+
+                window.admob[nm].config({
+                    id: data["id"],
+                    isTesting: self.testing,
+                    autoShow: data["autoShow"]
+                });
+                window.admob[nm].prepare();
+
+                document.addEventListener('admob.'+nm+'.events.LOAD_FAIL', function(event) {
+                    data["loaded"] = false;
+                }.bind(self));
+
+                document.addEventListener('admob.'+nm+'.events.LOAD', function(event) {
+                    data["loaded"] = true;
+                }.bind(self));
+
+                if(nm!="banner"){
+                    document.addEventListener('admob.'+nm+'.events.CLOSE', function(event) {
+                        data["loaded"] = false;
+                        window.admob[nm].prepare();
+                    }.bind(self));
+                }
+
+                if(nm=="rewardvideo"){
+                    document.addEventListener('admob.rewardvideo.events.REWARD', function(event){
+                        console.log("Reward here!");
+                    }.bind(Game));
+                }
+            }
+        },
+        "showAd": function(type){
+            if(!window.admob) return;
+
+            if(typeof type == "undefined" || type==null){
+                type = "interstitial";
+            }
+
+            window.admob[type].show();
+        }
     }
 
     //Functions
@@ -1072,6 +1140,7 @@ var SoaringSheepGame = function(){
 			var i;
 
             this.generateOverlays();
+            this.ads.init();
 
 			console.log("All assets loaded.");
 
@@ -1185,7 +1254,7 @@ var SoaringSheepGame = function(){
         }
 
         requestAnimationFrame(this.fadeInAnimation.bind(this));
-    }
+    };
 
 	this.startGame = function(){
         var i;
