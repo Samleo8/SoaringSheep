@@ -1,4 +1,4 @@
-var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
+console.log(var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
 var forceIsApp = false;
 
@@ -404,7 +404,10 @@ var SoaringSheepGame = function(){
 
     //Ads
     this.totalGamesPlayed = 0;
-
+    this.adIDs = {
+        "banner":"ca-app-pub-1626473425552959/6430092502",
+        "interstitial": "ca-app-pub-1626473425552959/8895284370"
+    }
 
     //Functions
 	this.initStage = function(){
@@ -1692,7 +1695,7 @@ var SoaringSheepGame = function(){
         }
 
         window.plugins.playGamesServices.auth(function(){
-            alert("Google Play login success!");
+            console.log("Google Play login success!");
             this.isLoggedIn = true;
 
             //Syncing Locally-stored and Cloud-stored scores
@@ -1700,7 +1703,7 @@ var SoaringSheepGame = function(){
                 "leaderboardId":this.leaderboardID.toString()
             }, function(result){
                 var sc = parseInt(result.playerScore);
-                alert("Retrieved score: "+sc);
+                console.log("Retrieved score: "+sc);
 
                 if(this.highscore > sc){
                     //Send the locally-stored highscore since it's the highest
@@ -2074,7 +2077,7 @@ var SoaringSheepGame = function(){
                 if(typeof score == "undefined" || score == null) return;
 
                 if(typeof leaderboardID == "undefined" || leaderboardID == null){
-                    leaderboardID = this.leaderboardID.toString();
+                    leaderboardID = Game.leaderboardID.toString();
                 }
 
                 var data = {
@@ -2083,9 +2086,9 @@ var SoaringSheepGame = function(){
                 };
 
                 window.plugins.playGamesServices.submitScoreNow(data,function(){
-                    alert("Score of "+score+" submitted to Google Play leaderboard  "+leaderboardID+"!");
+                    console.log("Score of "+score+" submitted to Google Play leaderboard  "+leaderboardID+"!");
                 }.bind(Game),function(){
-                    alert("Failure to submit score to Google Play!");
+                    alert("Failure to submit score of "+data.score+"to Google Play!");
                 });
         },
         "showLeaderboard": function(id){
