@@ -1732,6 +1732,8 @@ var SoaringSheepGame = function(){
 			}
 		}
 
+        this.GooglePlayServices.unlockAchievement("curiosity");
+
         //Toggle the display of the info page, along with the pausing
         if(this.infoOverlay.alpha){
             this.infoOverlay.alpha = 0;
@@ -2172,6 +2174,8 @@ var SoaringSheepGame = function(){
         },
 
         "unlockAchievement": function(achievementName,num){
+            if(!window.plugins) return;
+
             if(typeof achievementName == "undefined" || achievementName == null){
                 return;
             }
@@ -2182,13 +2186,24 @@ var SoaringSheepGame = function(){
             var achData = this.achievements.single[achievementName][num];
             var achievementID = achData.id;
 
+            //Set achievement as complete
+            achData["complete"] = true;
+
             var data = {
                     "achievementId": achievementID.toString()
             }
 
-            window.plugins.playGamesServices.unlockAchievement(data);
+            window.plugins.playGamesServices.unlockAchievement(data, function(){
+                console.log("Achievement Unlocked: "+achData["name"]);
+                achData["synced"] = true;
+            }, function(){
+                console.log("Failed to sync achievement");
+                achData["synced"] = true;
+            });
         },
         "incrementAchievement": function(achievementName, steps){
+            if(!window.plugins) return;
+
             if(typeof achievementName == "undefined" || achievementName == null){
                 return;
             }
@@ -2260,6 +2275,10 @@ var SoaringSheepGame = function(){
 				this.preventHeroJump++;
 			}
 		}
+
+        if(url == "https://samleo8.github.io/games/"){
+            this.GooglePlayServices.unlockAchievement("support");
+        }
 
         if(isApp()){
             if(device.platform.toUpperCase() === 'ANDROID') {
