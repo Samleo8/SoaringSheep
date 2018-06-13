@@ -404,7 +404,10 @@ var SoaringSheepGame = function(){
 
     //Ads
     this.totalGamesPlayed = 0;
-
+    this.adIDs = {
+        "banner":"ca-app-pub-1626473425552959/6430092502",
+        "interstitial": "ca-app-pub-1626473425552959/8895284370"
+    }
 
     //Functions
 	this.initStage = function(){
@@ -2074,7 +2077,7 @@ var SoaringSheepGame = function(){
                 if(typeof score == "undefined" || score == null) return;
 
                 if(typeof leaderboardID == "undefined" || leaderboardID == null){
-                    leaderboardID = this.leaderboardID.toString();
+                    leaderboardID = Game.leaderboardID.toString();
                 }
 
                 var data = {
