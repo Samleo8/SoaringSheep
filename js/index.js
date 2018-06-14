@@ -240,6 +240,7 @@ var SoaringSheepGame = function(){
             	'name': 'Soaring beyond limits 1',
             	'points': 10,
                 'value': 10,
+                'value_synced': 10,
             	'complete': false,
             	'synced': false
             }, {
@@ -247,6 +248,7 @@ var SoaringSheepGame = function(){
             	'name': 'Soaring Beyond Limits 2',
             	'points': 20,
                 'value': 15,
+                'value_synced': 15,
             	'complete': false,
             	'synced': false
             }, {
@@ -254,6 +256,7 @@ var SoaringSheepGame = function(){
             	'name': 'Soaring Beyond Limits 3',
             	'points': 50,
                 'value': 20,
+                'value_synced': 20,
             	'complete': false,
             	'synced': false
             }, {
@@ -261,13 +264,7 @@ var SoaringSheepGame = function(){
             	'name': 'Soaring Beyond Limits - Crazy',
             	'points': 100,
                 'value': 30,
-            	'complete': false,
-            	'synced': false
-            }],
-            "addicted":[{
-            	'id': 'CgkI8sq82fwOEAIQGw',
-            	'name': 'Clearly Addicted',
-            	'points': 50,
+                'value_synced': 30,
             	'complete': false,
             	'synced': false
             }],
@@ -285,6 +282,7 @@ var SoaringSheepGame = function(){
             	'name': 'Sacrificial Lamb 1',
             	'points': 5,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 10,
                 'complete': false,
                 'synced': false
@@ -293,6 +291,7 @@ var SoaringSheepGame = function(){
             	'name': 'Sacrificial Lamb 2',
             	'points': 10,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 50,
                 'complete': false,
                 'synced': false
@@ -301,6 +300,7 @@ var SoaringSheepGame = function(){
             	'name': 'Sacrificial Lamb 3',
             	'points': 15,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 100,
                 'complete': false,
                 'synced': false
@@ -309,6 +309,7 @@ var SoaringSheepGame = function(){
             	'name': 'Sacrificial Lamb 4',
             	'points': 25,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 500,
                 'complete': false,
                 'synced': false
@@ -317,6 +318,7 @@ var SoaringSheepGame = function(){
             	'name': 'Sacrificial Lamb -  Extreme',
             	'points': 50,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 1000,
                 'complete': false,
                 'synced': false
@@ -326,6 +328,7 @@ var SoaringSheepGame = function(){
             	'name': 'Sacrificial Lamb - Clearly addicted',
             	'points': 100,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 1000,
                 'complete': false,
                 'synced': false
@@ -335,6 +338,7 @@ var SoaringSheepGame = function(){
             	'name': 'Gliding Along 1',
             	'points': 15,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 3,
             	'complete': false,
             	'synced': false
@@ -343,6 +347,7 @@ var SoaringSheepGame = function(){
             	'name': 'Gliding Along 2',
             	'points': 25,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 5,
             	'complete': false,
             	'synced': false
@@ -351,6 +356,7 @@ var SoaringSheepGame = function(){
             	'name': 'Gliding Along 3',
             	'points': 40,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 10,
             	'complete': false,
             	'synced': false
@@ -359,6 +365,7 @@ var SoaringSheepGame = function(){
             	'name': 'Soaring Along!',
             	'points': 100,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 50,
             	'complete': false,
             	'synced': false
@@ -367,6 +374,7 @@ var SoaringSheepGame = function(){
             	'name': 'Soaring Along - Clearly Addicted!',
             	'points': 200,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 100,
             	'complete': false,
             	'synced': false
@@ -376,6 +384,7 @@ var SoaringSheepGame = function(){
             	'name': 'Shielded Sheep 2',
             	'points': 10,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 10,
             	'complete': false,
             	'synced': false
@@ -384,6 +393,7 @@ var SoaringSheepGame = function(){
             	'name': 'Shielded Sheep 3',
             	'points': 20,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 50,
             	'complete': false,
             	'synced': false
@@ -392,10 +402,21 @@ var SoaringSheepGame = function(){
             	'name': 'Shielded Sheep - Clearly Addicted',
             	'points': 50,
                 'completedSteps': 0,
+                'completedSteps_synced': 0,
                 'totalSteps': 100,
             	'complete': false,
             	'synced': false
-            }]
+            }],
+            "addicted":[{
+            	'id': 'CgkI8sq82fwOEAIQGw',
+            	'name': 'Clearly Addicted',
+            	'points': 50,
+                'completedSteps': 0,
+                'completedSteps_synced': 0,
+                'totalSteps': 3,
+            	'complete': false,
+            	'synced': false
+            }],
         },
         "totalSteps":{} //Dynamically generated based on this.achievements data
     }
@@ -2147,6 +2168,8 @@ var SoaringSheepGame = function(){
 	};
 
     this.GooglePlayServices = {
+        //REMEMBER: "this" does NOT refer to the game object; it refers to the GooglePlayServices object.
+
         "player":{
             "id":"",
             "name":"UNKNOWN",
@@ -2176,9 +2199,9 @@ var SoaringSheepGame = function(){
                 };
 
                 window.plugins.playGamesServices.submitScoreNow(data,function(){
-                    console.log("Score of "+score+" submitted to Google Play leaderboard  "+leaderboardID+"!");
+                    console.log("Score of "+data.score+" submitted to Google Play leaderboard  "+data.leaderboardId+"!");
                 }.bind(Game),function(){
-                    alert("Failure to submit score of "+data.score+"to Google Play!");
+                    alert("Failure to submit score of "+data.score+" to Google Play"+(Game.isOnline)?"!":": Check your connection and try again!");
                 });
         },
         "showLeaderboard": function(id){
@@ -2193,8 +2216,6 @@ var SoaringSheepGame = function(){
         },
 
         "unlockAchievement": function(achievementName,num){
-            if(!window.plugins) return;
-
             if(typeof achievementName == "undefined" || achievementName == null){
                 return;
             }
@@ -2202,11 +2223,13 @@ var SoaringSheepGame = function(){
                 num = 0;
             }
 
-            var achData = this.achievements.single[achievementName][num];
+            var achData = Game.achievements.single[achievementName][num];
             var achievementID = achData.id;
 
             //Set achievement as complete
             achData["complete"] = true;
+
+            if(!window.plugins) return;
 
             var data = {
                     "achievementId": achievementID.toString()
@@ -2221,8 +2244,6 @@ var SoaringSheepGame = function(){
             });
         },
         "incrementAchievement": function(achievementName, num, steps){
-            if(!window.plugins) return;
-
             if(typeof achievementName == "undefined" || achievementName == null){
                 return;
             }
@@ -2233,8 +2254,14 @@ var SoaringSheepGame = function(){
                 steps = 1;
             }
 
-            var achData = this.achievements.single[achievementName][num];
+            var achData = Game.achievements.single[achievementName][num];
             var achievementID = achData.id;
+
+            //Increment achievement steps; set as complete if necessary
+            achData["completedSteps"] = Math.min(achData["completedSteps"]+1,achData["totalSteps"]);
+            achData["completed"] = (achData["completedSteps"] == achData["totalSteps"]);
+
+            if(!window.plugins) return;
 
             var data = {
                     "achievementId": achievementID.toString(),
