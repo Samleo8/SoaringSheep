@@ -408,6 +408,7 @@ var SoaringSheepGame = function(){
     this.totalGamesPlayed = 0;
 
     this.ads = {
+        "enabled": false,
         "testing": false,
         "types":{
             "banner":{
@@ -428,7 +429,8 @@ var SoaringSheepGame = function(){
         },
         "init": function(){
             self = this;
-            if(!window.admob) return;
+            if(!this.enabled) this.testing = true;
+            if(!window.admob || !this.enabled) return;
 
             var i,j,nm;
             for(i in self.types){
@@ -467,7 +469,7 @@ var SoaringSheepGame = function(){
             }
         },
         "showAd": function(type){
-            if(!window.admob) return;
+            if(!window.admob || !this.enabled) return;
 
             if(typeof type == "undefined" || type==null){
                 type = "interstitial";
