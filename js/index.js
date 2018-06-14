@@ -2070,6 +2070,8 @@ var SoaringSheepGame = function(){
 	};
 
 	this.gameover = function(){
+        var i;
+
 		this._paused = true;
 		this.audio["die"].play();
 
@@ -2078,13 +2080,14 @@ var SoaringSheepGame = function(){
             var sc = this.score;
             this.GooglePlayServices.sendScore(sc);
 
-            this.GooglePlayServices.incrementAchievement("die",0,1);
+            for(i=0;i<this.achievements.incremental.die.length;i++){ //TODO: Sync with Google Play side.
+                this.GooglePlayServices.incrementAchievement("die",i,1);
+            }
         }
 
 		console.log("GAME OVER!\nScore: "+this.score+"\nHighscore: "+this.highscore+"\n");
 
         //CLEAR OBSTACLES
-        var i;
         for(i=this.obstacles.children.length-1;i>=0;i--){
             this.obstacles.removeChild(this.obstacles.children[i]);
         }
@@ -2214,10 +2217,10 @@ var SoaringSheepGame = function(){
                 achData["synced"] = true;
             }, function(){
                 console.log("Failed to sync achievement");
-                achData["synced"] = true;
+                achData["synced"] = false;
             });
         },
-        "incrementAchievement": function(achievementName, steps){
+        "incrementAchievement": function(achievementName, num, steps){
             if(!window.plugins) return;
 
             if(typeof achievementName == "undefined" || achievementName == null){
@@ -2238,7 +2241,13 @@ var SoaringSheepGame = function(){
                     "numSteps": steps
             }
 
-            window.plugins.playGamesServices.incrementAchievement(data);
+            window.plugins.playGamesServices.incrementAchievement(data, function(){
+                console.log("Achievement "+achData["name"]+" incremented by "+steps+" steps");
+                achData["synced"] = true;
+            }, function(){
+                console.log("Failed to sync achievement");
+                achData["synced"] = false;
+            });
         },
         "showAchievements": function(){
             window.plugins.playGamesServices.showAchievements();
