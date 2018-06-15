@@ -1869,14 +1869,14 @@ var SoaringSheepGame = function(){
                 this.GooglePlayServices.showAchievements();
             }
             else if(button_name == "logout"){
-                if(!confirm("Are you sure you want to sign out?")) return;
+                //if(!confirm("Are you sure you want to sign out?")) return;
 
                 if(!this.isOnline){
                     alert("Connection Error: Cannot sign out of Google Play...");
                     return;
                 }
 
-                window.plugins.playGamesServices.signout(/*function(){
+                window.plugins.playGamesServices.signOut(function(){
                     alert(this.GooglePlayServices.player.name+" has signed out successfully");
 
                     this.isLoggedIn = false;
@@ -1894,25 +1894,8 @@ var SoaringSheepGame = function(){
 
                     renderer.render(stage);
                 }.bind(Game),function(){
-                    alert("Failed to signed out successfully!");
-                }*/);
-
-                alert("Sign out successful!");
-                //alert(this.GooglePlayServices.player.name+" has signed out successfully");
-
-                /*
-                this.GooglePlayServices.player = {
-                    "id":"",
-                    "name":"UNKNOWN",
-                    "title":"-",
-                    "iconURL":""
-                };*/
-
-                //Close the play games menu
-                this.playGamesMenu.alpha = 0;
-                this.playGamesMenu.visible = false;
-
-                renderer.render(stage);
+                    alert(this.GooglePlayServices.player.name+" failed to sign out successfully!");
+                });
             }
         }
     }
@@ -2249,6 +2232,9 @@ var SoaringSheepGame = function(){
                 this.player.id = data['playerId'];
                 this.player.title = data['title'];
                 this.player.iconURL = data['hiResIconImageUrl'];
+
+                //Once done, update the menu
+                Game.playGamesMenu.profile.player_text.text = data['displayName'];
             }.bind(_self));
         },
 
