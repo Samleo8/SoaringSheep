@@ -2100,10 +2100,11 @@ var SoaringSheepGame = function(){
         if(this.isLoggedIn){
             var sc = this.score;
             this.GooglePlayServices.sendScore(sc);
+        }
 
-            for(i=0;i<this.achievements.incremental.die.length;i++){ //TODO: Sync with Google Play side.
-                this.GooglePlayServices.incrementAchievement("die",i,1);
-            }
+        for(i=0;i<this.achievements.incremental.die.length;i++){
+            //TODO: Sync with Google Play side.
+            this.GooglePlayServices.incrementAchievement("die",i,1);
         }
 
 		console.log("GAME OVER!\nScore: "+this.score+"\nHighscore: "+this.highscore+"\n");
@@ -2229,7 +2230,9 @@ var SoaringSheepGame = function(){
             //Set achievement as complete
             achData["complete"] = true;
 
-            if(!window.plugins) return;
+            console.log("Achievement Data: ",achData);
+
+            if(!window.plugins || !Game.isLoggedIn) return;
 
             var data = {
                     "achievementId": achievementID.toString()
@@ -2254,14 +2257,16 @@ var SoaringSheepGame = function(){
                 steps = 1;
             }
 
-            var achData = Game.achievements.single[achievementName][num];
+            var achData = Game.achievements.incremental[achievementName][num];
             var achievementID = achData.id;
 
             //Increment achievement steps; set as complete if necessary
-            achData["completedSteps"] = Math.min(achData["completedSteps"]+1,achData["totalSteps"]);
+            achData["completedSteps"] = Math.min(achData["completedSteps"]+steps,achData["totalSteps"]);
             achData["completed"] = (achData["completedSteps"] == achData["totalSteps"]);
 
-            if(!window.plugins) return;
+            console.log("Achievement Data: ",achData);
+
+            if(!window.plugins || !Game.isLoggedIn) return;
 
             var data = {
                     "achievementId": achievementID.toString(),
@@ -2270,10 +2275,12 @@ var SoaringSheepGame = function(){
 
             window.plugins.playGamesServices.incrementAchievement(data, function(){
                 console.log("Achievement "+achData["name"]+" incremented by "+steps+" steps");
-                achData["synced"] = true;
+                achData["completedSteps_synced"] = Math.min(achData["completedSteps_synced"]+steps,achData["totalSteps"]);
+                achData["completedSteps_synced"] = (achData["completedSteps_synced"] == achData["totalSteps"]);
+                //achData["synced"] = true;
             }, function(){
                 console.log("Failed to sync achievement");
-                achData["synced"] = false;
+                //achData["synced"] = false;
             });
         },
         "showAchievements": function(){
