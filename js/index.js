@@ -240,7 +240,6 @@ var SoaringSheepGame = function(){
             	'name': 'Soaring beyond limits 1',
             	'points': 10,
                 'value': 10,
-                'value_synced': 10,
             	'complete': false,
             	'synced': false
             }, {
@@ -248,7 +247,6 @@ var SoaringSheepGame = function(){
             	'name': 'Soaring Beyond Limits 2',
             	'points': 20,
                 'value': 15,
-                'value_synced': 15,
             	'complete': false,
             	'synced': false
             }, {
@@ -256,7 +254,6 @@ var SoaringSheepGame = function(){
             	'name': 'Soaring Beyond Limits 3',
             	'points': 50,
                 'value': 20,
-                'value_synced': 20,
             	'complete': false,
             	'synced': false
             }, {
@@ -264,7 +261,6 @@ var SoaringSheepGame = function(){
             	'name': 'Soaring Beyond Limits - Crazy',
             	'points': 100,
                 'value': 30,
-                'value_synced': 30,
             	'complete': false,
             	'synced': false
             }],
@@ -1564,12 +1560,25 @@ var SoaringSheepGame = function(){
             //Check for hero and powerup hitTest
             if(this.hitTest(this.hero,pwr,10,10)){
                 switch(pwr.type){
-                    case 0: //SHIELD
+                    //SHIELD
+                    case 0:
                         this.heroShield.alpha = 1;
                         this.shieldTimer = new Date().getTime();
                         this.audio["shield"].play();
+
+                        //ACHIEVEMENT:
+                            //-Single:
+                            if(!this.achievements.single.shield_once.complete || !this.achievements.single.shield_once.synced)  {   this.GooglePlayServices.unlockAchievement("shield_once");
+                            }
+                            //-Incremental:
+                            for(j=0;j<this.achievements.incremental.shield.length;j++){
+                                if(!this.achievements.incremental.shield[j].complete || !this.achievements.incremental.shield[j].synced) {
+                                    this.GooglePlayServices.incrementAchievement("shield",i,1);
+                                }
+                            }
                         break;
-                    case 1: //+1
+                    //+1 SCORE
+                    case 1:
                         this.incScore();
                         break;
                 }
@@ -2102,12 +2111,28 @@ var SoaringSheepGame = function(){
             this.GooglePlayServices.sendScore(sc);
         }
 
+        //ACHIEVEMENT: DIE/DIE_ADDICTED
         for(i=0;i<this.achievements.incremental.die.length;i++){
             //TODO: Sync with Google Play side.
-            this.GooglePlayServices.incrementAchievement("die",i,1);
+            if(!this.achievements.incremental.die[i].complete || !this.achievements.incremental.die[i].synced){
+                this.GooglePlayServices.incrementAchievement("die",i,1);
+            }
+        }
+
+        if(this.achievements.incremental.die[4].complete){
+            if(!this.achievements.incremental.die_addicted[0].complete || !this.achievements.incremental.die_addicted[0].synced){
+                this.GooglePlayServices.incrementAchievement("die_addicted",0,1);
+            }
         }
 
 		console.log("GAME OVER!\nScore: "+this.score+"\nHighscore: "+this.highscore+"\n");
+
+        //ACHIEVEMENT: SCORE
+        for(i=0;i<this.achievements.single.score.length;i++){
+            if(this.score>=this.achievements.single.score[i].value){
+                this.GooglePlayServices.unlockAchievement("score",i);
+            }
+        }
 
         //CLEAR OBSTACLES
         for(i=this.obstacles.children.length-1;i>=0;i--){
@@ -2124,6 +2149,8 @@ var SoaringSheepGame = function(){
             GPlay.sendScore(this.score, "highscore");
         }
         */
+
+        //TODO: SHOW GAMEOVER MENU
 
 		//RESTART GAME
 		this.newGame();
