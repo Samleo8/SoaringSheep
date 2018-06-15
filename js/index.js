@@ -1813,6 +1813,9 @@ var SoaringSheepGame = function(){
             console.log("Google Play login success!");
             this.isLoggedIn = true;
 
+            //Fetch and save player data
+            this.GooglePlayServices.fetchPlayerData();
+
             //Syncing Locally-stored and Cloud-stored scores
             window.plugins.playGamesServices.getPlayerScore({
                 "leaderboardId":this.leaderboardID.toString()
@@ -1843,8 +1846,20 @@ var SoaringSheepGame = function(){
                 }
             }.bind(Game));
 
-            //Fetch and save player data
-            this.GooglePlayServices.fetchPlayerData();
+            //ACHIEVEMENT: CLEARLY ADDICTED
+            if(this.achievements.incremental.die_addicted[0].complete){
+                this.GooglePlayServices.incrementAchievement("addicted",0,1);
+            }
+            if(this.achievements.incremental.score_times[4].complete){
+                this.GooglePlayServices.incrementAchievement("addicted",0,1);
+            }
+            if(this.achievements.incremental.shield[2].complete){
+                this.GooglePlayServices.incrementAchievement("addicted",0,1);
+            }
+
+            //TODO: Sync locally-stored and Google Play achievements
+
+
         }.bind(Game),function(){
             alert("Google Play login failure: "+(this.isOnline)?"Press the Play Games button to try again!":"Check your connection and try again!");
 
@@ -2134,7 +2149,6 @@ var SoaringSheepGame = function(){
 
         //ACHIEVEMENT: DIE/DIE_ADDICTED
         for(i=0;i<this.achievements.incremental.die.length;i++){
-            //TODO: Sync with Google Play side.
             if(!this.achievements.incremental.die[i].complete || !this.achievements.incremental.die[i].synced){
                 this.GooglePlayServices.incrementAchievement("die",i,1);
             }
@@ -2148,10 +2162,16 @@ var SoaringSheepGame = function(){
 
 		console.log("GAME OVER!\nScore: "+this.score+"\nHighscore: "+this.highscore+"\n");
 
-        //ACHIEVEMENT: SCORE
+        //ACHIEVEMENT: SCORE/SCORE_TIMES
         for(i=0;i<this.achievements.single.score.length;i++){
             if(this.score>=this.achievements.single.score[i].value){
                 this.GooglePlayServices.unlockAchievement("score",i);
+            }
+        }
+
+        for(i=0;i<this.achievements.incremental.score_times.length;i++){
+            if(this.score>=10){
+                this.GooglePlayServices.incrementAchievement("score_times",i);
             }
         }
 
@@ -2173,6 +2193,7 @@ var SoaringSheepGame = function(){
 
         //TODO: SHOW GAMEOVER MENU
 
+
 		//RESTART GAME
 		this.newGame();
 	};
@@ -2190,6 +2211,10 @@ var SoaringSheepGame = function(){
 				this.toggleMuteFX(parseBoolean(this.defOptions["muteFX"]));
 				this.toggleMuteMain(parseBoolean(this.defOptions["muteMain"]));
 			}
+
+            if(window.localStorage["achievements"] != null){
+                this.achievements = JSON.parse(window.localStorage["achievements"]);
+            }
 		}
 		else{
 			console.log("WARNING: Browser does not support localStorage! Highscores and options will not be saved.");
@@ -2209,6 +2234,7 @@ var SoaringSheepGame = function(){
 
 			if(opt=="all" || opt=="muteFX") window.localStorage["muteFX"] = this._FXMuted;
 			if(opt=="all" || opt=="muteMain") window.localStorage["muteMain"] = this._musicMuted;
+            if(opt=="all" || opt=="achievements" || opt=="achievement") window.localStorage["achievements"] = JSON.stringify(this.achievements);
 		}
 		else{
 			console.log("WARNING: Browser does not support localStorage! Highscores and options will not be saved.");
@@ -2235,6 +2261,7 @@ var SoaringSheepGame = function(){
 
                 //Once done, update the menu
                 Game.playGamesMenu.profile.player_text.text = data['displayName'];
+                renderer.render(stage);
             }.bind(_self));
         },
 
@@ -2281,7 +2308,7 @@ var SoaringSheepGame = function(){
             //Set achievement as complete
             achData["complete"] = true;
 
-            console.log("Achievement Data: ",achData);
+            Game.saveOptions("achievements");
 
             if(!window.plugins || !Game.isLoggedIn) return;
 
@@ -2292,9 +2319,11 @@ var SoaringSheepGame = function(){
             window.plugins.playGamesServices.unlockAchievement(data, function(){
                 console.log("Achievement Unlocked: "+achData["name"]);
                 achData["synced"] = true;
+                Game.saveOptions("achievements");
             }, function(){
                 console.log("Failed to sync achievement");
                 achData["synced"] = false;
+                Game.saveOptions("achievements");
             });
         },
         "incrementAchievement": function(achievementName, num, steps){
@@ -2315,7 +2344,7 @@ var SoaringSheepGame = function(){
             achData["completedSteps"] = Math.min(achData["completedSteps"]+steps,achData["totalSteps"]);
             achData["completed"] = (achData["completedSteps"] == achData["totalSteps"]);
 
-            console.log("Achievement Data: ",achData);
+            Game.saveOptions("achievements");
 
             if(!window.plugins || !Game.isLoggedIn) return;
 
@@ -2328,10 +2357,10 @@ var SoaringSheepGame = function(){
                 console.log("Achievement "+achData["name"]+" incremented by "+steps+" steps");
                 achData["completedSteps_synced"] = Math.min(achData["completedSteps_synced"]+steps,achData["totalSteps"]);
                 achData["completedSteps_synced"] = (achData["completedSteps_synced"] == achData["totalSteps"]);
-                //achData["synced"] = true;
+
+                Game.saveOptions("achievements");
             }, function(){
                 console.log("Failed to sync achievement");
-                //achData["synced"] = false;
             });
         },
         "showAchievements": function(){
@@ -2549,9 +2578,6 @@ var GooglePlayServices = function(){
             this.onError.bind(this)
         );
     }
-
-    //-Achievements
-    //TODO: achievements
 
     //Error Handling
     this.onError = function(error){
