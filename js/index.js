@@ -1855,26 +1855,64 @@ var SoaringSheepGame = function(){
         renderer.render(stage);
     }
 
-    this.pressPlayGamesButton = function(tab_name){
+    this.pressPlayGamesButton = function(button_name){
         var i;
 
-        if(typeof tab_name != "string") return;
+        if(typeof button_name != "string") return;
 
         if(this.isLoggedIn){
-            if(tab_name == "leaderboard"){
+            if(button_name == "leaderboard"){
                 this.GooglePlayServices.showLeaderboard(this.leaderboardID.toString());
                 //window.plugins.playGamesServices.showAllLeaderboards();
             }
-            else if(tab_name == "achievements"){
+            else if(button_name == "achievements"){
                 this.GooglePlayServices.showAchievements();
             }
-            else if(tab_name == "logout"){
-                window.plugins.playGamesServices.signout(function(){
+            else if(button_name == "logout"){
+                if(!confirm("Are you sure you want to sign out?")) return;
+
+                if(!this.isOnline){
+                    alert("Connection Error: Cannot sign out of Google Play...");
+                    return;
+                }
+
+                window.plugins.playGamesServices.signout(/*function(){
+                    alert(this.GooglePlayServices.player.name+" has signed out successfully");
+
                     this.isLoggedIn = false;
-                    console.log("Logout successful!");
+
+                    this.GooglePlayServices.player = {
+                        "id":"",
+                        "name":"UNKNOWN",
+                        "title":"-",
+                        "iconURL":""
+                    };
+
+                    //Close the play games menu
+                    this.playGamesMenu.alpha = 0;
+                    this.playGamesMenu.visible = false;
+
+                    renderer.render(stage);
                 }.bind(Game),function(){
-                    console.log("Failed to logout successfully!");
-                });
+                    alert("Failed to signed out successfully!");
+                }*/);
+
+                alert("Sign out successful!");
+                //alert(this.GooglePlayServices.player.name+" has signed out successfully");
+
+                /*
+                this.GooglePlayServices.player = {
+                    "id":"",
+                    "name":"UNKNOWN",
+                    "title":"-",
+                    "iconURL":""
+                };*/
+
+                //Close the play games menu
+                this.playGamesMenu.alpha = 0;
+                this.playGamesMenu.visible = false;
+
+                renderer.render(stage);
             }
         }
     }
