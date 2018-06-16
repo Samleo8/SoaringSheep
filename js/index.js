@@ -1884,7 +1884,7 @@ var SoaringSheepGame = function(){
             }
 
         }.bind(Game),function(){
-            alert("Google Play login failure: "+(this.isOnline)?"Press the Play Games button to try again!":"Check your connection and try again!");
+            alert("Google Play login failure: "+((this.isOnline)?"Press the Play Games button to try again!":"Check your connection and try again!"));
 
             this.isLoggedIn = false;
         }.bind(Game));
@@ -2303,7 +2303,7 @@ var SoaringSheepGame = function(){
                 window.plugins.playGamesServices.submitScoreNow(data,function(){
                     console.log("Score of "+data.score+" submitted to Google Play leaderboard  "+data.leaderboardId+"!");
                 }.bind(Game),function(){
-                    alert("Failure to submit score of "+data.score+" to Google Play"+(Game.isOnline)?"!":": Check your connection and try again!");
+                    alert("Failure to submit score of "+data.score+" to Google Play"+((Game.isOnline)?"!":": Check your connection and try again!"));
                 });
         },
         "showLeaderboard": function(id){
