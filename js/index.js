@@ -1801,6 +1801,8 @@ var SoaringSheepGame = function(){
 	};
 
     this.initPlayGames = function(e){
+        var i,j,k;
+
         this.loadOptions();
 
         if(typeof window.plugins == "undefined"){
@@ -1858,7 +1860,28 @@ var SoaringSheepGame = function(){
             }
 
             //TODO: Sync locally-stored and Google Play achievements
+            var unsyncedSteps;
+            for(i in this.achievements.single){
+                if(!this.achievements.single.hasOwnProperty(i)) continue;
 
+                for(j=0;j<this.achievements.single[i].length;j++){
+                    if(this.achievements.single[i][j].complete && !this.achievements.single[i][j].synced){
+                        this.GooglePlayServices.unlockAchievement(i.toString(),j);
+                    }
+                }
+
+            }
+
+            for(i in this.achievements.incremental){
+                if(!this.achievements.incremental.hasOwnProperty(i)) continue;
+
+                for(j=0;j<this.achievements.incremental[i].length;j++){
+                    unsyncedSteps = parseInt(this.achievements.incremental[i][j].completedSteps)-parseInt(this.achievements.incremental[i][j].completedSteps_synced);
+                    if(unsyncedSteps>0){
+                        this.GooglePlayServices.incrementAchievement(i.toString(),j,unsyncedSteps,true);
+                    }
+                }
+            }
 
         }.bind(Game),function(){
             alert("Google Play login failure: "+(this.isOnline)?"Press the Play Games button to try again!":"Check your connection and try again!");
@@ -2294,7 +2317,7 @@ var SoaringSheepGame = function(){
             }
         },
 
-        "unlockAchievement": function(achievementName,num){
+        "unlockAchievement": function(achievementName, num){
             if(typeof achievementName == "undefined" || achievementName == null){
                 return;
             }
@@ -2326,7 +2349,7 @@ var SoaringSheepGame = function(){
                 Game.saveOptions("achievements");
             });
         },
-        "incrementAchievement": function(achievementName, num, steps){
+        "incrementAchievement": function(achievementName, num, steps, syncing){
             if(typeof achievementName == "undefined" || achievementName == null){
                 return;
             }
@@ -2336,13 +2359,18 @@ var SoaringSheepGame = function(){
             if(typeof steps == "undefined" || steps == null){
                 steps = 1;
             }
+            if(typeof syncing == "undefined" || syncing == null){
+                syncing = false;
+            }
 
             var achData = Game.achievements.incremental[achievementName][num];
             var achievementID = achData.id;
 
             //Increment achievement steps; set as complete if necessary
-            achData["completedSteps"] = Math.min(achData["completedSteps"]+steps,achData["totalSteps"]);
-            achData["completed"] = (achData["completedSteps"] == achData["totalSteps"]);
+            if(!syncing){
+                achData["completedSteps"] = Math.min(achData["completedSteps"]+steps,achData["totalSteps"]);
+                achData["completed"] = (achData["completedSteps"] == achData["totalSteps"]);
+            }
 
             Game.saveOptions("achievements");
 
