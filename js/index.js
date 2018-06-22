@@ -458,22 +458,27 @@ var SoaringSheepGame = function(){
         },
         "init": function(){
             self = this;
-            if(!this.enabled) this.testing = true;
-            if(!window.admob || !this.enabled) return;
 
-            var i,j,nm;
+            if(!this.enabled) this.testing = true;
+            if(typeof admob=="undefined" || admob == null || !this.enabled) return;
+
+            var i,j,nm, opt, data;
             for(i in self.types){
                 if(!self.types.hasOwnProperty(i)) continue;
 
                 nm = i.toString().toLowerCase();
                 data = self.types[i];
 
-                window.admob[nm].config({
+                opt = {
                     id: data["id"],
                     isTesting: self.testing,
                     autoShow: data["autoShow"]
-                });
-                window.admob[nm].prepare();
+                }
+
+                console.log(nm,data);
+
+                admob[nm].config(opt);
+                admob[nm].prepare();
 
                 document.addEventListener('admob.'+nm+'.events.LOAD_FAIL', function(event) {
                     data["loaded"] = false;
@@ -486,7 +491,7 @@ var SoaringSheepGame = function(){
                 if(nm!="banner"){
                     document.addEventListener('admob.'+nm+'.events.CLOSE', function(event) {
                         data["loaded"] = false;
-                        window.admob[nm].prepare();
+                        admob[nm].prepare();
                     }.bind(self));
                 }
 
@@ -498,13 +503,13 @@ var SoaringSheepGame = function(){
             }
         },
         "showAd": function(type){
-            if(!window.admob || !this.enabled) return;
+            if(!admob || !this.enabled) return;
 
             if(typeof type == "undefined" || type==null){
                 type = "interstitial";
             }
 
-            window.admob[type].show();
+            admob[type].show();
         }
     }
 
