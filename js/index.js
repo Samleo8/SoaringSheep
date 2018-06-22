@@ -437,8 +437,8 @@ var SoaringSheepGame = function(){
     this.totalGamesPlayed = 0;
 
     this.ads = {
-        "enabled": false,
-        "testing": false,
+        "enabled": true,
+        "testing": true,
         "types":{
             "banner":{
                 "id": "ca-app-pub-1626473425552959/6430092502",
