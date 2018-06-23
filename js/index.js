@@ -136,6 +136,7 @@ var SoaringSheepGame = function(){
     this.fadeObjects = null;
 	this.fadeInTimer = null;
 
+    //Animations and sprites
 	this.animations = {
 		"jumping":{
 			"frames":[],
@@ -147,12 +148,14 @@ var SoaringSheepGame = function(){
 
 	};
 
+    //Audio
 	this.audioLib = ["main_music","jump","bounce","die","shield"];
 	this.audioVol = [0.4,0.15,0.1,0.8,0.8];
 	this.audio = {
 
 	}
 
+    //Icons and Buttons
 	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings"];
 
 	this.pauseButton;
@@ -165,11 +168,13 @@ var SoaringSheepGame = function(){
     this.infoButton;
     this.infoOverlay;
 
+    //Fonts
 	this.fonts = {};
 	this.totalFonts;
 	this.totalFontsFailed = 0;
 	this.totalFontsLoaded = 0;
 
+    //Obstacles
 	this.obstacles;
 	this.obstacleTimer;
 	this.obstacleSpawnTime = 1000; //in ms
@@ -178,13 +183,20 @@ var SoaringSheepGame = function(){
 	this.obstacleSectionActive = [];
 	this.nObstacleSections = 3;
 
+    //Powerups
     this.powerupNames = ["shield","plusOne"];
     this.powerups;
     this.powerupChance = 0.4;
 
+    //Pausing
 	this.pauseTime;
 	this.pauseTimer;
 	this.pauseOverlay;
+
+    //Gameover Screen
+    this.gameoverScreen;
+    this.restartButton;
+    this.secondChanceButton;
 
     //Google Play
     this.isLoggedIn = false;
@@ -461,8 +473,6 @@ var SoaringSheepGame = function(){
 
             if(!this.enabled) this.testing = true;
             if(typeof admob=="undefined" || admob == null || !this.enabled) return;
-
-            alert("Initiliazing Ads...");
 
             var i,j,nm, opt, data;
             for(i in self.types){
@@ -1049,6 +1059,43 @@ var SoaringSheepGame = function(){
         this.infoOverlay.on((_isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
 
         this.infoOverlay.alpha = 0;
+
+        /* TODO: GAMEOVER SCREEN */
+        this.gameoverScreen = new PIXI.Container();
+
+        var buttonHeight = 30, buttonWidth = 100, padd = 50;
+        var textOpt = {
+            fontFamily: 'TimeBurner',
+            fill: "#cfd8dc",
+            letterSpacing: 5,
+            align: 'center',
+            padding: 10,
+            fontSize: 30
+        };
+
+            //-Restart
+        this.restartButton = new PIXI.Container();
+
+        this.restartButton.position.set(this.canvasWidth/2-buttonWidth-padd);
+
+        this.restartButton.background = new PIXI.Graphics();
+        this.restartButton.background.beginFill(0x263238,0.9)
+            .drawRect(0,0,buttonWidth,buttonHeight)
+        .endFill();
+
+        this.restartButton.text = new PIXI.Text("Restart",textOpt);
+        this.restartButton.text.anchor.set(0.5,0.5);
+        this.restartButton.text.position.set(buttonWidth/2, buttonHeight/2);
+
+        this.restartButton.addChild(this.restartButton.background);
+        this.restartButton.addChild(this.restartButton.text);
+
+        this.gameoverScreen.addChild(this.restartButton);
+
+            //-Second Chance
+
+
+        this.gameoverScreen.visible = false;
 
         /* PLAY GAMES MENU */
         this.playGamesMenu = new PIXI.Container();
@@ -1868,7 +1915,7 @@ var SoaringSheepGame = function(){
                 this.GooglePlayServices.incrementAchievement("addicted",0,1);
             }
 
-            //TODO: Sync locally-stored and Google Play achievements
+            //Sync locally-stored and Google Play achievements
             var unsyncedSteps;
             for(i in this.achievements.single){
                 if(!this.achievements.single.hasOwnProperty(i)) continue;
@@ -2223,14 +2270,13 @@ var SoaringSheepGame = function(){
         }
         */
 
-        //TODO: SHOW GAMEOVER MENU
-
-
         //ADS
         if(this.totalGamesPlayed>=10){
             this.ads.showAd();
             this.totalGamesPlayed = 0;
         }
+
+        //TODO: SHOW GAMEOVER MENU
 
 		//RESTART GAME
 		this.newGame();
