@@ -462,6 +462,8 @@ var SoaringSheepGame = function(){
             if(!this.enabled) this.testing = true;
             if(typeof admob=="undefined" || admob == null || !this.enabled) return;
 
+            alert("Initiliazing Ads...");
+
             var i,j,nm, opt, data;
             for(i in self.types){
                 if(!self.types.hasOwnProperty(i)) continue;
@@ -474,8 +476,6 @@ var SoaringSheepGame = function(){
                     isTesting: self.testing,
                     autoShow: data["autoShow"]
                 }
-
-                console.log(nm,data);
 
                 admob[nm].config(opt);
                 admob[nm].prepare();
@@ -497,13 +497,14 @@ var SoaringSheepGame = function(){
 
                 if(nm=="rewardvideo"){
                     document.addEventListener('admob.rewardvideo.events.REWARD', function(event){
+                        alert("You can now receive reward!");
                         console.log("Reward here!");
                     }.bind(Game));
                 }
             }
         },
         "showAd": function(type){
-            if(!admob || !this.enabled) return;
+            if(typeof admob=="undefined" || admob == null || !this.enabled) return;
 
             if(typeof type == "undefined" || type==null){
                 type = "interstitial";
@@ -540,7 +541,10 @@ var SoaringSheepGame = function(){
 		//ADD EVENT LISTENERS
 		//NOTE: Reason for adding event listeners here instead of new game is that the event listeners cannot seem to be removed upon gameover, causing a bug where more than one event listeners are added upon gameover.
 
-		window.addEventListener("resize", this.resizeCanvas.bind(this), false);
+		if(typeof admob=="undefined" || admob == null)
+            //Prevents canvas resizing when banner ad is added
+            window.addEventListener("resize", this.resizeCanvas.bind(this), false);
+
 		window.addEventListener("keyup", this.keyEvent.bind(this), false);
 
         window.addEventListener("focus", this.appFocus.bind(this), false);
@@ -2221,6 +2225,12 @@ var SoaringSheepGame = function(){
 
         //TODO: SHOW GAMEOVER MENU
 
+
+        //ADS
+        if(this.totalGamesPlayed>=10){
+            this.ads.showAd();
+            this.totalGamesPlayed = 0;
+        }
 
 		//RESTART GAME
 		this.newGame();
