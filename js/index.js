@@ -156,7 +156,7 @@ var SoaringSheepGame = function(){
 	}
 
     //Icons and Buttons
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings","restart","ad","shop","coin"];
 
 	this.pauseButton;
 	this.muteMusicButton;
@@ -196,7 +196,7 @@ var SoaringSheepGame = function(){
     //Gameover Screen
     this.gameoverScreen;
     this.restartButton;
-    this.secondChanceButton;
+    this.reviveButton;
 
     //Google Play
     this.isLoggedIn = false;
@@ -451,6 +451,7 @@ var SoaringSheepGame = function(){
     this.ads = {
         "enabled": true,
         "testing": true,
+        "reward_type":"revive",
         "types":{
             "banner":{
                 "id": "ca-app-pub-1626473425552959/6430092502",
@@ -507,17 +508,37 @@ var SoaringSheepGame = function(){
 
                 if(nm=="rewardvideo"){
                     document.addEventListener('admob.rewardvideo.events.REWARD', function(event){
-                        alert("You can now receive reward!");
-                        console.log("Reward here!");
+                        alert("You can now receive reward: "+self.reward_type);
+                        switch(self.reward_type){
+                            case "revive":
+                                this.revive();
+                                break;
+                            default:
+                                return;
+                        }
+
                     }.bind(Game));
                 }
             }
         },
-        "showAd": function(type){
+        "showAd": function(type,reward_type){
             if(typeof admob=="undefined" || admob == null || !this.enabled) return;
 
             if(typeof type == "undefined" || type==null){
                 type = "interstitial";
+            }
+
+            switch(type){
+                case "reward":
+                case "rewardvideo":
+                    type = "rewardvideo";
+                    this.reward_type = reward_type || "revive";
+                    break;
+                case "interstitial":
+                case "video":
+                    type = "interstitial";
+                    break;
+                default: return;
             }
 
             admob[type].show();
@@ -577,6 +598,7 @@ var SoaringSheepGame = function(){
 		this.loader = new PIXI.loaders.Loader();
 		this.loader.add("sprite_background","img/background.png");
 		this.loader.add("sprite_spike","img/spike.png");
+        this.loader.add("dead_sheep","img/dead_sheep.png");
 
         for(i=0;i<this.powerupNames.length;i++){
             this.loader.add("powerup_"+this.powerupNames[i].toString(),"img/powerups/"+this.powerupNames[i]+".png");
@@ -624,7 +646,11 @@ var SoaringSheepGame = function(){
 			);
 			//this.sprites.background.tint = 0xeceff1;
 
+            //-Spike
 			this.sprites.spike = new PIXI.Sprite(resources["sprite_spike"].texture);
+
+            //-Dead Sheep
+            this.sprites.dead_sheep = new PIXI.Sprite(resources["dead_sheep"].texture);
 
 			stage.addChild(this.sprites.background);
 
@@ -1063,39 +1089,129 @@ var SoaringSheepGame = function(){
         /* TODO: GAMEOVER SCREEN */
         this.gameoverScreen = new PIXI.Container();
 
-        var buttonHeight = 30, buttonWidth = 100, padd = 50;
-        var textOpt = {
+        this.gameoverScreen.sheep = this.sprites.dead_sheep;
+        this.gameoverScreen.sheep.scale.set(0.6,0.6);
+        this.gameoverScreen.sheep.anchor.set(0.5,0.5);
+        this.gameoverScreen.sheep.position.set(this.canvasWidth/2,this.canvasHeight*0.32);
+
+        this.gameoverScreen.addChild(this.gameoverScreen.sheep);
+
+        textOpt = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "#90a4ae",
+            stroke: "#546e7a",
+            strokeThickness: 10,
+            letterSpacing: 10,
+            align: 'center',
+            padding: 10,
+            fontSize: 120
+        };
+        this.gameoverScreen.text1 = new PIXI.Text("GAME",textOpt);
+        this.gameoverScreen.text2 = new PIXI.Text("OVER",textOpt);
+
+        this.gameoverScreen.text1.anchor.set(0.5,0.5);
+        this.gameoverScreen.text2.anchor.set(0.5,0.5);
+
+        this.gameoverScreen.text1.position.set(this.canvasWidth*0.25,this.gameoverScreen.sheep.y);
+        this.gameoverScreen.text2.position.set(this.canvasWidth*0.75,this.gameoverScreen.sheep.y);
+
+        this.gameoverScreen.addChild(this.gameoverScreen.text1);
+        this.gameoverScreen.addChild(this.gameoverScreen.text2);
+
+        textOpt3 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "#37474f",
+            letterSpacing: 5,
+            align: 'center',
+            padding: 10,
+            fontSize: 40
+        };
+
+        this.gameoverScreen.scoreText = new PIXI.Text("Score: 0",textOpt3);
+        this.gameoverScreen.highscoreText = new PIXI.Text("Highscore: 0",textOpt3);
+        this.gameoverScreen.scoreText.anchor.set(0.5,0.5);
+        this.gameoverScreen.highscoreText.anchor.set(0.5,0.5);
+
+        this.gameoverScreen.scoreText.position.set(this.canvasWidth/2,this.canvasHeight*0.535);
+        this.gameoverScreen.highscoreText.position.set(this.canvasWidth/2,this.canvasHeight*0.605);
+
+        this.gameoverScreen.addChild(this.gameoverScreen.scoreText);
+        this.gameoverScreen.addChild(this.gameoverScreen.highscoreText);
+
+        var buttonHeight = 105, buttonWidth = 335, padd = 100;
+        var iconPos = 75;
+        textOpt2 = {
             fontFamily: 'TimeBurner',
             fill: "#cfd8dc",
             letterSpacing: 5,
             align: 'center',
             padding: 10,
-            fontSize: 30
+            fontSize: 40
         };
 
             //-Restart
         this.restartButton = new PIXI.Container();
 
-        this.restartButton.position.set(this.canvasWidth/2-buttonWidth-padd);
+        this.restartButton.position.set(this.canvasWidth/2-buttonWidth-padd,this.canvasHeight*0.72);
+
+        this.restartButton.icon = this.sprites.icons["restart"];
+        this.restartButton.icon.anchor.set(0.5,0.5);
+        this.restartButton.icon.scale.set(0.6,0.6);
+        this.restartButton.icon.position.set(iconPos,buttonHeight/2);
+        this.restartButton.icon.alpha = 1;
+        this.restartButton.icon.tint = 0xcfd8dc;
 
         this.restartButton.background = new PIXI.Graphics();
         this.restartButton.background.beginFill(0x263238,0.9)
             .drawRect(0,0,buttonWidth,buttonHeight)
         .endFill();
 
-        this.restartButton.text = new PIXI.Text("Restart",textOpt);
+        this.restartButton.text = new PIXI.Text("Retry",textOpt2);
         this.restartButton.text.anchor.set(0.5,0.5);
-        this.restartButton.text.position.set(buttonWidth/2, buttonHeight/2);
+        this.restartButton.text.position.set(buttonWidth/2+iconPos/2-15, buttonHeight/2);
+
+        this.restartButton.interactive = true;
+        this.restartButton.buttonMode = true;
+        this.restartButton.on((_isMobile)?"touchend":"mouseup",this.newGame.bind(this));
 
         this.restartButton.addChild(this.restartButton.background);
+        this.restartButton.addChild(this.restartButton.icon);
         this.restartButton.addChild(this.restartButton.text);
 
         this.gameoverScreen.addChild(this.restartButton);
 
             //-Second Chance
+        this.reviveButton = new PIXI.Container();
 
+        this.reviveButton.position.set(this.canvasWidth/2+padd,this.restartButton.y);
 
-        this.gameoverScreen.visible = false;
+        this.reviveButton.background = new PIXI.Graphics();
+        this.reviveButton.background.beginFill(0x263238,0.9)
+            .drawRect(0,0,buttonWidth,buttonHeight)
+        .endFill();
+
+        this.reviveButton.icon = this.sprites.icons["ad"];
+        this.reviveButton.icon.anchor.set(0.5,0.5);
+        this.reviveButton.icon.scale.set(0.6,0.6);
+        this.reviveButton.icon.position.set(iconPos,buttonHeight/2);
+        this.reviveButton.icon.alpha = 1;
+        this.reviveButton.icon.tint = 0xcfd8dc;
+
+        this.reviveButton.text = new PIXI.Text("Revive",textOpt2);
+        this.reviveButton.text.anchor.set(0.5,0.5);
+        this.reviveButton.text.position.set(buttonWidth/2+iconPos/2, buttonHeight/2);
+
+        this.reviveButton.interactive = true;
+        this.reviveButton.buttonMode = true;
+        this.reviveButton.on((_isMobile)?"touchend":"mouseup",this.try_revive.bind(this));
+
+        this.reviveButton.addChild(this.reviveButton.background);
+        this.reviveButton.addChild(this.reviveButton.icon);
+        this.reviveButton.addChild(this.reviveButton.text);
+
+        this.gameoverScreen.addChild(this.reviveButton);
+
+        //this.gameoverScreen.visible = false;
 
         /* PLAY GAMES MENU */
         this.playGamesMenu = new PIXI.Container();
@@ -1431,7 +1547,7 @@ var SoaringSheepGame = function(){
 		this.hero.ax = 0;
 		this.hero.vy = 0;
 		this.hero.ay = 0.10;
-		this.hero.jumpStrength = 4;
+		this.hero.jumpStrength = 5;
 
 		this.preventHeroJump = 0;
 
@@ -1457,6 +1573,9 @@ var SoaringSheepGame = function(){
         this.playGamesMenu.alpha = 0;
         stage.addChild(this.playGamesMenu);
 
+        //this.gameoverScreen.visible = false;
+        stage.addChild(this.gameoverScreen);
+
 		//ADD BUTTONS
 		//..GRAPHICS FOR BUTTONS IS DONE IN INITIALISATION FOR PERFORMANCE
 		//..ADDING DONE HERE FOR Z-INDEX
@@ -1480,7 +1599,17 @@ var SoaringSheepGame = function(){
         this.score = 0;
         this.scoreText.text = "0";
 
+        this.scoreText.visible = true;
+        this.highscoreText.visible = true;
+        this.overSym.visible = true;
+
+        //-Gameover Screen
+        this.gameoverScreen.visible = false;
+
+        this._revived = false;
+
         //-Hero
+        this.hero.visible = true;
         this.hero.x = this.canvasWidth/2;
 		this.hero.y = this.canvasHeight/2;
 		this.hero.scale.x = Math.abs(this.hero.scale.x);
@@ -2169,6 +2298,10 @@ var SoaringSheepGame = function(){
 			}
 		}
 
+        if(this.gameoverScreen.visible){
+            return;
+        }
+
 		if(typeof forcedVal == "boolean"){
 			if(this._paused == forcedVal) return;
 
@@ -2276,11 +2409,81 @@ var SoaringSheepGame = function(){
             this.totalGamesPlayed = 0;
         }
 
-        //TODO: SHOW GAMEOVER MENU
+        //HIDE HERO
+        this.hero.visible = false;
+        this.heroShield.alpha = 0;
+
+        //HIDE SCORE
+        this.scoreText.visible = false;
+        this.highscoreText.visible = false;
+        this.overSym.visible = false;
+
+        //SHOW GAMEOVER MENU
+        this.gameoverScreen.visible = true;
+        this.gameoverScreen.scoreText.text = "Score: "+this.score;
+        this.gameoverScreen.highscoreText.text = "Highscore: "+this.highscore;
+
+        renderer.render(stage);
 
 		//RESTART GAME
-		this.newGame();
+		//this.newGame();
 	};
+
+    this.try_revive = function(){
+        //Check to see if player can watch an ad to revive himself
+        if(!this.isOnline || typeof admob == "undefined" || admob==null || !this.ads.types.rewardvideo.loaded){
+            alert("Sorry, ad could not be loaded. Restarting game instead!");
+            this.newGame();
+            return;
+        }
+
+        if(this._revived){
+            alert("You can only revive once! Restarting game instead!");
+            this.newGame();
+            return
+        }
+    };
+
+    this.revive = function(){
+        if(this._revived){
+            this.newGame();
+            return;
+        }
+
+        this._revived = true;
+        this.preventHeroJump = 0;
+
+        this.scoreText.visible = true;
+        this.highscoreText.visible = true;
+        this.overSym.visible = true;
+
+        this.gameoverScreen.visible = false;
+
+        //Reset Hero Position
+        this.hero.visible = true;
+        this.hero.x = this.canvasWidth/2;
+		this.hero.y = this.canvasHeight/2;
+
+        this.heroShield.position = this.hero.position;
+        this.heroShield.alpha = 0;
+
+		this.preventHeroJump = 0;
+
+        //Hide all overlays
+        this.pauseOverlay.alpha = 0;
+        this.infoOverlay.alpha = 0;
+        this.playGamesMenu.alpha = 0;
+
+        //Reset obstacles activity
+        var i;
+		for(i=0;i<=this.nObstacleSections;i++){
+			this.obstacleSectionActive[i] = false;
+		}
+
+        //Resume game
+        this._paused = false;
+        requestAnimationFrame(this.update.bind(this));
+    }
 
 	this.loadOptions = function(){
 		if(window.localStorage){
@@ -2475,10 +2678,15 @@ var SoaringSheepGame = function(){
 	};
 
 	this.resizeCanvas = function(){
+        //alert("Resizing Canvas...");
+
 		// Determine which screen dimension is most constrained
+        var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+        var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
 		this.ratio = Math.min(
-			window.innerWidth/this.canvasWidth,
-			window.innerHeight/this.canvasHeight
+			w/this.canvasWidth,
+			h/this.canvasHeight
 		);
 
 		// Scale the view appropriately to fill that dimension
