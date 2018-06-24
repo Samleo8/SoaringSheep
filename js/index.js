@@ -538,7 +538,7 @@ var SoaringSheepGame = function(){
                 case "reward":
                 case "rewardvideo":
                     type = "rewardvideo";
-                    this.reward_type = reward_type || "revive";
+                    this.reward_type = reward_type;
                     break;
                 case "interstitial":
                 case "video":
@@ -578,9 +578,10 @@ var SoaringSheepGame = function(){
 		//ADD EVENT LISTENERS
 		//NOTE: Reason for adding event listeners here instead of new game is that the event listeners cannot seem to be removed upon gameover, causing a bug where more than one event listeners are added upon gameover.
 
-		if(typeof admob=="undefined" || admob == null)
+		if(typeof admob=="undefined" || admob == null){
             //Prevents canvas resizing when banner ad is added
             window.addEventListener("resize", this.resizeCanvas.bind(this), false);
+        }
 
 		window.addEventListener("keyup", this.keyEvent.bind(this), false);
 
@@ -2465,8 +2466,10 @@ var SoaringSheepGame = function(){
         if(this._revived){
             alert("You can only revive once! Restarting game instead!");
             this.newGame();
-            return
+            return;
         }
+
+        this.ads.showAd("rewardvideo","revive");
     };
 
     this.revive = function(){
@@ -2703,7 +2706,7 @@ var SoaringSheepGame = function(){
 	};
 
 	this.resizeCanvas = function(){
-        //alert("Resizing Canvas...");
+        if(this._gameStarted) alert("Resizing Canvas...");
 
 		// Determine which screen dimension is most constrained
         var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
