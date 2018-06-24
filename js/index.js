@@ -497,6 +497,12 @@ var SoaringSheepGame = function(){
 
                 document.addEventListener('admob.'+nm+'.events.LOAD', function(event) {
                     data["loaded"] = true;
+
+                    if(nm == "rewardvideo"){
+                        this.reviveButton.buttonMode = true;
+                        this.reviveButton.interactive = true;
+                        this.reviveButton.overlay.visible = false;
+                    }
                 }.bind(self));
 
                 if(nm!="banner"){
@@ -1205,9 +1211,16 @@ var SoaringSheepGame = function(){
         this.reviveButton.buttonMode = true;
         this.reviveButton.on((_isMobile)?"touchend":"mouseup",this.try_revive.bind(this));
 
+        this.reviveButton.overlay = new PIXI.Graphics();
+        this.reviveButton.overlay.beginFill(0xb0bec5,0.75)
+            .drawRect(0,0,buttonWidth,buttonHeight)
+        .endFill();
+        this.reviveButton.overlay.visible = false;
+
         this.reviveButton.addChild(this.reviveButton.background);
         this.reviveButton.addChild(this.reviveButton.icon);
         this.reviveButton.addChild(this.reviveButton.text);
+        this.reviveButton.addChild(this.reviveButton.overlay);
 
         this.gameoverScreen.addChild(this.reviveButton);
 
@@ -1567,14 +1580,14 @@ var SoaringSheepGame = function(){
 		this.pauseOverlay.alpha = 0;
 		stage.addChild(this.pauseOverlay);
 
+        this.gameoverScreen.visible = false;
+        stage.addChild(this.gameoverScreen);
+
         this.infoOverlay.alpha = 0;
         stage.addChild(this.infoOverlay);
 
         this.playGamesMenu.alpha = 0;
         stage.addChild(this.playGamesMenu);
-
-        //this.gameoverScreen.visible = false;
-        stage.addChild(this.gameoverScreen);
 
 		//ADD BUTTONS
 		//..GRAPHICS FOR BUTTONS IS DONE IN INITIALISATION FOR PERFORMANCE
@@ -2422,6 +2435,18 @@ var SoaringSheepGame = function(){
         this.gameoverScreen.visible = true;
         this.gameoverScreen.scoreText.text = "Score: "+this.score;
         this.gameoverScreen.highscoreText.text = "Highscore: "+this.highscore;
+
+            //-Check if ads are available, if not, disable revive button
+        if(!this.isOnline || typeof admob == "undefined" || admob==null || !this.ads.types.rewardvideo.loaded || this._revived){
+            this.reviveButton.buttonMode = false;
+            this.reviveButton.interactive = false;
+            this.reviveButton.overlay.visible = true;
+        }
+        else{
+            this.reviveButton.buttonMode = true;
+            this.reviveButton.interactive = true;
+            this.reviveButton.overlay.visible = false;
+        }
 
         renderer.render(stage);
 
