@@ -2706,7 +2706,7 @@ var SoaringSheepGame = function(){
 	};
 
 	this.resizeCanvas = function(){
-        if(this._gameStarted) alert("Resizing Canvas...");
+        //if(this._gameStarted) alert("Resizing Canvas...");
 
 		// Determine which screen dimension is most constrained
         var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
