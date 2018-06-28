@@ -595,7 +595,7 @@ var SoaringSheepGame = function(){
 
 		window.addEventListener("keyup", this.keyEvent.bind(this), false);
 
-        if(isApp()){
+        if(!isApp()){
             window.addEventListener("focus", this.appFocus.bind(this), false);
     		window.addEventListener("blur", this.appBlur.bind(this), false);
         }
@@ -1260,7 +1260,7 @@ var SoaringSheepGame = function(){
             padding:10
         };
 
-            //Title
+        /*    //Title
         text = new PIXI.Text("GOOGLE PLAY GAMES",Object.assign(textOpt,{fontSize:60}));
         text.anchor.set(0.5,0);
         text.alpha = 0.98;
@@ -1268,6 +1268,7 @@ var SoaringSheepGame = function(){
         text.y = 25;
 
         this.playGamesMenu.addChild(text);
+        */
 
         //Welcome
         textOpt2 = {
@@ -1964,6 +1965,8 @@ var SoaringSheepGame = function(){
 	};
 
     this.appBlur = function(){
+        console.log("App Blurred");
+
         //Turn off music otherwise it will play in the background
         if(this.audio["main_music"])
             this.audio["main_music"].pause();
@@ -2376,6 +2379,8 @@ var SoaringSheepGame = function(){
 
 	this.gameover = function(){
         var i;
+
+        renderer.render(stage);
 
 		this._paused = true;
 		this.audio["die"].play();
