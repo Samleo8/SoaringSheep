@@ -61,7 +61,7 @@ var app = {
 
             //Load Play Games and Ads
             if(!Game.isLoggedIn) Game.initPlayGames();
-            if(!Game.ads.types["banner"].loaded) Game.ads.init();
+            if(!Game.ads.types["rewardvideo"].loaded) Game.ads.init();
         }
     }
 };
@@ -182,6 +182,9 @@ var SoaringSheepGame = function(){
 	this.obstacleSections;
 	this.obstacleSectionActive = [];
 	this.nObstacleSections = 3;
+
+    //Coins and Rewards
+    this.coins = 0;
 
     //Powerups
     this.powerupNames = ["shield","plusOne"];
@@ -453,6 +456,7 @@ var SoaringSheepGame = function(){
         "testing": true,
         "reward_type":"revive",
         "types":{
+            /*
             "banner":{
                 "id": "ca-app-pub-1626473425552959/6430092502",
                 "autoShow": true,
@@ -463,6 +467,7 @@ var SoaringSheepGame = function(){
                 "autoShow": false,
                 "loaded": false
             },
+            */
             "rewardvideo":{
                 "id": "ca-app-pub-1626473425552959/5937948547",
                 "autoShow": false,
@@ -514,20 +519,24 @@ var SoaringSheepGame = function(){
 
                 if(nm=="rewardvideo"){
                     document.addEventListener('admob.rewardvideo.events.REWARD', function(event){
-                        alert("You can now receive reward: "+self.reward_type);
+                        console.log("You can now receive reward: "+self.reward_type);
                         switch(self.reward_type){
                             case "revive":
                                 this.revive();
                                 break;
+                            case "coin":
+                            case "coins":
+                                this.coins += self.reward_amount;
+                                this.saveOptions("coins");
+                                break;
                             default:
                                 return;
                         }
-
                     }.bind(Game));
                 }
             }
         },
-        "showAd": function(type,reward_type){
+        "showAd": function(type,reward_type,reward_amount){
             if(typeof admob=="undefined" || admob == null || !this.enabled) return;
 
             if(typeof type == "undefined" || type==null){
@@ -538,7 +547,8 @@ var SoaringSheepGame = function(){
                 case "reward":
                 case "rewardvideo":
                     type = "rewardvideo";
-                    this.reward_type = reward_type;
+                    this.reward_type = (reward_type==null || typeof reward_type==undefined)?"coins":reward_type;
+                    this.reward_amount = (reward_amount==null || typeof reward_amount==undefined)?(getRandomInt(1,5)*10):reward_amount;
                     break;
                 case "interstitial":
                 case "video":
@@ -585,11 +595,14 @@ var SoaringSheepGame = function(){
 
 		window.addEventListener("keyup", this.keyEvent.bind(this), false);
 
-        window.addEventListener("focus", this.appFocus.bind(this), false);
-		window.addEventListener("blur", this.appBlur.bind(this), false);
-
-        document.addEventListener("resume", this.appFocus.bind(this), false);
-		document.addEventListener("pause", this.appBlur.bind(this), false);
+        if(isApp()){
+            window.addEventListener("focus", this.appFocus.bind(this), false);
+    		window.addEventListener("blur", this.appBlur.bind(this), false);
+        }
+        else{
+            document.addEventListener("resume", this.appFocus.bind(this), false);
+    		document.addEventListener("pause", this.appBlur.bind(this), false);
+        }
 
 		renderer.view.addEventListener((_isMobile)?"touchend":"mouseup", this.heroJump.bind(this), false);
 
@@ -2083,7 +2096,7 @@ var SoaringSheepGame = function(){
             }
 
         }.bind(Game),function(){
-            alert("Google Play login failure: "+((this.isOnline)?"Press the Play Games button to try again!":"Check your connection and try again!"));
+            //alert("Google Play login failure: "+((this.isOnline)?"Press the Play Games button to try again!":"Check your connection and try again!"));
 
             this.isLoggedIn = false;
         }.bind(Game));
@@ -2419,7 +2432,7 @@ var SoaringSheepGame = function(){
 
         //ADS
         if(this.totalGamesPlayed>=10){
-            this.ads.showAd();
+            this.ads.showAd("rewardvideo","coins",10*getRandomInt(1,5));
             this.totalGamesPlayed = 0;
         }
 
@@ -2530,6 +2543,10 @@ var SoaringSheepGame = function(){
             if(window.localStorage["achievements"] != null){
                 this.achievements = JSON.parse(window.localStorage["achievements"]);
             }
+
+            if(window.localStorage["coins"] != null){
+                this.coins = parseInt(window.localStorage["coins"]);
+            }
 		}
 		else{
 			console.log("WARNING: Browser does not support localStorage! Highscores and options will not be saved.");
@@ -2550,6 +2567,8 @@ var SoaringSheepGame = function(){
 			if(opt=="all" || opt=="muteFX") window.localStorage["muteFX"] = this._FXMuted;
 			if(opt=="all" || opt=="muteMain") window.localStorage["muteMain"] = this._musicMuted;
             if(opt=="all" || opt=="achievements" || opt=="achievement") window.localStorage["achievements"] = JSON.stringify(this.achievements);
+
+            if(opt=="all" || opt=="coins" || opt=="coin") window.localStorage["coins"] = this.coins;
 		}
 		else{
 			console.log("WARNING: Browser does not support localStorage! Highscores and options will not be saved.");
@@ -2595,7 +2614,7 @@ var SoaringSheepGame = function(){
                 window.plugins.playGamesServices.submitScoreNow(data,function(){
                     console.log("Score of "+data.score+" submitted to Google Play leaderboard  "+data.leaderboardId+"!");
                 }.bind(Game),function(){
-                    alert("Failure to submit score of "+data.score+" to Google Play"+((Game.isOnline)?"!":": Check your connection and try again!"));
+                    console.log("Failure to submit score of "+data.score+" to Google Play"+((Game.isOnline)?"!":": Check your connection and try again!"));
                 });
         },
         "showLeaderboard": function(id){
