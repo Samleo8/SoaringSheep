@@ -1260,15 +1260,14 @@ var SoaringSheepGame = function(){
             padding:10
         };
 
-        /*    //Title
-        text = new PIXI.Text("GOOGLE PLAY GAMES",Object.assign(textOpt,{fontSize:60}));
+        //Title
+        text = new PIXI.Text("PLAY GAMES",Object.assign(textOpt,{fontSize:60}));
         text.anchor.set(0.5,0);
         text.alpha = 0.98;
         text.x = this.canvasWidth/2;
         text.y = 25;
 
         this.playGamesMenu.addChild(text);
-        */
 
         //Welcome
         textOpt2 = {
