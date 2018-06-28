@@ -33,6 +33,8 @@ var app = {
         window.addEventListener('online', this.connectionChange.bind(this) );
         window.addEventListener('offline', this.connectionChange.bind(this) );
 
+        console.log(isApp());
+
         if(isApp()) window.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
         else window.addEventListener('DOMContentLoaded', this.onDeviceReady.bind(this), false);
     },
@@ -504,6 +506,8 @@ var SoaringSheepGame = function(){
                     data["loaded"] = true;
 
                     if(nm == "rewardvideo"){
+                        if(typeof this.reviveButton == "undefined") return;
+
                         this.reviveButton.buttonMode = true;
                         this.reviveButton.interactive = true;
                         this.reviveButton.overlay.visible = false;
@@ -595,13 +599,15 @@ var SoaringSheepGame = function(){
 
 		window.addEventListener("keyup", this.keyEvent.bind(this), false);
 
-        if(!isApp()){
-            window.addEventListener("focus", this.appFocus.bind(this), false);
-    		window.addEventListener("blur", this.appBlur.bind(this), false);
-        }
-        else{
+        if(isApp()){
+            console.log("Added pause and resume event listeners");
             document.addEventListener("resume", this.appFocus.bind(this), false);
     		document.addEventListener("pause", this.appBlur.bind(this), false);
+        }
+        else{
+            console.log("Added focus and blur event listeners");
+            window.addEventListener("focus", this.appFocus.bind(this), false);
+            window.addEventListener("blur", this.appBlur.bind(this), false);
         }
 
 		renderer.view.addEventListener((_isMobile)?"touchend":"mouseup", this.heroJump.bind(this), false);
@@ -1974,6 +1980,8 @@ var SoaringSheepGame = function(){
     }
 
     this.appFocus = function(){
+        console.log("App Focused");
+
         //Turn back on music, checking if it was playing originally
         if(!this._musicMuted){
             if(this.audio["main_music"])
@@ -2435,7 +2443,7 @@ var SoaringSheepGame = function(){
         */
 
         //ADS
-        if(this.totalGamesPlayed>=10){
+        if(this.totalGamesPlayed>=10 || this.score>=15){
             this.ads.showAd("rewardvideo","coins",10*getRandomInt(1,5));
             this.totalGamesPlayed = 0;
         }
@@ -2947,7 +2955,8 @@ var GooglePlayServices = function(){
 function isApp(){
     if(_isApp == true) return true;
 
-    return _isApp = (forceIsApp || (typeof device) != "undefined");
+    //Only the mobile app has admob and google play services
+    return _isApp = (forceIsApp || (typeof admob)!="undefined" || (typeof device) != "undefined");
 }
 
 function isAndroid(try_anyway){
