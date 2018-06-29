@@ -499,48 +499,59 @@ var SoaringSheepGame = function(){
                 }
 
                 admob[nm].config(opt);
-                admob[nm].prepare();
+                this.prepare(nm);
+            }
+        },
+        "prepare":function(nm){
+            self = this;
+            data = this.types[nm];
 
-                document.addEventListener('admob.'+nm+'.events.LOAD_FAIL', function(event) {
+            if(typeof admob=="undefined" || admob == null || !this.enabled) return;
+            if(typeof nm == "undefined" || nm==null) return;
+
+            admob[nm].prepare();
+
+            document.addEventListener('admob.'+nm+'.events.LOAD_FAIL', function(event) {
+                data["loaded"] = false;
+            }.bind(self));
+
+            document.addEventListener('admob.'+nm+'.events.LOAD', function(event) {
+                data["loaded"] = true;
+
+                if(nm == "rewardvideo"){
+                    if(typeof this.reviveButton == "undefined") return;
+
+                    this.reviveButton.buttonMode = true;
+                    this.reviveButton.interactive = true;
+                    this.reviveButton.overlay.visible = false;
+                }
+            }.bind(self));
+
+            if(nm!="banner"){
+                document.addEventListener('admob.'+nm+'.events.CLOSE', function(event) {
                     data["loaded"] = false;
+                    this.prepare(nm);
                 }.bind(self));
+            }
 
-                document.addEventListener('admob.'+nm+'.events.LOAD', function(event) {
-                    data["loaded"] = true;
-
-                    if(nm == "rewardvideo"){
-                        if(typeof this.reviveButton == "undefined") return;
-
-                        this.reviveButton.buttonMode = true;
-                        this.reviveButton.interactive = true;
-                        this.reviveButton.overlay.visible = false;
+            if(nm=="rewardvideo"){
+                document.addEventListener('admob.rewardvideo.events.REWARD', function(event){
+                    console.log("You can now receive reward: "+self.reward_type);
+                    switch(self.reward_type){
+                        case "revive":
+                            this.revive();
+                            break;
+                        case "coin":
+                        case "coins":
+                            this.coins += self.reward_amount;
+                            this.saveOptions("coins");
+                            break;
+                        default:
+                            return;
                     }
-                }.bind(self));
 
-                if(nm!="banner"){
-                    document.addEventListener('admob.'+nm+'.events.CLOSE', function(event) {
-                        data["loaded"] = false;
-                        admob[nm].prepare();
-                    }.bind(self));
-                }
-
-                if(nm=="rewardvideo"){
-                    document.addEventListener('admob.rewardvideo.events.REWARD', function(event){
-                        console.log("You can now receive reward: "+self.reward_type);
-                        switch(self.reward_type){
-                            case "revive":
-                                this.revive();
-                                break;
-                            case "coin":
-                            case "coins":
-                                this.coins += self.reward_amount;
-                                this.saveOptions("coins");
-                                break;
-                            default:
-                                return;
-                        }
-                    }.bind(Game));
-                }
+                    self.prepare(nm);
+                }.bind(Game));
             }
         },
         "showAd": function(type,reward_type,reward_amount){
