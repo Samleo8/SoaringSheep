@@ -33,8 +33,8 @@ var app = {
             console.log("Mobile device detected");
         }
 
-        window.addEventListener('online', this.connectionChange.bind(this) );
-        window.addEventListener('offline', this.connectionChange.bind(this) );
+        document.addEventListener('online', this.connectionChange.bind(this) );
+        document.addEventListener('offline', this.connectionChange.bind(this) );
 
         if(isApp())
             document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
@@ -52,14 +52,16 @@ var app = {
     },
 
     connectionChange: function(e){
-        if(event.type == "offline"){
+        console.log(e);
+
+        if(e.type == "offline"){
             console.log("Oh no, you lost connection.");
 
             //GPlay.noConnection = true;
             Game.isOnline = false;
         }
-        else if(event.type == "online"){
-            console.log("Yay you are now back online!");
+        else if(e.type == "online"){
+            console.log("Yay! You are now back online!");
 
             //GPlay.noConnection = false;
             Game.isOnline = true;
@@ -480,6 +482,8 @@ var SoaringSheepGame = function(){
             }
         },
         "init": function(){
+            console.log("Initializing ads...");
+
             self = this;
 
             if(!this.enabled) this.testing = true;
@@ -525,6 +529,8 @@ var SoaringSheepGame = function(){
                     this.reviveButton.interactive = true;
                     this.reviveButton.overlay.visible = false;
                     this.reviveButton.footnote.text = "";
+
+                    renderer.render(stage);
                 }
             }.bind(self));
 
@@ -1253,7 +1259,7 @@ var SoaringSheepGame = function(){
         this.reviveButton.overlay.visible = false;
 
         textOpt3 = {
-            fontFamily: 'TimeBurner',
+            fontFamily: 'TimeBurnerBold',
             fill: "0x263238",
             letterSpacing: 1,
             align: 'center',
@@ -2001,7 +2007,7 @@ var SoaringSheepGame = function(){
 	};
 
     this.appBlur = function(){
-        console.log("App Blurred");
+        //console.log("App Blurred");
 
         //Turn off music otherwise it will play in the background
         if(this.audio["main_music"])
@@ -2011,7 +2017,7 @@ var SoaringSheepGame = function(){
     }
 
     this.appFocus = function(){
-        console.log("App Focused");
+        //console.log("App Focused");
 
         //Turn back on music, checking if it was playing originally
         if(!this._musicMuted){
@@ -2054,6 +2060,8 @@ var SoaringSheepGame = function(){
 	};
 
     this.initPlayGames = function(e){
+        console.log("Initializing Google Play Games...");
+
         var i,j,k;
 
         this.loadOptions();
