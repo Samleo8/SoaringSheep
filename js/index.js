@@ -524,6 +524,7 @@ var SoaringSheepGame = function(){
                     this.reviveButton.buttonMode = true;
                     this.reviveButton.interactive = true;
                     this.reviveButton.overlay.visible = false;
+                    this.reviveButton.footnote.text = "";
                 }
             }.bind(self));
 
@@ -1251,10 +1252,26 @@ var SoaringSheepGame = function(){
         .endFill();
         this.reviveButton.overlay.visible = false;
 
+        textOpt3 = {
+            fontFamily: 'TimeBurner',
+            fill: "0x263238",
+            letterSpacing: 1,
+            align: 'center',
+            padding: 10,
+            fontSize: 23,
+            wordWrap: true,
+            wordWrapWidth: buttonWidth+50
+        };
+
+        this.reviveButton.footnote = new PIXI.Text("You can only revive once",textOpt3);
+        this.reviveButton.footnote.anchor.set(0.5,0);
+        this.reviveButton.footnote.position.set(buttonWidth/2, buttonHeight+15);
+
         this.reviveButton.addChild(this.reviveButton.background);
         this.reviveButton.addChild(this.reviveButton.icon);
         this.reviveButton.addChild(this.reviveButton.text);
         this.reviveButton.addChild(this.reviveButton.overlay);
+        this.reviveButton.addChild(this.reviveButton.footnote);
 
         this.gameoverScreen.addChild(this.reviveButton);
 
@@ -2477,15 +2494,35 @@ var SoaringSheepGame = function(){
         this.gameoverScreen.highscoreText.text = "Highscore: "+this.highscore;
 
             //-Check if ads are available, if not, disable revive button
-        if(!this.isOnline || typeof admob == "undefined" || admob==null || !this.ads.types.rewardvideo.loaded || this._revived){
+        if(typeof admob == "undefined" || admob==null){
             this.reviveButton.buttonMode = false;
             this.reviveButton.interactive = false;
             this.reviveButton.overlay.visible = true;
+
+            this.reviveButton.footnote.text = "Revive is only available\non the mobile app";
+        }
+        else if(!this.isOnline || !this.ads.types.rewardvideo.loaded){
+            this.reviveButton.buttonMode = false;
+            this.reviveButton.interactive = false;
+            this.reviveButton.overlay.visible = true;
+
+            this.reviveButton.footnote.text = "Ad failed to load\nCheck your connection and try again";
+
+            //Attempt to load ad
+            this.ads.prepare("rewardvideo");
+        }
+        else if(this._revived){
+            this.reviveButton.buttonMode = false;
+            this.reviveButton.interactive = false;
+            this.reviveButton.overlay.visible = true;
+
+            this.reviveButton.footnote.text = "You can only revive once";
         }
         else{
             this.reviveButton.buttonMode = true;
             this.reviveButton.interactive = true;
             this.reviveButton.overlay.visible = false;
+            this.reviveButton.footnote.text = "";
         }
 
         renderer.render(stage);
