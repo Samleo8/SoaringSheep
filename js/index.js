@@ -854,9 +854,9 @@ var SoaringSheepGame = function(){
 			this.shopButton.interactive = true;
 			this.shopButton.buttonMode = true;
 
-			this.shopButton.on((_isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
+			this.shopButton.on((_isMobile)?"touchend":"mouseup",this.showShop.bind(this));
 
-			this.shopButton.position.set(190,50);
+			this.shopButton.position.set(395,51);
 
             this.shopButton.addChild(this.sprites.icons["shop"]);
             this.shopButton.getChildByName("shop").alpha = 1;
@@ -1487,7 +1487,7 @@ var SoaringSheepGame = function(){
 			this.loadOptions();
 
 			//Fade In Animation
-			this.fadeObjects = [sheep, speech_bubble, this.infoOverlay, this.playGamesMenu, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton, this.webButton];
+			this.fadeObjects = [sheep, speech_bubble, this.infoOverlay, this.playGamesMenu, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton, this.webButton, this.shopButton];
                 //in order of intended z-index
 
 			for(i=0;i<this.fadeObjects.length;i++){
@@ -1680,6 +1680,7 @@ var SoaringSheepGame = function(){
         stage.addChild(this.infoButton);
         stage.addChild(this.gamesButton);
         stage.addChild(this.webButton);
+        stage.addChild(this.shopButton);
 
         this.totalGamesPlayed = 0;
 
@@ -2085,6 +2086,24 @@ var SoaringSheepGame = function(){
         }
     }
 
+    this.showShop = function(e){
+        alert("Work in progress... Watch out for the next update!");
+
+        var i,nm;
+
+		if(typeof e == "object"){
+			if(e.type=="mouseup" || e.type=="touchend"){
+				this.preventHeroJump++;
+			}
+		}
+
+        this.switchShopTab(0);
+    }
+
+    this.switchShopTab = function(id){
+        console.log(id,this.shopTabNames[id]);
+    }
+
     this.showInfo = function(e){
 		var i,nm;
 
@@ -2316,26 +2335,6 @@ var SoaringSheepGame = function(){
         //Render the stage to show the info screen
         renderer.render(stage);
     };
-
-    /*
-    this.showHighscoreTable = function(response){
-        var data = response.result;
-        var playerData = {};
-        var leaderboardItems = data.numScore;
-        var leaderboardData = data.items;
-
-        console.log(data);
-
-        playerData.highscore = data.playerScore.scoreValue;
-        playerData.name = data.playerScore.player.displayName;
-        playerData.games_id = data.playerScore.player.playerId;
-
-        console.log("Player Data: ", playerData);
-
-        console.log("Leaderboard items: ",leaderboardItems);
-        console.log("Leaderboard Data: ", leaderboardData);
-    }
-    //*/
 
 	this.toggleMuteMain = function(forcedVal){
 		if(typeof forcedVal == "object"){
