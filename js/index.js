@@ -188,8 +188,13 @@ var SoaringSheepGame = function(){
 	this.obstacleSectionActive = [];
 	this.nObstacleSections = 1;
 
-    //Coins and Rewards
+    //Coins and Shop
     this.coins = 0;
+
+    this.shopButton;
+    this.shopTabNames = ["Upgrades","Accessories","Coins"];
+    this.shopTabs = [];
+    this.shopTabsContent = [];
 
     //Powerups
     this.powerupNames = ["shield","plusOne"];
@@ -842,6 +847,26 @@ var SoaringSheepGame = function(){
             text.alpha = 1;
             text.y = 67.5;
             this.webButton.addChild(text);
+
+            //--Shop Button
+			this.shopButton = new PIXI.Container();
+
+			this.shopButton.interactive = true;
+			this.shopButton.buttonMode = true;
+
+			this.shopButton.on((_isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
+
+			this.shopButton.position.set(190,50);
+
+            this.shopButton.addChild(this.sprites.icons["shop"]);
+            this.shopButton.getChildByName("shop").alpha = 1;
+
+            //--Text
+            text = new PIXI.Text("SHOP",textOpt);
+            text.anchor.set(0.5,0.5);
+            text.alpha = 1;
+            text.y = 55;
+            this.shopButton.addChild(text);
 
 			//ANIMATIONS
 			for (i=0;i<this.animations.jumping.totalFrames;i++) {
@@ -1906,12 +1931,16 @@ var SoaringSheepGame = function(){
 
                 this.showObstacleSections();
                 this.obstacleTimer = new Date().getTime();
+
+                this.obstacleSectionActive[this.nObstacleSections] = false;
                 break;
             case 10:
                 this.nObstacleSections = 3;
 
                 this.showObstacleSections();
                 this.obstacleTimer = new Date().getTime();
+
+                this.obstacleSectionActive[this.nObstacleSections] = false;
                 break;
             default:
                 break;
