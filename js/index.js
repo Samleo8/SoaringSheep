@@ -52,8 +52,6 @@ var app = {
     },
 
     connectionChange: function(e){
-        console.log(e);
-
         if(e.type == "offline"){
             console.log("Oh no, you lost connection.");
 
@@ -534,7 +532,7 @@ var SoaringSheepGame = function(){
                 }
             }.bind(self));
 
-            if(nm!="banner"){
+            if(nm=="interstitial"){
                 document.addEventListener('admob.'+nm+'.events.CLOSE', function(event) {
                     data["loaded"] = false;
                     this.prepare(nm);
@@ -1701,7 +1699,9 @@ var SoaringSheepGame = function(){
         //-Overlays
         this.pauseOverlay.alpha = 0;
         this.infoOverlay.alpha = 0;
+
         this.playGamesMenu.alpha = 0;
+        this.playGamesMenu.visible = false;
 
         //-Obstacles
         var i;
@@ -1862,10 +1862,10 @@ var SoaringSheepGame = function(){
 			this.incScore();
 		};
 
-		this.hero.leeway = 50;
+		this.hero.leeway = 0;
 
 		//Check for hero y-direction bounds, and gameover if necessary
-		if(this.hero.y<=this.hero.height/2-this.hero.leeway || this.hero.y>=(this.canvasHeight-this.hero.height/2+this.hero.leeway)){
+		if(this.hero.y<=-this.hero.height/2-this.hero.leeway || this.hero.y>=(this.canvasHeight+this.hero.height/2+this.hero.leeway)){
 			this.gameover();
 			return;
 		}
@@ -1895,6 +1895,20 @@ var SoaringSheepGame = function(){
 		this.score++;
 		this.scoreText.text = this.score;
 
+        //Gradually increase the number of obstacle sections in the game to max of 3
+        switch(this.score){
+            case 5:
+                this.nObstacleSections = 2;
+            case 10:
+                this.nObstacleSections = 3;
+
+                this.showObstacleSections();
+                this.obstacleTimer = new Date().getTime();
+                break;
+            default:
+                break;
+        }
+
 		this.saveOptions();
 		this.highscoreText.text = this.highscore;
 
@@ -1905,6 +1919,8 @@ var SoaringSheepGame = function(){
 		//Draw opacity rectangle to show where the obstacles will fall from
 		this.obstacleSections = new PIXI.Container();
 
+        this.clearObstacleSections();
+
 		var i;
 		var tempSprite = new PIXI.Sprite(this.sprites.spike.texture);
 		tempSprite.scale.set(0.2,0.2);
@@ -1913,7 +1929,7 @@ var SoaringSheepGame = function(){
 		var startX, endX;
 
 		for(i=1;i<=this.nObstacleSections;i++){
-            this.obstacleSectionActive[i] = false;
+            //this.obstacleSectionActive[i] = false;
 
 			var rect = new PIXI.Graphics();
 			rect.beginFill(0xd3d8dc,0.3);
@@ -1926,7 +1942,19 @@ var SoaringSheepGame = function(){
 		}
 
 		stage.addChild(this.obstacleSections);
-	}
+	};
+
+    this.clearObstacleSections = function(){
+        var i;
+        var ch = this.obstacleSections.children;
+
+        for(i=0;i<ch.length;i++){
+            //this.obstacleSectionActive[i] = false;
+            this.obstacleSections.removeChild(ch[i]);
+        }
+
+        renderer.render(stage);
+    }
 
 	this.spawnObstacle = function(){
 		var i;
@@ -2509,6 +2537,13 @@ var SoaringSheepGame = function(){
 
             this.reviveButton.footnote.text = "Revive is only available\non the mobile app";
         }
+        else if(this._revived){
+            this.reviveButton.buttonMode = false;
+            this.reviveButton.interactive = false;
+            this.reviveButton.overlay.visible = true;
+
+            this.reviveButton.footnote.text = "You can only revive once";
+        }
         else if(!this.isOnline || !this.ads.types.rewardvideo.loaded){
             this.reviveButton.buttonMode = false;
             this.reviveButton.interactive = false;
@@ -2518,13 +2553,6 @@ var SoaringSheepGame = function(){
 
             //Attempt to load ad
             this.ads.prepare("rewardvideo");
-        }
-        else if(this._revived){
-            this.reviveButton.buttonMode = false;
-            this.reviveButton.interactive = false;
-            this.reviveButton.overlay.visible = true;
-
-            this.reviveButton.footnote.text = "You can only revive once";
         }
         else{
             this.reviveButton.buttonMode = true;
@@ -2558,6 +2586,7 @@ var SoaringSheepGame = function(){
 
     this.revive = function(){
         if(this._revived){
+            console.log("You can only revive once!");
             this.newGame();
             return;
         }
@@ -2585,6 +2614,7 @@ var SoaringSheepGame = function(){
         this.pauseOverlay.alpha = 0;
         this.infoOverlay.alpha = 0;
         this.playGamesMenu.alpha = 0;
+        this.playGamesMenu.visible = false;
 
         //Reset obstacles activity
         var i;
@@ -2592,9 +2622,17 @@ var SoaringSheepGame = function(){
 			this.obstacleSectionActive[i] = false;
 		}
 
-        //Resume game
+		//Reset Timers
+        this.pauseTime = {
+            "obstacle":0,
+            "shield":0
+        };
+		this.obstacleTimer = new Date().getTime();
+        this.shieldTimer = null;
+
+        //Pause the game so as to make user click to continue instead of abruptly reviving
         this._paused = false;
-        requestAnimationFrame(this.update.bind(this));
+        this.togglePause(true);
     }
 
 	this.loadOptions = function(){
@@ -2620,7 +2658,7 @@ var SoaringSheepGame = function(){
             }
 		}
 		else{
-			console.log("WARNING: Browser does not support localStorage! Highscores and options will not be saved.");
+			console.log("WARNING: Browser does not support localStorage! Highscores, achievements and options will not be saved.");
 			return false;
 		}
 	};
@@ -2642,7 +2680,7 @@ var SoaringSheepGame = function(){
             if(opt=="all" || opt=="coins" || opt=="coin") window.localStorage["coins"] = this.coins;
 		}
 		else{
-			console.log("WARNING: Browser does not support localStorage! Highscores and options will not be saved.");
+			console.log("WARNING: Browser does not support localStorage! Highscores, achievements and options will not be saved.");
 			return false;
 		}
 	};
