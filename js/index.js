@@ -186,7 +186,7 @@ var SoaringSheepGame = function(){
 
 	this.obstacleSections;
 	this.obstacleSectionActive = [];
-	this.nObstacleSections = 3;
+	this.nObstacleSections = 1;
 
     //Coins and Rewards
     this.coins = 0;
@@ -1598,8 +1598,10 @@ var SoaringSheepGame = function(){
 
 		//CREATE OBSTACLE CONTAINER
 		this.obstacles = new PIXI.Container();
+        this.obstacleSections = new PIXI.Container();
 		this.showObstacleSections();
 
+		stage.addChild(this.obstacleSections);
 		stage.addChild(this.obstacles);
 
         //CREATE POWERUP CONTAINER
@@ -1615,7 +1617,7 @@ var SoaringSheepGame = function(){
 		this.hero.ax = 0;
 		this.hero.vy = 0;
 		this.hero.ay = 0.10;
-		this.hero.jumpStrength = 5;
+		this.hero.jumpStrength = 5.5;
 
 		this.preventHeroJump = 0;
 
@@ -1705,6 +1707,8 @@ var SoaringSheepGame = function(){
 
         //-Obstacles
         var i;
+        this.nObstacleSections = 1;
+        this.showObstacleSections();
 		for(i=0;i<=this.nObstacleSections;i++){
 			this.obstacleSectionActive[i] = false;
 		}
@@ -1899,6 +1903,10 @@ var SoaringSheepGame = function(){
         switch(this.score){
             case 5:
                 this.nObstacleSections = 2;
+
+                this.showObstacleSections();
+                this.obstacleTimer = new Date().getTime();
+                break;
             case 10:
                 this.nObstacleSections = 3;
 
@@ -1916,9 +1924,6 @@ var SoaringSheepGame = function(){
 	}
 
 	this.showObstacleSections = function(){
-		//Draw opacity rectangle to show where the obstacles will fall from
-		this.obstacleSections = new PIXI.Container();
-
         this.clearObstacleSections();
 
 		var i;
@@ -1929,8 +1934,7 @@ var SoaringSheepGame = function(){
 		var startX, endX;
 
 		for(i=1;i<=this.nObstacleSections;i++){
-            //this.obstacleSectionActive[i] = false;
-
+            //Draw opacity rectangle to show where the obstacles will fall from
 			var rect = new PIXI.Graphics();
 			rect.beginFill(0xd3d8dc,0.3);
 			startX = i*(this.canvasWidth/(this.nObstacleSections+1))-obsSecWidth/2-padd/2;
@@ -1940,15 +1944,13 @@ var SoaringSheepGame = function(){
 
 			this.obstacleSections.addChild(rect);
 		}
-
-		stage.addChild(this.obstacleSections);
 	};
 
     this.clearObstacleSections = function(){
         var i;
         var ch = this.obstacleSections.children;
 
-        for(i=0;i<ch.length;i++){
+        for(i=ch.length-1;i>=0;i--){
             //this.obstacleSectionActive[i] = false;
             this.obstacleSections.removeChild(ch[i]);
         }
@@ -1965,7 +1967,7 @@ var SoaringSheepGame = function(){
 
 		//Ensure obstacle does not appear twice in the section at one time.
 		var hasEmptySection = false;
-		for(i=1;i<this.nObstacleSections;i++){
+		for(i=1;i<=this.nObstacleSections;i++){
 			if(!this.obstacleSectionActive[i]){
 				hasEmptySection = true;
 				break;
@@ -1999,8 +2001,8 @@ var SoaringSheepGame = function(){
 		obs.vy = 0;
 
         //Ramp up acceleration as score increases
-        var _startG = 0.07;
-        var _maxG = 0.20;
+        var _startG = 0.03;
+        var _maxG = 0.15;
 		obs.ay = getRandomFloat(_startG,Math.min(_startG+this.score*0.01,_maxG));
 
         //Spawn powerup a few pixels above the spike. It'll fall at the same speed as the spike. Not easy to attain tho...
