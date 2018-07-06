@@ -535,7 +535,7 @@ var SoaringSheepGame = function(){
                     Game.reviveButton.buttonMode = true;
                     Game.reviveButton.interactive = true;
                     Game.reviveButton.overlay.visible = false;
-                    Game.reviveButton.footnote.text = "Watch an ad to revive";
+                    Game.reviveButton.footnote.text = "Watch an ad to revive\nUsable once per game";
 
                     renderer.render(stage);
                 }
@@ -1212,6 +1212,7 @@ var SoaringSheepGame = function(){
         this.gameoverScreen.addChild(this.gameoverScreen.highscoreText);
 
         var buttonHeight = 105, buttonWidth = 335, padd = 100;
+        var pseudoPaddX = 80, pseudoPaddY = 120; //for making the hitbox bigger
         var iconPos = 75;
         textOpt2 = {
             fontFamily: 'TimeBurner',
@@ -1239,6 +1240,12 @@ var SoaringSheepGame = function(){
             .drawRect(0,0,buttonWidth,buttonHeight)
         .endFill();
 
+        this.restartButton.pseudoBg = new PIXI.Graphics();
+        this.restartButton.pseudoBg.beginFill(0x263238,0)
+            .drawRect(-pseudoPaddX,-pseudoPaddY,buttonWidth+2*pseudoPaddX,buttonHeight+2*pseudoPaddY)
+        .endFill();
+        this.restartButton.pseudoBg.alpha = 0;
+
         this.restartButton.text = new PIXI.Text("Retry",textOpt2);
         this.restartButton.text.anchor.set(0.5,0.5);
         this.restartButton.text.position.set(buttonWidth/2+iconPos/2-15, buttonHeight/2);
@@ -1247,6 +1254,22 @@ var SoaringSheepGame = function(){
         this.restartButton.buttonMode = true;
         this.restartButton.on((_isMobile)?"touchend":"mouseup",this.newGame.bind(this));
 
+        textOpt3 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0x263238",
+            letterSpacing: 1,
+            align: 'center',
+            padding: 10,
+            fontSize: 23,
+            wordWrap: true,
+            wordWrapWidth: buttonWidth+50
+        };
+
+        this.restartButton.footnote = new PIXI.Text("Start a new game",textOpt3);
+        this.restartButton.footnote.anchor.set(0.5,0);
+        this.restartButton.footnote.position.set(buttonWidth/2, buttonHeight+15);
+
+        this.restartButton.addChild(this.restartButton.pseudoBg);
         this.restartButton.addChild(this.restartButton.background);
         this.restartButton.addChild(this.restartButton.icon);
         this.restartButton.addChild(this.restartButton.text);
@@ -1262,6 +1285,12 @@ var SoaringSheepGame = function(){
         this.reviveButton.background.beginFill(0x263238,0.9)
             .drawRect(0,0,buttonWidth,buttonHeight)
         .endFill();
+
+        this.reviveButton.pseudoBg = new PIXI.Graphics();
+        this.reviveButton.pseudoBg.beginFill(0x263238,0)
+            .drawRect(-pseudoPaddX,-pseudoPaddY,buttonWidth+2*pseudoPaddX,buttonHeight+2*pseudoPaddY)
+        .endFill();
+        this.reviveButton.pseudoBg.alpha = 0;
 
         this.reviveButton.icon = this.sprites.icons["ad"];
         this.reviveButton.icon.anchor.set(0.5,0.5);
@@ -1284,21 +1313,11 @@ var SoaringSheepGame = function(){
         .endFill();
         this.reviveButton.overlay.visible = false;
 
-        textOpt3 = {
-            fontFamily: 'TimeBurnerBold',
-            fill: "0x263238",
-            letterSpacing: 1,
-            align: 'center',
-            padding: 10,
-            fontSize: 23,
-            wordWrap: true,
-            wordWrapWidth: buttonWidth+50
-        };
-
         this.reviveButton.footnote = new PIXI.Text("You can only revive once",textOpt3);
         this.reviveButton.footnote.anchor.set(0.5,0);
         this.reviveButton.footnote.position.set(buttonWidth/2, buttonHeight+15);
 
+        this.reviveButton.addChild(this.reviveButton.pseudoBg);
         this.reviveButton.addChild(this.reviveButton.background);
         this.reviveButton.addChild(this.reviveButton.icon);
         this.reviveButton.addChild(this.reviveButton.text);
@@ -2592,7 +2611,7 @@ var SoaringSheepGame = function(){
             this.reviveButton.buttonMode = true;
             this.reviveButton.interactive = true;
             this.reviveButton.overlay.visible = false;
-            this.reviveButton.footnote.text = "Watch an ad to revive";
+            this.reviveButton.footnote.text = "Watch an ad to revive\nUsable once per game";
         }
 
         renderer.render(stage);
