@@ -197,7 +197,7 @@ var SoaringSheepGame = function(){
     this.shopTabsContent = [];
 
     //Powerups
-    this.powerupNames = ["shield","plusOne"];
+    this.powerupNames = ["coin","freeze","shield"];
     this.powerups;
     this.powerupChance = 0.4;
 
@@ -210,6 +210,19 @@ var SoaringSheepGame = function(){
     this.gameoverScreen;
     this.restartButton;
     this.reviveButton;
+
+    this.tips = [
+        "Did you know about the achievements under Google Play Games?",
+        "Watching the ad after gaining a >15 highscore earns you coins",
+        "Upgrade your sheep in the store to improve your highscore",
+        "Log into Google Play Games to trash your friends' highscores",
+        "Running into a spike with a shield destroys both the shield and the spike",
+        "Customise your sheep's appearance using coins in the store",
+        "Coins can be used to upgrade or customise your sheep!",
+        "Earn coins by watching ads or collecting them as powerups",
+        "Reviving gives you an opportunity to crush your friends' highscores"
+        //,"Taps in quick succession give your sheep a boost"
+    ]
 
     //Google Play
     this.isLoggedIn = false;
@@ -865,7 +878,7 @@ var SoaringSheepGame = function(){
             this.shopButton.getChildByName("shop").alpha = 1;
 
             //--Text
-            text = new PIXI.Text("SHOP",textOpt);
+            text = new PIXI.Text("STORE",textOpt);
             text.anchor.set(0.5,0.5);
             text.alpha = 1;
             text.y = 55;
@@ -1159,13 +1172,13 @@ var SoaringSheepGame = function(){
 
         this.infoOverlay.alpha = 0;
 
-        /* TODO: GAMEOVER SCREEN */
+        /* GAMEOVER SCREEN */
         this.gameoverScreen = new PIXI.Container();
 
         this.gameoverScreen.sheep = this.sprites.dead_sheep;
         this.gameoverScreen.sheep.scale.set(0.6,0.6);
         this.gameoverScreen.sheep.anchor.set(0.5,0.5);
-        this.gameoverScreen.sheep.position.set(this.canvasWidth/2,this.canvasHeight*0.32);
+        this.gameoverScreen.sheep.position.set(this.canvasWidth/2,this.canvasHeight*0.29);
 
         this.gameoverScreen.addChild(this.gameoverScreen.sheep);
 
@@ -1205,8 +1218,8 @@ var SoaringSheepGame = function(){
         this.gameoverScreen.scoreText.anchor.set(0.5,0.5);
         this.gameoverScreen.highscoreText.anchor.set(0.5,0.5);
 
-        this.gameoverScreen.scoreText.position.set(this.canvasWidth/2,this.canvasHeight*0.535);
-        this.gameoverScreen.highscoreText.position.set(this.canvasWidth/2,this.canvasHeight*0.605);
+        this.gameoverScreen.scoreText.position.set(this.canvasWidth/2,this.canvasHeight*0.5-15);
+        this.gameoverScreen.highscoreText.position.set(this.canvasWidth/2,this.canvasHeight*0.58-15);
 
         this.gameoverScreen.addChild(this.gameoverScreen.scoreText);
         this.gameoverScreen.addChild(this.gameoverScreen.highscoreText);
@@ -1226,7 +1239,7 @@ var SoaringSheepGame = function(){
             //-Restart
         this.restartButton = new PIXI.Container();
 
-        this.restartButton.position.set(this.canvasWidth/2-buttonWidth-padd,this.canvasHeight*0.72);
+        this.restartButton.position.set(this.canvasWidth/2-buttonWidth-padd,this.canvasHeight*0.65);
 
         this.restartButton.icon = this.sprites.icons["restart"];
         this.restartButton.icon.anchor.set(0.5,0.5);
@@ -1325,6 +1338,25 @@ var SoaringSheepGame = function(){
         this.reviveButton.addChild(this.reviveButton.footnote);
 
         this.gameoverScreen.addChild(this.reviveButton);
+
+            //-Tips
+        var textOpt4 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0x263238",
+            letterSpacing: 1,
+            align: 'center',
+            padding: 10,
+            fontSize: 30,
+            wordWrap: true,
+            wordWrapWidth: this.canvasWidth*0.75
+        };
+
+        this.gameoverScreen.tipText = new PIXI.Text("Tip: ",textOpt4);
+
+        this.gameoverScreen.tipText.anchor.set(0.5,0.5);
+        this.gameoverScreen.tipText.position.set(this.canvasWidth/2, this.canvasHeight-80);
+
+        this.gameoverScreen.addChild(this.gameoverScreen.tipText);
 
         //this.gameoverScreen.visible = false;
 
@@ -2059,8 +2091,9 @@ var SoaringSheepGame = function(){
 
         //Spawn powerup a few pixels above the spike. It'll fall at the same speed as the spike. Not easy to attain tho...
         /* --POWERUPS--
-        0: Shield
-        1: +1 (to score)
+        0: Coin
+        1: Freeze
+        2: Shield
         */
         var powerup;
 
@@ -2562,8 +2595,10 @@ var SoaringSheepGame = function(){
         */
 
         //ADS
-        if(this.totalGamesPlayed>=10 || this.score>=15){
-            //this.ads.showAd("rewardvideo","coins",10*getRandomInt(1,5));
+        if(this.score>=15){
+            this.ads.showAd("rewardvideo","coins",10*getRandomInt(1,5));
+        }
+        else if(this.totalGamesPlayed>=10){
             this.ads.showAd("interstitial");
             this.totalGamesPlayed = 0;
         }
@@ -2581,6 +2616,9 @@ var SoaringSheepGame = function(){
         this.gameoverScreen.visible = true;
         this.gameoverScreen.scoreText.text = "Score: "+this.score;
         this.gameoverScreen.highscoreText.text = "Highscore: "+this.highscore;
+
+            //-Display Tips
+            this.gameoverScreen.tipText.text = "Tip: "+this.tips[getRandomInt(0,this.tips.length-1)];
 
             //-Check if ads are available, if not, disable revive button
         if(typeof admob == "undefined" || admob==null){
