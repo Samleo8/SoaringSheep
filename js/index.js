@@ -194,6 +194,7 @@ var SoaringSheepGame = function(){
 
     //Coins and Shop
     this.coins = 0;
+    this.coinIncAmt = 10;
 
     this.shopButton;
     this.shopTabNames = ["Upgrades","Accessories","Coins"];
@@ -525,65 +526,57 @@ var SoaringSheepGame = function(){
                 }
 
                 admob[nm].config(opt);
-                this.prepare(nm);
-            }
-        },
-        "prepare":function(nm){
-            self = this;
-            data = this.types[nm];
+                admob[nm].prepare();
 
-            if(typeof admob=="undefined" || admob == null || !this.enabled) return;
-            if(typeof nm == "undefined" || nm==null) return;
-
-            admob[nm].prepare();
-
-            document.addEventListener('admob.'+nm+'.events.LOAD_FAIL', function(event) {
-                data["loaded"] = false;
-
-                if(Game.isOnline){
-                    this.prepare(nm);
-                }
-            }.bind(self));
-
-            document.addEventListener('admob.'+nm+'.events.LOAD', function(event) {
-                data["loaded"] = true;
-
-                if(nm == "rewardvideo"){
-                    if(typeof Game.reviveButton == "undefined") return;
-
-                    Game.reviveButton.buttonMode = true;
-                    Game.reviveButton.interactive = true;
-                    Game.reviveButton.overlay.visible = false;
-                    Game.reviveButton.footnote.text = "Watch an ad to revive\nUsable once per game";
-
-                    renderer.render(stage);
-                }
-            }.bind(self));
-
-            if(nm!="banner"){
-                document.addEventListener('admob.'+nm+'.events.CLOSE', function(event) {
-                    console.log("Closed ad");
+                document.addEventListener('admob.'+nm+'.events.LOAD_FAIL', function(event) {
+                    console.log("Load failed");
                     data["loaded"] = false;
-                    this.prepare(nm);
-                }.bind(self));
-            }
 
-            if(nm=="rewardvideo"){
-                document.addEventListener('admob.rewardvideo.events.REWARD', function(event){
-                    console.log("You can now receive reward: "+self.reward_type);
-                    switch(self.reward_type){
-                        case "revive":
-                            this.revive();
-                            break;
-                        case "coin":
-                        case "coins":
-                            this.incCoins(self.reward_amount);
-                            this.saveOptions("coins");
-                            break;
-                        default:
-                            return;
+                    if(Game.isOnline){
+                        console.log("Loading ad again");
+                        admob[nm].prepare();
                     }
-                }.bind(Game));
+                }.bind(self));
+
+                document.addEventListener('admob.'+nm+'.events.LOAD', function(event) {
+                    data["loaded"] = true;
+
+                    if(nm == "rewardvideo"){
+                        if(typeof Game.reviveButton == "undefined") return;
+
+                        Game.reviveButton.buttonMode = true;
+                        Game.reviveButton.interactive = true;
+                        Game.reviveButton.overlay.visible = false;
+                        Game.reviveButton.footnote.text = "Watch an ad to revive\nUsable once per game";
+
+                        renderer.render(stage);
+                    }
+                }.bind(self));
+
+                if(nm!="banner"){
+                    document.addEventListener('admob.'+nm+'.events.CLOSE', function(event) {
+                        data["loaded"] = false;
+                        admob[nm].prepare();
+                    }.bind(self));
+                }
+
+                if(nm=="rewardvideo"){
+                    document.addEventListener('admob.rewardvideo.events.REWARD', function(event){
+                        console.log("You can now receive reward: "+self.reward_type);
+                        switch(self.reward_type){
+                            case "revive":
+                                this.revive();
+                                break;
+                            case "coin":
+                            case "coins":
+                                this.incCoins(self.reward_amount);
+                                this.saveOptions("coins");
+                                break;
+                            default:
+                                return;
+                        }
+                    }.bind(Game));
+                }
             }
         },
         "showAd": function(type,reward_type,reward_amount){
@@ -1299,6 +1292,7 @@ var SoaringSheepGame = function(){
         this.restartButton.addChild(this.restartButton.background);
         this.restartButton.addChild(this.restartButton.icon);
         this.restartButton.addChild(this.restartButton.text);
+        this.restartButton.addChild(this.restartButton.footnote);
 
         this.gameoverScreen.addChild(this.restartButton);
 
@@ -1914,7 +1908,7 @@ var SoaringSheepGame = function(){
 
 		//HERO BOUNDS CHECKS
 		//Check for hero x-direction bounds, and bounce off wall
-		if(this.hero.x<=this.hero.width/2 || this.hero.x>=(this.canvasWidth-this.hero.width/2)){
+		if(this.hero.x<=this.hero.sheep.width/2 || this.hero.x>=(this.canvasWidth-this.hero.sheep.width/2)){
 			this.hero.vx *= -this.speedInc;
 
             var _dir = (this.hero.vx<0)?-1:1;
@@ -1947,7 +1941,7 @@ var SoaringSheepGame = function(){
         for(i=0;i<this.obstacles.children.length;i++){
             var obs = this.obstacles.children[i];
 
-            if(this.hitTest(this.hero,obs,10,10)){
+            if(this.hitTest(this.hero,obs,10,15)){
                 this.obstacles.removeChild(obs);
                 this.obstacleSectionActive[obs.section] = false;
 
@@ -2179,7 +2173,7 @@ var SoaringSheepGame = function(){
             //COIN
             case 0:
             case "coin":
-                this.incCoins(10, true);
+                this.incCoins(this.coinIncAmt, true);
                 break;
             //SHIELD
             case 1:
@@ -2732,7 +2726,7 @@ var SoaringSheepGame = function(){
             this.reviveButton.footnote.text = "Ad failed to load\nCheck your connection and try again";
 
             //Attempt to load ad
-            this.ads.prepare("rewardvideo");
+            admob["rewardvideo"].prepare();
         }
         else{
             this.reviveButton.buttonMode = true;
@@ -2774,7 +2768,6 @@ var SoaringSheepGame = function(){
             return;
         }
 
-        this._revived = true;
         this.preventHeroJump = 0;
 
         this.scoreText.visible = true;
@@ -2814,9 +2807,10 @@ var SoaringSheepGame = function(){
         };
 		this.obstacleTimer = new Date().getTime();
         this.shieldTimer = null;
-        this.freezeTimer = null;
 
         //Pause the game so as to make user click to continue instead of abruptly reviving
+        this._revived = true;
+
         this._paused = false;
         this.togglePause(true);
     }
