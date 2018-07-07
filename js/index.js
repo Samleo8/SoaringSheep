@@ -154,8 +154,8 @@ var SoaringSheepGame = function(){
 	};
 
     //Audio
-	this.audioLib = ["main_music","jump","bounce","die","shield"];
-	this.audioVol = [0.4,0.15,0.1,0.8,0.8];
+	this.audioLib = ["main_music","jump","bounce","die","shield","coin","freeze"];
+	this.audioVol = [0.4,0.15,0.1,0.8,0.8,0.6,0.6];
 	this.audio = {
 
 	}
@@ -183,6 +183,9 @@ var SoaringSheepGame = function(){
 	this.obstacles;
 	this.obstacleTimer;
 	this.obstacleSpawnTime = 1000; //in ms
+
+    this.obstaclesFrozen = false;
+    this.obstaclesFreezeTime = 3000; //in ms
 
 	this.obstacleSections;
 	this.obstacleSectionActive = [];
@@ -216,7 +219,8 @@ var SoaringSheepGame = function(){
         "Watching the ad after gaining a >15 highscore earns you coins",
         "Upgrade your sheep in the store to improve your highscore",
         "Log into Google Play Games to trash your friends' highscores",
-        "Running into a spike with a shield destroys both the shield and the spike",
+        "Smashing into a spike with a shield destroys both the shield and the spike",
+        "Smashing into a spike with a shield collects its attached powerup",
         "Customise your sheep's appearance using coins in the store",
         "Coins can be used to upgrade or customise your sheep!",
         "Earn coins by watching ads or collecting them as powerups",
@@ -571,7 +575,7 @@ var SoaringSheepGame = function(){
                             break;
                         case "coin":
                         case "coins":
-                            this.coins += self.reward_amount;
+                            this.incCoins(self.reward_amount);
                             this.saveOptions("coins");
                             break;
                         default:
@@ -1801,8 +1805,9 @@ var SoaringSheepGame = function(){
 
 			//TIMERS
             this.pauseTime = {
-                "obstacle":0,
-                "shield":0
+                "obstacle": 0,
+                "shield": 0,
+                "freeze": 0
             };
 			this.obstacleTimer = new Date().getTime();
 
@@ -1869,15 +1874,20 @@ var SoaringSheepGame = function(){
 
 			//Check for hero and obstacle hitTest
 			if(this.hitTest(this.hero,obs,10,10)){
+                this.obstacles.removeChild(obs);
+                this.obstacleSectionActive[obs.section] = false;
+
                 if(this.heroShield.alpha){
-                    this.obstacles.removeChild(obs);
-    				this.obstacleSectionActive[obs.section] = false;
+                    this.heroShield.alpha = 0;
+                    this.shieldTimer = 0;
+
+                    this.collectPowerup(obs.attachedPowerup.typeName);
 
                     this.powerups.removeChild(obs.attachedPowerup);
-                    this.heroShield.alpha = 0;
-                    this.pauseTime["shield"] = 0;
                 }
                 else{
+                    this.powerups.removeChild(obs.attachedPowerup);
+
                     this.gameover();
                     return;
                 }
@@ -1898,29 +1908,7 @@ var SoaringSheepGame = function(){
 
             //Check for hero and powerup hitTest
             if(this.hitTest(this.hero,pwr,10,10)){
-                switch(pwr.type){
-                    //SHIELD
-                    case 0:
-                        this.heroShield.alpha = 1;
-                        this.shieldTimer = new Date().getTime();
-                        this.audio["shield"].play();
-
-                        //ACHIEVEMENT:
-                            //-Single:
-                            if(!this.achievements.single.shield_once.complete || !this.achievements.single.shield_once.synced)  {   this.GooglePlayServices.unlockAchievement("shield_once");
-                            }
-                            //-Incremental:
-                            for(j=0;j<this.achievements.incremental.shield.length;j++){
-                                if(!this.achievements.incremental.shield[j].complete || !this.achievements.incremental.shield[j].synced) {
-                                    this.GooglePlayServices.incrementAchievement("shield",i,1);
-                                }
-                            }
-                        break;
-                    //+1 SCORE
-                    case 1:
-                        this.incScore();
-                        break;
-                }
+                this.collectPowerup(this.powerupNames[pwr.type]);
                 this.powerups.removeChild(pwr);
             }
 
@@ -1975,6 +1963,19 @@ var SoaringSheepGame = function(){
 		requestAnimationFrame(this.update.bind(this));
 	};
 
+    this.incCoins = function(amt,sound){
+        this.coins+=amt;
+        //TODO: Update coin amount on screen
+
+        this.saveOptions("coin");
+
+        if(sound){
+            this.audio["coin"].play();
+        }
+
+        renderer.render(stage);
+    }
+
 	this.incScore = function(){
 		this.score++;
 		this.scoreText.text = this.score;
@@ -2005,6 +2006,8 @@ var SoaringSheepGame = function(){
 		this.highscoreText.text = this.highscore;
 
 		this.audio["bounce"].play();
+
+        renderer.render(stage);
 	}
 
 	this.showObstacleSections = function(){
@@ -2092,8 +2095,8 @@ var SoaringSheepGame = function(){
         //Spawn powerup a few pixels above the spike. It'll fall at the same speed as the spike. Not easy to attain tho...
         /* --POWERUPS--
         0: Coin
-        1: Freeze
-        2: Shield
+        1: Shield
+        2: Freeze
         */
         var powerup;
 
@@ -2112,6 +2115,7 @@ var SoaringSheepGame = function(){
             powerup.y = obs.y-this.powerupOffset;
 
             powerup.type = type;
+            powerup.typeName = this.powerupNames[type];
             powerup.attachedObs = obs;
             obs.attachedPowerup = powerup;
 
@@ -2120,6 +2124,49 @@ var SoaringSheepGame = function(){
 
 		this.obstacles.addChild(obs);
 	};
+
+    this.collectPowerup = function(type_name){
+        var i;
+
+        /* --POWERUPS--
+        0: Coin
+        1: Shield
+        2: Freeze
+        */
+
+        switch(type_name){
+            //COIN
+            case 0:
+            case "coin":
+                this.incCoins(10, true);
+                break;
+            //SHIELD
+            case 1:
+            case "shield":
+                this.heroShield.alpha = 1;
+                this.shieldTimer = new Date().getTime();
+                this.audio["shield"].play();
+
+                //ACHIEVEMENT:
+                    //-Single:
+                    if(!this.achievements.single.shield_once.complete || !this.achievements.single.shield_once.synced)  {   this.GooglePlayServices.unlockAchievement("shield_once");
+                    }
+                    //-Incremental:
+                    for(i=0;i<this.achievements.incremental.shield.length;i++){
+                        if(!this.achievements.incremental.shield[i].complete || !this.achievements.incremental.shield[i].synced) {
+                            this.GooglePlayServices.incrementAchievement("shield",i,1);
+                        }
+                    }
+                break;
+            //FREEZE
+            case 2:
+            case "freeze":
+                this.obstaclesFrozen = true;
+                this.audio["freeze"].play();
+
+                break;
+        }
+    }
 
     this.appBlur = function(){
         //console.log("App Blurred");
@@ -2718,8 +2765,9 @@ var SoaringSheepGame = function(){
 
 		//Reset Timers
         this.pauseTime = {
-            "obstacle":0,
-            "shield":0
+            "obstacle": 0,
+            "shield": 0,
+            "freeze": 0
         };
 		this.obstacleTimer = new Date().getTime();
         this.shieldTimer = null;
