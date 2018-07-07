@@ -108,6 +108,7 @@ var SoaringSheepGame = function(){
 
 	this.hero = null;
     this.heroShield = null;
+    this.heroJumpStrength = 5.5;
 
     this.shieldTimer;
     this.shieldTimeInc = 500; //ms
@@ -193,18 +194,72 @@ var SoaringSheepGame = function(){
 	this.nObstacleSections = 1;
 
     //Coins and Shop
-    this.coins = 0;
+    this.coins = 100;
     this.coinIncAmt = 10;
 
+    this.shop;
+
     this.shopButton;
-    this.shopTabNames = ["Upgrades","Accessories","Coins"];
-    this.shopTabs = [];
-    this.shopTabsContent = [];
+    this.shopTabNames = ["upgrades","accessories","coins"];
+
+    //Upgrades
+    /* NOTE:
+        - The name in this.upgrades refers to the variable name that will be incremented
+        - Chances
+    */
+    this.upgrades = {
+        "powerupChance":{
+            "title":"Power Boost",
+            "desc":"Increases chance that a powerup will spawn",
+            "increment_value":0.05,
+            "max_increments":5,
+            "increment_count":0,
+            "type":"chance",
+            "cost":100
+        },
+        "noDeathChance":{
+            "title":"Adrenaline",
+            "desc":"Increases chance that you won't die from a spike",
+            "increment_value":0.05,
+            "max_increments":5,
+            "increment_count":0,
+            "type":"chance",
+            "cost":100
+        },
+        "shieldTimeInc":{
+            "title":"Protection",
+            "desc":"Increases time shield powerup is active",
+            "increment_value":20,
+            "max_increments":10,
+            "increment_count":0,
+            "cost":200
+        },
+        "obstaclesFreezeTime":{
+            "title":"Sub-Zero",
+            "desc":"Increases time freeze powerup is active",
+            "increment_value":100,
+            "max_increments":10,
+            "increment_count":0,
+            "type":"time",
+            "cost":200
+        },
+        "startingShield":{
+            "title":"Armour",
+            "desc":"Gives a starting shield on every new game",
+            "increment_value":1,
+            "max_increments":1,
+            "increment_count":0,
+            "type":"one-off",
+            "cost":5000
+        }
+    }
 
     //Powerups
     this.powerupNames = ["coin","freeze","shield"];
     this.powerups;
-    this.powerupChance = 0.4;
+    this.powerupChance = 0.3;
+
+    this.noDeathChance = 0;
 
     //Pausing
 	this.pauseTime;
@@ -311,7 +366,7 @@ var SoaringSheepGame = function(){
             }],
             "shield_once":[{
             	'id': 'CgkI8sq82fwOEAIQFw',
-            	'name': 'Shielded Sheep 1',
+            	'name': 'Strong Sheep 1',
             	'points': 5,
             	'complete': false,
             	'synced': false
@@ -422,7 +477,7 @@ var SoaringSheepGame = function(){
             }],
             "shield":[{
             	'id': 'CgkI8sq82fwOEAIQGA',
-            	'name': 'Shielded Sheep 2',
+            	'name': 'Strong Sheep 2',
             	'points': 10,
                 'completedSteps': 0,
                 'completedSteps_synced': 0,
@@ -431,7 +486,7 @@ var SoaringSheepGame = function(){
             	'synced': false
             }, {
             	'id': 'CgkI8sq82fwOEAIQGQ',
-            	'name': 'Shielded Sheep 3',
+            	'name': 'Strong Sheep 3',
             	'points': 20,
                 'completedSteps': 0,
                 'completedSteps_synced': 0,
@@ -440,7 +495,7 @@ var SoaringSheepGame = function(){
             	'synced': false
             }, {
             	'id': 'CgkI8sq82fwOEAIQGg',
-            	'name': 'Shielded Sheep - Clearly Addicted',
+            	'name': 'Strong Sheep - Clearly Addicted',
             	'points': 50,
                 'completedSteps': 0,
                 'completedSteps_synced': 0,
@@ -1333,7 +1388,7 @@ var SoaringSheepGame = function(){
         .endFill();
         this.reviveButton.overlay.visible = false;
 
-        this.reviveButton.footnote = new PIXI.Text("You can only revive once",textOpt3);
+        this.reviveButton.footnote = new PIXI.Text("You can only revive once per game",textOpt3);
         this.reviveButton.footnote.anchor.set(0.5,0);
         this.reviveButton.footnote.position.set(buttonWidth/2, buttonHeight+15);
 
@@ -1366,6 +1421,163 @@ var SoaringSheepGame = function(){
         this.gameoverScreen.addChild(this.gameoverScreen.tipText);
 
         //this.gameoverScreen.visible = false;
+
+        /* SHOP MENU */
+        this.shop = new PIXI.Container();
+
+        rect = new PIXI.Graphics();
+        rect.beginFill(0x263238,0.98)
+            .drawRect(0,0,this.canvasWidth,this.canvasHeight)
+        .endFill();
+
+        this.shop.addChild(rect);
+
+        textOpt = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "#cfd8dc",
+            stroke: "#90a4ae",
+            strokeThickness: 10,
+            letterSpacing: 10,
+            align: 'center',
+            padding:10
+        };
+
+        //Title
+        text = new PIXI.Text("STORE",Object.assign(textOpt,{fontSize:60}));
+        text.anchor.set(0.5,0);
+        text.alpha = 0.98;
+        text.x = this.canvasWidth/2;
+        text.y = 25;
+
+        //this.shop.addChild(text);
+
+        //Coins
+        textOpt2 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0xcfd8dc",
+            letterSpacing: 5,
+            padding:10,
+            align: 'center',
+            fontSize: 24
+        };
+
+        /*
+        this.shop.coin_icon = this.sprites.icons["coin"];
+        this.shop.coin_icon.alpha = 1;
+        this.shop.coin_icon.tint = 0x455a64;
+        this.shop.coin_icon.scale.set(0.6,0.6);
+        this.shop.coin_icon.position.set(this.canvasWidth/2-this.coins.toString().length*34*2,140);
+        */
+
+        this.shop.coin_title = new PIXI.Text("Total Coins:",textOpt2);
+        this.shop.coin_title.anchor.set(0.5,0.5);
+        this.shop.coin_title.position.set(this.canvasWidth/2,65);
+
+        this.shop.coin_text = new PIXI.Text(this.coins,Object.assign(textOpt2,{fontSize:40}));
+        this.shop.coin_text.anchor.set(0.5,0.5);
+        this.shop.coin_text.position.set(this.canvasWidth/2,125);
+
+        this.shop.addChild(this.shop.coin_title);
+        this.shop.addChild(this.shop.coin_text);
+
+
+
+        //Tabs
+        var tab, _nm;
+
+        textOpt3 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0x455A64",
+            letterSpacing: 5,
+            padding:10,
+            align: 'center',
+            fontSize: 30
+        };
+
+        this.shop.tabs = {};
+
+        var tabMarginTop = 200, tabHeight = 80;
+
+        for(i=0;i<this.shopTabNames.length;i++){
+            this.shop.tabs[this.shopTabNames[i]] = new PIXI.Container();
+
+            tab = this.shop.tabs[this.shopTabNames[i]];
+            tab.name = this.shopTabNames[i];
+
+            tab.alpha = 1;
+
+            tab._height = tabHeight;
+            tab._width = (this.canvasWidth/this.shopTabNames.length);
+
+            tab.bg = new PIXI.Graphics();
+            tab.bg.beginFill(0xcfd8dc,0.98)
+                .drawRect(0,0,tab._width,tab._height)
+            .endFill();
+
+            tab.text = new PIXI.Text(this.shopTabNames[i].toTitleCase(),textOpt3);
+            tab.text.anchor.set(0.5,0.5);
+            tab.text.position.set(tab._width/2, tab._height/2);
+
+            tab.line = new PIXI.Graphics();
+            tab.line.lineStyle(1,0x607d8b)
+                .moveTo(0,0).lineTo(0,tab._height);
+
+            tab.position.set(i*tab._width, tabMarginTop);
+
+            tab.overlay = new PIXI.Graphics();
+            tab.overlay.beginFill(0x455a64,0.45)
+                .drawRect(0,0,tab._width,tab._height)
+            .endFill();
+            if(i) tab.overlay.visible = true;
+            else tab.overlay.visible = false;
+
+            tab.addChild(tab.bg);
+            tab.addChild(tab.text);
+            if(i) tab.addChild(tab.line);
+            tab.addChild(tab.overlay);
+
+            this.shop.tabs[this.shopTabNames[i]] = tab;
+
+            this.shop.addChild(tab);
+
+            tab.interactive = true;
+            tab.buttonMode = true;
+            tab.on((_isMobile)?"touchend":"mouseup",this.switchShopTab.bind(this,tab.name));
+        }
+
+        var content;
+        this.shop.tabContent = {};
+
+        for(i=0;i<this.shopTabNames.length;i++){
+            this.shop.tabContent[this.shopTabNames[i]] = new PIXI.Container();
+
+            content = this.shop.tabContent[this.shopTabNames[i]];
+            content.name = this.shop.tabContent[i];
+
+            content.alpha = 1;
+
+            content.bg = new PIXI.Graphics();
+            content.bg.beginFill(0xcfd8dc,0.98)
+                .drawRect(0,0,this.canvasWidth,this.canvasHeight-tabHeight-tabMarginTop+1)
+            .endFill();
+
+            content.position.set(0,tabHeight+tabMarginTop-1);
+
+            content.addChild(content.bg);
+
+            this.shop.tabContent[this.shopTabNames[i]] = content;
+
+            this.shop.addChild(content);
+        }
+
+        //Prepare actual content for the upgrades and store
+        this.prepareShopContent();
+
+        this.shop.interactive = true;
+        this.shop.buttonMode = true;
+        this.shop.on((_isMobile)?"touchend":"mouseup",function(){
+            this.preventHeroJump++;
+        }.bind(this));
 
         /* PLAY GAMES MENU */
         this.playGamesMenu = new PIXI.Container();
@@ -1548,7 +1760,7 @@ var SoaringSheepGame = function(){
 			this.loadOptions();
 
 			//Fade In Animation
-			this.fadeObjects = [sheep, speech_bubble, this.infoOverlay, this.playGamesMenu, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton, this.webButton, this.shopButton];
+			this.fadeObjects = [sheep, speech_bubble, this.infoOverlay, this.playGamesMenu, this.shop, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton, this.webButton, this.shopButton];
                 //in order of intended z-index
 
 			for(i=0;i<this.fadeObjects.length;i++){
@@ -1579,6 +1791,7 @@ var SoaringSheepGame = function(){
         for(i=0;i<this.fadeObjects.length;i++){
             if(this.fadeObjects[i] == this.infoOverlay) continue;
             if(this.fadeObjects[i] == this.playGamesMenu) continue;
+            if(this.fadeObjects[i] == this.shop) continue;
 
             this.fadeObjects[i].alpha += _fadeInc;
         }
@@ -1595,6 +1808,7 @@ var SoaringSheepGame = function(){
             }
 
             this.playGamesMenu.visible = false;
+            //this.shop.visible = false;
 
             this.startScreen.interactive = true;
             this.startScreen.buttonMode = true;
@@ -1705,7 +1919,7 @@ var SoaringSheepGame = function(){
 		this.hero.ax = 0;
 		this.hero.vy = 0;
 		this.hero.ay = 0.10;
-		this.hero.jumpStrength = 5.5;
+		this.hero.jumpStrength = this.heroJumpStrength;
 
 		this.preventHeroJump = 0;
 
@@ -1733,6 +1947,9 @@ var SoaringSheepGame = function(){
 
         this.playGamesMenu.alpha = 0;
         stage.addChild(this.playGamesMenu);
+
+        this.shop.visible = false;
+        stage.addChild(this.shop);
 
 		//ADD BUTTONS
 		//..GRAPHICS FOR BUTTONS IS DONE IN INITIALISATION FOR PERFORMANCE
@@ -1779,7 +1996,7 @@ var SoaringSheepGame = function(){
 		this.hero.ax = 0;
 		this.hero.vy = 0;
 		this.hero.ay = 0.10;
-		this.hero.jumpStrength = 4;
+		this.hero.jumpStrength = this.heroJumpStrength;
 
         //--Hero's shield
         this.heroShield.position = this.hero.position;
@@ -1795,6 +2012,8 @@ var SoaringSheepGame = function(){
 
         this.playGamesMenu.alpha = 0;
         this.playGamesMenu.visible = false;
+
+        this.shop.visible = false;
 
         //-Obstacles
         var i;
@@ -2000,7 +2219,9 @@ var SoaringSheepGame = function(){
 
     this.incCoins = function(amt,sound){
         this.coins+=amt;
-        //TODO: Update coin amount on screen
+
+        //TODO: Update coin amount on screen/shop
+        this.shop.coin_text.text = this.coins;
 
         this.saveOptions("coin");
 
@@ -2188,17 +2409,6 @@ var SoaringSheepGame = function(){
                 this.heroShield.alpha = 1;
                 this.shieldTimer = new Date().getTime();
                 this.audio["shield"].play();
-
-                //ACHIEVEMENT:
-                    //-Single:
-                    if(!this.achievements.single.shield_once.complete || !this.achievements.single.shield_once.synced)  {   this.GooglePlayServices.unlockAchievement("shield_once");
-                    }
-                    //-Incremental:
-                    for(i=0;i<this.achievements.incremental.shield.length;i++){
-                        if(!this.achievements.incremental.shield[i].complete || !this.achievements.incremental.shield[i].synced) {
-                            this.GooglePlayServices.incrementAchievement("shield",i,1);
-                        }
-                    }
                 break;
             //FREEZE
             case 2:
@@ -2211,6 +2421,17 @@ var SoaringSheepGame = function(){
             default:
                 return;
         }
+
+        //ACHIEVEMENT:
+            //-Single:
+            if(!this.achievements.single.shield_once.complete || !this.achievements.single.shield_once.synced)  {   this.GooglePlayServices.unlockAchievement("shield_once");
+            }
+            //-Incremental:
+            for(i=0;i<this.achievements.incremental.shield.length;i++){
+                if(!this.achievements.incremental.shield[i].complete || !this.achievements.incremental.shield[i].synced) {
+                    this.GooglePlayServices.incrementAchievement("shield",i,1);
+                }
+            }
     }
 
     this.appBlur = function(){
@@ -2234,7 +2455,7 @@ var SoaringSheepGame = function(){
     }
 
     this.showShop = function(e){
-        alert("Work in progress... Watch out for the next update!");
+        //alert("Work in progress... Watch out for the next update!");
 
         var i,nm;
 
@@ -2244,12 +2465,37 @@ var SoaringSheepGame = function(){
 			}
 		}
 
-        this.switchShopTab(0);
-    }
+        if(this.shop.visible){
+            this.shop.visible = false;
+        }
+        else{
+            this.togglePause(true);
 
-    this.switchShopTab = function(id){
-        console.log(id,this.shopTabNames[id]);
-    }
+            this.shop.visible = true;
+            this.switchShopTab(this.shopTabNames[0]);
+        }
+
+        renderer.render(stage);
+    };
+
+    this.switchShopTab = function(name){
+        console.log(name,this.shopTabNames[name]);
+
+        for(i=0;i<this.shopTabNames.length;i++){
+            this.shop.tabs[this.shopTabNames[i]].overlay.visible = true;
+            this.shop.tabContent[this.shopTabNames[i]].visible = false;
+        }
+
+        this.shop.tabContent[name].visible = true;
+        this.shop.tabs[name].overlay.visible = false;
+
+        renderer.render(stage);
+    };
+
+    this.prepareShopContent = function(){
+        //Preparation of actual content in the shop
+
+    };
 
     this.showInfo = function(e){
 		var i,nm;
@@ -2601,6 +2847,8 @@ var SoaringSheepGame = function(){
             this.playGamesMenu.alpha = 0;
             this.playGamesMenu.visible = false;
 
+            this.shop.visible = false;
+
 			this.pauseButton.getChildByName("pause").alpha=1;
 			this.pauseButton.getChildByName("play").alpha=0;
 
@@ -2629,6 +2877,13 @@ var SoaringSheepGame = function(){
 	};
 
 	this.gameover = function(){
+        if(this.noDeathChance && Math.random()<=this.noDeathChance){
+            //Just continue game
+            requestAnimationFrame(this.update.bind(this));
+            
+            return;
+        }
+
         var i;
 
         renderer.render(stage);
@@ -2725,7 +2980,7 @@ var SoaringSheepGame = function(){
             this.reviveButton.interactive = false;
             this.reviveButton.overlay.visible = true;
 
-            this.reviveButton.footnote.text = "You can only revive once";
+            this.reviveButton.footnote.text = "You can only revive once per game";
         }
         else if(!this.isOnline || !this.ads.types.rewardvideo.loaded){
             this.reviveButton.buttonMode = false;
@@ -2762,7 +3017,7 @@ var SoaringSheepGame = function(){
         }
 
         if(this._revived){
-            alert("You can only revive once! Restarting game instead!");
+            alert("You can only revive once per game! Restarting game instead!");
             this.newGame();
             return;
         }
@@ -2772,7 +3027,7 @@ var SoaringSheepGame = function(){
 
     this.revive = function(){
         if(this._revived){
-            console.log("You can only revive once!");
+            console.log("You can only revive once per game!");
             this.newGame();
             return;
         }
@@ -2800,6 +3055,7 @@ var SoaringSheepGame = function(){
         this.infoOverlay.alpha = 0;
         this.playGamesMenu.alpha = 0;
         this.playGamesMenu.visible = false;
+        this.shop.visible = false;
 
         //Reset obstacles activity
         var i;
@@ -2844,6 +3100,7 @@ var SoaringSheepGame = function(){
 
             if(window.localStorage["coins"] != null){
                 this.coins = parseInt(window.localStorage["coins"]);
+                this.incCoins(0,false);
             }
 		}
 		else{
@@ -3280,6 +3537,31 @@ function getRandomInt(min, max) {
 
 function parseBoolean(str){
 	return (str.toString().toLowerCase() == "true");
+}
+
+String.prototype.toTitleCase = function() {
+  var i, j, str, lowers, uppers;
+  str = this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
+    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+  });
+
+  // Certain minor words should be left lowercase unless
+  // they are the first or last words in the string
+  lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At',
+  'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
+  for (i = 0, j = lowers.length; i < j; i++)
+    str = str.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'),
+      function(txt) {
+        return txt.toLowerCase();
+      });
+
+  // Certain words such as initialisms or acronyms should be left uppercase
+  uppers = ['Id', 'Tv'];
+  for (i = 0, j = uppers.length; i < j; i++)
+    str = str.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'),
+      uppers[i].toUpperCase());
+
+  return str;
 }
 
 //INITIALIZE APP
