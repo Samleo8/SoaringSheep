@@ -185,6 +185,7 @@ var SoaringSheepGame = function(){
 	this.obstacleSpawnTime = 1000; //in ms
 
     this.obstaclesFrozen = false;
+    this.freezeTimer;
     this.obstaclesFreezeTime = 3000; //in ms
 
 	this.obstacleSections;
@@ -224,6 +225,7 @@ var SoaringSheepGame = function(){
         "Customise your sheep's appearance using coins in the store",
         "Coins can be used to upgrade or customise your sheep!",
         "Earn coins by watching ads or collecting them as powerups",
+        "You can still die from running into a frozen spike, so watch out!",
         "Reviving gives you an opportunity to crush your friends' highscores"
         //,"Taps in quick succession give your sheep a boost"
     ]
@@ -895,11 +897,18 @@ var SoaringSheepGame = function(){
 			this.animations.jumping.frames.push(resources["sheep_0"].texture);
 
 			//-HERO
-			this.hero = new PIXI.extras.AnimatedSprite(this.animations.jumping.frames);
-			this.hero.animationSpeed = 0.15;
-			this.hero.loop = false;
-			this.hero.anchor.set(0.5);
-			this.hero.scale.set(0.35,0.35);
+			this.hero = new PIXI.Container();
+
+            this.hero.sheep = new PIXI.extras.AnimatedSprite(this.animations.jumping.frames);
+			this.hero.sheep.animationSpeed = 0.15;
+			this.hero.sheep.loop = false;
+			this.hero.sheep.anchor.set(0.5);
+			this.hero.sheep.scale.set(0.35,0.35);
+
+            this.hero.width = this.hero.sheep.width;
+            this.hero.height = this.hero.sheep.height;
+
+            this.hero.addChild(this.hero.sheep);
 
 			//LOAD AUDIO
 			for(i=0;i<this.audioLib.length;i++){
@@ -1694,7 +1703,9 @@ var SoaringSheepGame = function(){
 		//HERO INITIALIZE
 		this.hero.x = this.canvasWidth/2;
 		this.hero.y = this.canvasHeight/2;
-		this.hero.scale.x = Math.abs(this.hero.scale.x);
+        for(i=0;i<this.hero.children.length;i++){
+            this.hero.children[i].scale.x = Math.abs(this.hero.children[i].scale.x);
+        }
 
 		this.hero.vx = this.maxSpeed;
 		this.hero.ax = 0;
@@ -1707,7 +1718,7 @@ var SoaringSheepGame = function(){
         //-Hero Shield
         this.heroShield = new PIXI.Graphics();
         this.heroShield.beginFill(0xffecb3,0.6)
-            .drawCircle(0,0,this.hero.width/2+30)
+            .drawCircle(0,0,this.hero.sheep.width/2+30)
         .endFill();
         this.heroShield.position = this.hero.position;
 
@@ -1766,7 +1777,9 @@ var SoaringSheepGame = function(){
         this.hero.visible = true;
         this.hero.x = this.canvasWidth/2;
 		this.hero.y = this.canvasHeight/2;
-		this.hero.scale.x = Math.abs(this.hero.scale.x);
+        for(i=0;i<this.hero.children.length;i++){
+            this.hero.children[i].scale.x = Math.abs(this.hero.children[i].scale.x);
+        }
 
 		this.hero.vx = this.maxSpeed;
 		this.hero.ax = 0;
@@ -1796,6 +1809,8 @@ var SoaringSheepGame = function(){
 		for(i=0;i<=this.nObstacleSections;i++){
 			this.obstacleSectionActive[i] = false;
 		}
+
+        this.obstaclesFrozen = false;
 
         //-Games Played
         this.totalGamesPlayed++;
@@ -1847,7 +1862,7 @@ var SoaringSheepGame = function(){
 
 		this.audio["jump"].play();
 
-		this.hero.gotoAndPlay(1);
+		this.hero.sheep.gotoAndPlay(1);
 		this.hero.vy = -this.hero.jumpStrength;
 	};
 
@@ -1868,33 +1883,17 @@ var SoaringSheepGame = function(){
 
         this.heroShield.position = this.hero.position;
 
-		//OBSTACLE MOVEMENT AND COLLISION TEST
+		//OBSTACLE MOVEMENT
 		for(i=0;i<this.obstacles.children.length;i++){
 			var obs = this.obstacles.children[i];
 
-			//Check for hero and obstacle hitTest
-			if(this.hitTest(this.hero,obs,10,10)){
-                this.obstacles.removeChild(obs);
-                this.obstacleSectionActive[obs.section] = false;
-
-                if(this.heroShield.alpha){
-                    this.heroShield.alpha = 0;
-                    this.shieldTimer = 0;
-
-                    this.collectPowerup(obs.attachedPowerup.typeName);
-
-                    this.powerups.removeChild(obs.attachedPowerup);
-                }
-                else{
-                    this.powerups.removeChild(obs.attachedPowerup);
-
-                    this.gameover();
-                    return;
-                }
-			}
-
-			obs.vy += obs.ay;
-			obs.y += obs.vy;
+            if(!this.obstaclesFrozen){
+                obs.tint = 0xFFFFFF;
+    			obs.vy += obs.ay;
+    			obs.y += obs.vy;
+            } else {
+                obs.tint = 0xb3e5fc;//0x81d4fa;
+            }
 
 			if(obs.y>=this.canvasHeight+obs.height+this.powerupOffset){
 				this.obstacles.removeChild(obs);
@@ -1902,15 +1901,9 @@ var SoaringSheepGame = function(){
 			}
 		};
 
-        //POWERUP MOVEMENT AND COLLISION TEST
+        //POWERUP MOVEMENT
         for(i=0;i<this.powerups.children.length;i++){
             var pwr = this.powerups.children[i];
-
-            //Check for hero and powerup hitTest
-            if(this.hitTest(this.hero,pwr,10,10)){
-                this.collectPowerup(this.powerupNames[pwr.type]);
-                this.powerups.removeChild(pwr);
-            }
 
             pwr.y = pwr.attachedObs.y-this.powerupOffset;
 
@@ -1928,7 +1921,10 @@ var SoaringSheepGame = function(){
 
 			this.hero.vx = _dir*Math.max(Math.abs(this.hero.vx),this.minSpeed);
 
-			this.hero.scale.x *= -1;
+            for(i=0;i<this.hero.children.length;i++){
+                this.hero.children[i].scale.x *= -1;
+            }
+
 			this.sprites.background.scrollingSpeed *= -1;
 
 			this.incScore();
@@ -1937,10 +1933,50 @@ var SoaringSheepGame = function(){
 		this.hero.leeway = 0;
 
 		//Check for hero y-direction bounds, and gameover if necessary
-		if(this.hero.y<=-this.hero.height/2-this.hero.leeway || this.hero.y>=(this.canvasHeight+this.hero.height/2+this.hero.leeway)){
+		if(this.hero.y<=-this.hero.sheep.height/2-this.hero.leeway || this.hero.y>=(this.canvasHeight+this.hero.sheep.height/2+this.hero.leeway)){
 			this.gameover();
 			return;
 		}
+
+        //RENDER
+            //Do it here so that hit testing doesn't seem to be "off"
+        renderer.render(stage);
+
+        //COLLISION CHECKS
+            //-Obstacle
+        for(i=0;i<this.obstacles.children.length;i++){
+            var obs = this.obstacles.children[i];
+
+            if(this.hitTest(this.hero,obs,10,10)){
+                this.obstacles.removeChild(obs);
+                this.obstacleSectionActive[obs.section] = false;
+
+                if(this.heroShield.alpha){
+                    this.heroShield.alpha = 0;
+                    this.shieldTimer = 0;
+
+                    this.collectPowerup(obs.attachedPowerup.typeName);
+
+                    this.powerups.removeChild(obs.attachedPowerup);
+                }
+                else{
+                    this.powerups.removeChild(obs.attachedPowerup);
+
+                    this.gameover();
+                    return;
+                }
+            }
+        }
+
+        for(i=0;i<this.powerups.children.length;i++){
+            var pwr = this.powerups.children[i];
+
+            //Check for hero and powerup hitTest
+            if(this.hitTest(this.hero,pwr,10,10)){
+                this.collectPowerup(this.powerupNames[pwr.type]);
+                this.powerups.removeChild(pwr);
+            }
+        }
 
 		//TIMERS
 			var t=new Date().getTime();
@@ -1957,9 +1993,12 @@ var SoaringSheepGame = function(){
                 this.heroShield.alpha = Math.max(0,this.heroShield.alpha-this.shieldFadeInc);
             }
 
-		//RENDER AND UPDATE
-		renderer.render(stage);
+            if(this.obstaclesFrozen && t-this.obstaclesTimer>=this.obstaclesFreezeTime+this.pauseTime["freeze"]){
+                this.pauseTime["freeze"] = 0;
+                this.obstaclesFrozen = false;
+            }
 
+		//UPDATE
 		requestAnimationFrame(this.update.bind(this));
 	};
 
@@ -2046,6 +2085,8 @@ var SoaringSheepGame = function(){
     }
 
 	this.spawnObstacle = function(){
+        if(this.obstaclesFrozen) return;
+
 		var i;
 		var obs = new PIXI.Sprite(this.sprites.spike.texture);
 
@@ -2162,8 +2203,9 @@ var SoaringSheepGame = function(){
             case 2:
             case "freeze":
                 this.obstaclesFrozen = true;
-                this.audio["freeze"].play();
+                this.obstaclesTimer = new Date().getTime();
 
+                this.audio["freeze"].play();
                 break;
         }
     }
@@ -2762,6 +2804,7 @@ var SoaringSheepGame = function(){
 		for(i=0;i<=this.nObstacleSections;i++){
 			this.obstacleSectionActive[i] = false;
 		}
+        this.obstaclesFrozen = false;
 
 		//Reset Timers
         this.pauseTime = {
@@ -2771,6 +2814,7 @@ var SoaringSheepGame = function(){
         };
 		this.obstacleTimer = new Date().getTime();
         this.shieldTimer = null;
+        this.freezeTimer = null;
 
         //Pause the game so as to make user click to continue instead of abruptly reviving
         this._paused = false;
@@ -2958,12 +3002,14 @@ var SoaringSheepGame = function(){
         }
     }
 
-	this.hitTest = function(obj1, obj2, leewayX, leewayY){
-		//Ensure both objects anchor points are centered
-		var an1 = obj1.anchor;
-		var an2 = obj2.anchor;
+	this.hitTest = function(obj1, obj2, leewayX, leewayY, setAnchor){
+        if(typeof obj1.anchor!="undefined" && typeof obj2.anchor!="undefined" && setAnchor){
+    		//Ensure both objects anchor points are centered
+    		var an1 = obj1.anchor;
+    		var an2 = obj2.anchor;
 
-		obj1.anchor.set(0.5); obj2.anchor.set(0.5);
+		    obj1.anchor.set(0.5); obj2.anchor.set(0.5);
+        }
 
 		if(Math.abs(obj1.x-obj2.x)<=(obj1.width+obj2.width-leewayX)/2 && Math.abs(obj1.y-obj2.y)<=(obj1.height+obj2.height-leewayY)/2){
 			//obj1.anchor = an1; obj2.anchor = an2;
