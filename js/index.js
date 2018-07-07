@@ -1949,7 +1949,9 @@ var SoaringSheepGame = function(){
                     this.heroShield.alpha = 0;
                     this.shieldTimer = 0;
 
-                    this.collectPowerup(obs.attachedPowerup.typeName);
+                    if(typeof obs.attachedPowerup != "undefined" && obs.attachedPowerup != null){
+                        this.collectPowerup(obs.attachedPowerup.typeName);
+                    }
 
                     this.powerups.removeChild(obs.attachedPowerup);
                 }
@@ -2134,6 +2136,7 @@ var SoaringSheepGame = function(){
         2: Freeze
         */
         var powerup;
+        obs.attachedPowerup = null;
 
         if(Math.random()<=this.powerupChance){
             //Add powerup
@@ -2161,6 +2164,10 @@ var SoaringSheepGame = function(){
 	};
 
     this.collectPowerup = function(type_name){
+        if(type_name==null || typeof type_name == "undefined"){
+
+        }
+
         var i;
 
         /* --POWERUPS--
@@ -2201,6 +2208,8 @@ var SoaringSheepGame = function(){
 
                 this.audio["freeze"].play();
                 break;
+            default:
+                return;
         }
     }
 
