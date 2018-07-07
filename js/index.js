@@ -1471,16 +1471,14 @@ var SoaringSheepGame = function(){
 
         this.shop.coin_title = new PIXI.Text("Total Coins:",textOpt2);
         this.shop.coin_title.anchor.set(0.5,0.5);
-        this.shop.coin_title.position.set(this.canvasWidth/2,65);
+        this.shop.coin_title.position.set(this.canvasWidth/2,58);
 
         this.shop.coin_text = new PIXI.Text(this.coins,Object.assign(textOpt2,{fontSize:40}));
         this.shop.coin_text.anchor.set(0.5,0.5);
-        this.shop.coin_text.position.set(this.canvasWidth/2,125);
+        this.shop.coin_text.position.set(this.canvasWidth/2,118);
 
         this.shop.addChild(this.shop.coin_title);
         this.shop.addChild(this.shop.coin_text);
-
-
 
         //Tabs
         var tab, _nm;
@@ -1496,7 +1494,7 @@ var SoaringSheepGame = function(){
 
         this.shop.tabs = {};
 
-        var tabMarginTop = 200, tabHeight = 80;
+        var tabMarginTop = 190, tabHeight = 80;
 
         for(i=0;i<this.shopTabNames.length;i++){
             this.shop.tabs[this.shopTabNames[i]] = new PIXI.Container();
@@ -1578,6 +1576,8 @@ var SoaringSheepGame = function(){
         this.shop.on((_isMobile)?"touchend":"mouseup",function(){
             this.preventHeroJump++;
         }.bind(this));
+
+        this.switchShopTab(this.shopTabNames[0]);
 
         /* PLAY GAMES MENU */
         this.playGamesMenu = new PIXI.Container();
@@ -2494,7 +2494,101 @@ var SoaringSheepGame = function(){
 
     this.prepareShopContent = function(){
         //Preparation of actual content in the shop
+        var i,j;
+        var nm, data;
 
+        this.loadOptions();
+
+        //Upgrades
+        var height = 120;
+        var button;
+        var buttonHeight = 105, buttonWidth = 335, padd = 100;
+        var pseudoPaddX = 80, pseudoPaddY = 120; //for making the hitbox bigger
+        var iconPos = 75;
+        var textOpt = {
+            fontFamily: 'TimeBurner',
+            fill: "#cfd8dc",
+            letterSpacing: 5,
+            align: 'center',
+            padding: 10,
+            fontSize: 40
+        };
+
+        var textOpt2 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0x263238",
+            letterSpacing: 1,
+            align: 'center',
+            padding: 10,
+            fontSize: 23,
+            wordWrap: true,
+            wordWrapWidth: buttonWidth+50
+        };
+
+        var cnt = 0;
+
+        var upgradesSection = [];
+
+        for(i in this.upgrades){
+            nm = i.toString();
+            data = this.upgrades[i];
+
+            console.log(nm,data);
+
+            upgradesSection[cnt] = new PIXI.Container();
+
+            upgradesSection[cnt].position.set(0,height*cnt);
+
+                //-Button
+            upgradesSection[cnt].button = new PIXI.Container();
+
+            upgradesSection[cnt].button.position.set(this.canvasWidth-padd*2-buttonWidth,height/2-buttonHeight/2);
+
+            upgradesSection[cnt].button.icon = new PIXI.Sprite(this.sprites.icons["coin"].texture);
+            upgradesSection[cnt].button.icon.anchor.set(0.5,0.5);
+            upgradesSection[cnt].button.icon.scale.set(0.6,0.6);
+            upgradesSection[cnt].button.icon.position.set(iconPos,buttonHeight/2-2.5);
+            upgradesSection[cnt].button.icon.alpha = 1;
+            upgradesSection[cnt].button.icon.tint = 0xcfd8dc;
+
+            upgradesSection[cnt].button.background = new PIXI.Graphics();
+            upgradesSection[cnt].button.background.beginFill(0x263238,0.9)
+                .drawRect(0,0,buttonWidth,buttonHeight)
+            .endFill();
+
+            upgradesSection[cnt].button.pseudoBg = new PIXI.Graphics();
+            upgradesSection[cnt].button.pseudoBg.beginFill(0x263238,0)
+                .drawRect(-pseudoPaddX,-pseudoPaddY,buttonWidth+2*pseudoPaddX,buttonHeight+2*pseudoPaddY)
+            .endFill();
+            upgradesSection[cnt].button.pseudoBg.alpha = 0;
+
+            upgradesSection[cnt].button.text = new PIXI.Text(data["cost"],textOpt);
+            upgradesSection[cnt].button.text.anchor.set(0.5,0.5);
+            upgradesSection[cnt].button.text.position.set(buttonWidth/2+iconPos/2-15, buttonHeight/2);
+
+            upgradesSection[cnt].button.interactive = true;
+            upgradesSection[cnt].button.buttonMode = true;
+            //upgradesSection[cnt].button.on((_isMobile)?"touchend":"mouseup",this.newGame.bind(this));
+
+            upgradesSection[cnt].button.footnote = new PIXI.Text("Start a new game",textOpt2);
+            upgradesSection[cnt].button.footnote.anchor.set(0.5,0);
+            upgradesSection[cnt].button.footnote.position.set(buttonWidth/2, buttonHeight+15);
+
+            upgradesSection[cnt].button.addChild(upgradesSection[cnt].button.pseudoBg);
+            upgradesSection[cnt].button.addChild(upgradesSection[cnt].button.background);
+            upgradesSection[cnt].button.addChild(upgradesSection[cnt].button.icon);
+            upgradesSection[cnt].button.addChild(upgradesSection[cnt].button.text);
+            upgradesSection[cnt].button.addChild(upgradesSection[cnt].button.footnote);
+
+            upgradesSection[cnt].addChild(upgradesSection[cnt].button);
+
+            this.shop.tabContent["upgrades"].addChild(upgradesSection[cnt]);
+
+            cnt++;
+        }
+
+
+        renderer.render(stage);
     };
 
     this.showInfo = function(e){
@@ -2880,7 +2974,7 @@ var SoaringSheepGame = function(){
         if(this.noDeathChance && Math.random()<=this.noDeathChance){
             //Just continue game
             requestAnimationFrame(this.update.bind(this));
-            
+
             return;
         }
 
@@ -3102,6 +3196,10 @@ var SoaringSheepGame = function(){
                 this.coins = parseInt(window.localStorage["coins"]);
                 this.incCoins(0,false);
             }
+
+            if(window.localStorage["upgrades"] != null){
+                this.upgrades = JSON.parse(window.localStorage["upgrades"]);
+            }
 		}
 		else{
 			console.log("WARNING: Browser does not support localStorage! Highscores, achievements and options will not be saved.");
@@ -3124,6 +3222,8 @@ var SoaringSheepGame = function(){
             if(opt=="all" || opt=="achievements" || opt=="achievement") window.localStorage["achievements"] = JSON.stringify(this.achievements);
 
             if(opt=="all" || opt=="coins" || opt=="coin") window.localStorage["coins"] = this.coins;
+
+            if(opt=="all" || opt=="upgrades" || opt=="upgrade") window.localStorage["upgrades"] = JSON.stringify(this.upgrades);
 		}
 		else{
 			console.log("WARNING: Browser does not support localStorage! Highscores, achievements and options will not be saved.");
