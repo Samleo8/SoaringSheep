@@ -653,7 +653,7 @@ var SoaringSheepGame = function(){
                 case "rewardvideo":
                     type = "rewardvideo";
                     this.reward_type = (reward_type==null || typeof reward_type=="undefined")?"coins":reward_type;
-                    this.reward_amount = (reward_amount==null || typeof reward_amount=="undefined")?(getRandomInt(1,5)*10):reward_amount;
+                    this.reward_amount = (reward_amount==null || typeof reward_amount=="undefined")?(50*getRandomInt(1,5)):reward_amount;
                     break;
                 case "interstitial":
                 case "video":
@@ -3232,7 +3232,7 @@ var SoaringSheepGame = function(){
 
         //ADS
         if(this.score>=15){
-            this.ads.showAd("rewardvideo","coins",10*getRandomInt(1,5));
+            this.ads.showAd("rewardvideo","coins",50*getRandomInt(1,5));
         }
         else if(this.totalGamesPlayed>=10){
             this.ads.showAd("interstitial");
