@@ -232,12 +232,13 @@ var SoaringSheepGame = function(){
             "increment_value":20,
             "max_increments":10,
             "increment_count":0,
+            "type":"time",
             "cost":200
         },
         "obstaclesFreezeTime":{
             "title":"Sub-Zero",
             "desc":"Increases time freeze powerup is active",
-            "increment_value":100,
+            "increment_value":200,
             "max_increments":10,
             "increment_count":0,
             "type":"time",
@@ -253,6 +254,7 @@ var SoaringSheepGame = function(){
             "cost":5000
         }
     }
+    this.upgradesSection = {};
 
     //Powerups
     this.powerupNames = ["coin","freeze","shield"];
@@ -2500,18 +2502,29 @@ var SoaringSheepGame = function(){
         this.loadOptions();
 
         //Upgrades
-        var height = 120;
+        var totalUpgrades = Object.keys(this.upgrades).length;
+
         var button;
-        var buttonHeight = 105, buttonWidth = 335, padd = 100;
-        var pseudoPaddX = 80, pseudoPaddY = 120; //for making the hitbox bigger
-        var iconPos = 75;
+        var buttonHeight = 75, buttonWidth = 280, padd = 100;
+        var pseudoPaddX = 15, pseudoPaddY = 55; //for making the button hitbox bigger
+        var iconPos = 65;
+
+        var contentHeight = this.shop.tabContent["upgrades"].bg.height;
+        var height, width;
+
+        var footnoteText = "";
+
+        width = (this.canvasWidth)/Math.min(totalUpgrades,5);
+        height = contentHeight/2;
+        //height = contentHeight/Math.ceil(totalUpgrades/5);
+
         var textOpt = {
             fontFamily: 'TimeBurner',
             fill: "#cfd8dc",
             letterSpacing: 5,
             align: 'center',
             padding: 10,
-            fontSize: 40
+            fontSize: 36
         };
 
         var textOpt2 = {
@@ -2520,69 +2533,134 @@ var SoaringSheepGame = function(){
             letterSpacing: 1,
             align: 'center',
             padding: 10,
-            fontSize: 23,
+            fontSize: 20,
+            lineHeight: 28,
             wordWrap: true,
             wordWrapWidth: buttonWidth+50
         };
 
-        var cnt = 0;
+        var textOpt3 = {
+            fontFamily: 'TimeBurner',
+            fill: "0x263238",
+            letterSpacing: 5,
+            align: 'center',
+            padding: 10,
+            fontSize: 40
+        }
 
-        var upgradesSection = [];
+        var textOpt4 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0x263238",
+            letterSpacing: 1,
+            align: 'center',
+            padding: 10,
+            fontSize: 21,
+            wordWrap: true,
+            wordWrapWidth: width-60
+        };
+
+        var cnt = 0;
 
         for(i in this.upgrades){
             nm = i.toString();
             data = this.upgrades[i];
 
-            console.log(nm,data);
+            this.upgradesSection[nm] = new PIXI.Container();
 
-            upgradesSection[cnt] = new PIXI.Container();
+            this.upgradesSection[nm].position.set(width*(cnt%5),(cnt<=5)?0:(height/2));
 
-            upgradesSection[cnt].position.set(0,height*cnt);
+            this.upgradesSection[nm].bg = new PIXI.Graphics();
+            this.upgradesSection[nm].bg.lineStyle(1,0x263238,0.2)
+                .moveTo(0,20).lineTo(0,contentHeight-20);
+
+                //-Title
+            this.upgradesSection[nm].title = new PIXI.Text(data["title"],textOpt3);
+            this.upgradesSection[nm].title.anchor.set(0.5,0.5);
+            this.upgradesSection[nm].title.position.set(width/2,60);
+
+                //-Desc
+            this.upgradesSection[nm].desc = new PIXI.Text(data["desc"],textOpt4);
+            this.upgradesSection[nm].desc.anchor.set(0.5,0.5);
+            this.upgradesSection[nm].desc.position.set(width/2,130);
 
                 //-Button
-            upgradesSection[cnt].button = new PIXI.Container();
+            this.upgradesSection[nm].button = new PIXI.Container();
 
-            upgradesSection[cnt].button.position.set(this.canvasWidth-padd*2-buttonWidth,height/2-buttonHeight/2);
+            this.upgradesSection[nm].button.position.set(width/2-buttonWidth/2, height-buttonHeight-62);
 
-            upgradesSection[cnt].button.icon = new PIXI.Sprite(this.sprites.icons["coin"].texture);
-            upgradesSection[cnt].button.icon.anchor.set(0.5,0.5);
-            upgradesSection[cnt].button.icon.scale.set(0.6,0.6);
-            upgradesSection[cnt].button.icon.position.set(iconPos,buttonHeight/2-2.5);
-            upgradesSection[cnt].button.icon.alpha = 1;
-            upgradesSection[cnt].button.icon.tint = 0xcfd8dc;
+            this.upgradesSection[nm].button.icon = new PIXI.Sprite(this.sprites.icons["coin"].texture);
+            this.upgradesSection[nm].button.icon.anchor.set(0.5,0.5);
+            this.upgradesSection[nm].button.icon.scale.set(0.5,0.5);
+            this.upgradesSection[nm].button.icon.position.set(iconPos,buttonHeight/2-2.5);
+            this.upgradesSection[nm].button.icon.alpha = 1;
+            this.upgradesSection[nm].button.icon.tint = 0xcfd8dc;
 
-            upgradesSection[cnt].button.background = new PIXI.Graphics();
-            upgradesSection[cnt].button.background.beginFill(0x263238,0.9)
+            this.upgradesSection[nm].button.background = new PIXI.Graphics();
+            this.upgradesSection[nm].button.background.beginFill(0x263238,0.9)
                 .drawRect(0,0,buttonWidth,buttonHeight)
             .endFill();
 
-            upgradesSection[cnt].button.pseudoBg = new PIXI.Graphics();
-            upgradesSection[cnt].button.pseudoBg.beginFill(0x263238,0)
+            this.upgradesSection[nm].button.pseudoBg = new PIXI.Graphics();
+            this.upgradesSection[nm].button.pseudoBg.beginFill(0x263238,0)
                 .drawRect(-pseudoPaddX,-pseudoPaddY,buttonWidth+2*pseudoPaddX,buttonHeight+2*pseudoPaddY)
             .endFill();
-            upgradesSection[cnt].button.pseudoBg.alpha = 0;
 
-            upgradesSection[cnt].button.text = new PIXI.Text(data["cost"],textOpt);
-            upgradesSection[cnt].button.text.anchor.set(0.5,0.5);
-            upgradesSection[cnt].button.text.position.set(buttonWidth/2+iconPos/2-15, buttonHeight/2);
+            this.upgradesSection[nm].button.text = new PIXI.Text(data["cost"]*(data["increment_count"]+1),textOpt);
+            this.upgradesSection[nm].button.text.anchor.set(0.5,0.5);
+            this.upgradesSection[nm].button.text.position.set(buttonWidth/2+iconPos/2-15, buttonHeight/2);
 
-            upgradesSection[cnt].button.interactive = true;
-            upgradesSection[cnt].button.buttonMode = true;
-            //upgradesSection[cnt].button.on((_isMobile)?"touchend":"mouseup",this.newGame.bind(this));
+            this.upgradesSection[nm].button.interactive = true;
+            this.upgradesSection[nm].button.buttonMode = true;
+            //this.upgradesSection[nm].button.on((_isMobile)?"touchend":"mouseup",this.newGame.bind(this));
 
-            upgradesSection[cnt].button.footnote = new PIXI.Text("Start a new game",textOpt2);
-            upgradesSection[cnt].button.footnote.anchor.set(0.5,0);
-            upgradesSection[cnt].button.footnote.position.set(buttonWidth/2, buttonHeight+15);
+            footnoteText = "Current "+data["type"]+": ";
+            switch(data["type"]){
+                case "one-off":
+                    footnoteText = "Activate";
+                    break;
+                case "chance":
+                    footnoteText += parseInt(100*this[nm])+"%\n";
+                    footnoteText += "Upgrade to: ";
+                    footnoteText += parseInt(100*(this[nm]+data["increment_value"]))+"%";
+                    break;
+                case "time":
+                    if(nm=="shieldTimeInc"){
+                        footnoteText += parseFloat(this[nm]/100)+"s\n";
+                        footnoteText += "Upgrade to: ";
+                        footnoteText += parseFloat((this[nm]+data["increment_value"])/100)+"s\n";
+                    }
+                    else{
+                        footnoteText += parseFloat(this[nm]/1000)+"s\n";
+                        footnoteText += "Upgrade to: ";
+                        footnoteText += parseFloat((this[nm]+data["increment_value"])/1000)+"s\n";
+                    }
+                    break;
+                default: break;
+            }
 
-            upgradesSection[cnt].button.addChild(upgradesSection[cnt].button.pseudoBg);
-            upgradesSection[cnt].button.addChild(upgradesSection[cnt].button.background);
-            upgradesSection[cnt].button.addChild(upgradesSection[cnt].button.icon);
-            upgradesSection[cnt].button.addChild(upgradesSection[cnt].button.text);
-            upgradesSection[cnt].button.addChild(upgradesSection[cnt].button.footnote);
+            this.upgradesSection[nm].button.footnote = new PIXI.Text(footnoteText,textOpt2);
+            this.upgradesSection[nm].button.footnote.anchor.set(0.5,0);
+            this.upgradesSection[nm].button.footnote.position.set(buttonWidth/2, buttonHeight+10);
 
-            upgradesSection[cnt].addChild(upgradesSection[cnt].button);
+            this.upgradesSection[nm].button.overlay = new PIXI.Graphics();
+            this.upgradesSection[nm].button.overlay.beginFill(0xb0bec5,0.75)
+                .drawRect(0,0,buttonWidth,buttonHeight)
+            .endFill();
+            this.upgradesSection[nm].button.overlay.visible = false;
 
-            this.shop.tabContent["upgrades"].addChild(upgradesSection[cnt]);
+            this.upgradesSection[nm].button.addChild(this.upgradesSection[nm].button.pseudoBg);
+            this.upgradesSection[nm].button.addChild(this.upgradesSection[nm].button.background);
+            this.upgradesSection[nm].button.addChild(this.upgradesSection[nm].button.icon);
+            this.upgradesSection[nm].button.addChild(this.upgradesSection[nm].button.text);
+            this.upgradesSection[nm].button.addChild(this.upgradesSection[nm].button.footnote);
+            this.upgradesSection[nm].button.addChild(this.upgradesSection[nm].button.overlay);
+
+            if(cnt) this.upgradesSection[nm].addChild(this.upgradesSection[nm].bg);
+            this.upgradesSection[nm].addChild(this.upgradesSection[nm].title);
+            this.upgradesSection[nm].addChild(this.upgradesSection[nm].desc);
+            this.upgradesSection[nm].addChild(this.upgradesSection[nm].button);
+
+            this.shop.tabContent["upgrades"].addChild(this.upgradesSection[nm]);
 
             cnt++;
         }
