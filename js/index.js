@@ -215,7 +215,8 @@ var SoaringSheepGame = function(){
             "max_increments":5,
             "increment_count":0,
             "type":"chance",
-            "cost":100
+            "cost":100,
+            "value":0
         },
         "noDeathChance":{
             "title":"Adrenaline",
@@ -224,7 +225,8 @@ var SoaringSheepGame = function(){
             "max_increments":5,
             "increment_count":0,
             "type":"chance",
-            "cost":100
+            "cost":100,
+            "value":0
         },
         "shieldTimeInc":{
             "title":"Protection",
@@ -233,7 +235,8 @@ var SoaringSheepGame = function(){
             "max_increments":10,
             "increment_count":0,
             "type":"time",
-            "cost":200
+            "cost":200,
+            "value":0
         },
         "obstaclesFreezeTime":{
             "title":"Sub-Zero",
@@ -242,7 +245,8 @@ var SoaringSheepGame = function(){
             "max_increments":10,
             "increment_count":0,
             "type":"time",
-            "cost":200
+            "cost":200,
+            "value":0
         },
         "startingShield":{
             "title":"Armour",
@@ -251,7 +255,8 @@ var SoaringSheepGame = function(){
             "max_increments":1,
             "increment_count":0,
             "type":"one-off",
-            "cost":5000
+            "cost":5000,
+            "value":0
         }
     }
     this.upgradesSection = {};
@@ -1810,7 +1815,7 @@ var SoaringSheepGame = function(){
             }
 
             this.playGamesMenu.visible = false;
-            //this.shop.visible = false;
+            this.shop.visible = false;
 
             this.startScreen.interactive = true;
             this.startScreen.buttonMode = true;
@@ -2467,6 +2472,7 @@ var SoaringSheepGame = function(){
 			}
 		}
 
+        //Toggle shop visibility
         if(this.shop.visible){
             this.shop.visible = false;
         }
@@ -2481,8 +2487,12 @@ var SoaringSheepGame = function(){
     };
 
     this.switchShopTab = function(name){
-        console.log(name,this.shopTabNames[name]);
+        var nm;
 
+        //Upgrades buttons overlays
+        this.updateUpgradePage();
+
+        //Tab overlays
         for(i=0;i<this.shopTabNames.length;i++){
             this.shop.tabs[this.shopTabNames[i]].overlay.visible = true;
             this.shop.tabContent[this.shopTabNames[i]].visible = false;
@@ -2562,6 +2572,8 @@ var SoaringSheepGame = function(){
         var cnt = 0;
 
         for(i in this.upgrades){
+            if(!this.upgrades.hasOwnProperty(i)) continue;
+
             nm = i.toString();
             data = this.upgrades[i];
 
@@ -2611,32 +2623,7 @@ var SoaringSheepGame = function(){
 
             this.upgradesSection[nm].button.interactive = true;
             this.upgradesSection[nm].button.buttonMode = true;
-            //this.upgradesSection[nm].button.on((_isMobile)?"touchend":"mouseup",this.newGame.bind(this));
-
-            footnoteText = "Current "+data["type"]+": ";
-            switch(data["type"]){
-                case "one-off":
-                    footnoteText = "Activate";
-                    break;
-                case "chance":
-                    footnoteText += parseInt(100*this[nm])+"%\n";
-                    footnoteText += "Upgrade to: ";
-                    footnoteText += parseInt(100*(this[nm]+data["increment_value"]))+"%";
-                    break;
-                case "time":
-                    if(nm=="shieldTimeInc"){
-                        footnoteText += parseFloat(this[nm]/100)+"s\n";
-                        footnoteText += "Upgrade to: ";
-                        footnoteText += parseFloat((this[nm]+data["increment_value"])/100)+"s\n";
-                    }
-                    else{
-                        footnoteText += parseFloat(this[nm]/1000)+"s\n";
-                        footnoteText += "Upgrade to: ";
-                        footnoteText += parseFloat((this[nm]+data["increment_value"])/1000)+"s\n";
-                    }
-                    break;
-                default: break;
-            }
+            this.upgradesSection[nm].button.on((_isMobile)?"touchend":"mouseup",this.performUpgrade.bind(this,nm));
 
             this.upgradesSection[nm].button.footnote = new PIXI.Text(footnoteText,textOpt2);
             this.upgradesSection[nm].button.footnote.anchor.set(0.5,0);
@@ -2665,8 +2652,138 @@ var SoaringSheepGame = function(){
             cnt++;
         }
 
+        this.updateUpgradePage();
 
         renderer.render(stage);
+    };
+
+    this.performUpgrade = function(nm,e){
+        if(typeof e == "object"){
+            if(e.type=="mouseup" || e.type=="touchend"){
+                //this.preventHeroJump++;
+            }
+        }
+
+        var avail = this.checkUpgradeAvailability(nm);
+        if(!avail) return;
+
+        data = this.upgrades[nm];
+        var trueCost = parseInt(data["cost"]*(data["increment_count"]+1));
+
+        this.coins -= trueCost;
+        this[nm] += data["increment_value"];
+        this.upgrades[nm].value = this[nm];
+        this.upgrades[nm].increment_count++;
+
+        console.log(data["title"]+" upgrade complete.");
+
+        this.updateUpgradePage();
+
+        this.saveOptions();
+    };
+
+    this.updateUpgradePage = function(){
+        var nm, data, trueCost;
+
+        for(i in this.upgrades){
+            if(!this.upgrades.hasOwnProperty(i)) continue;
+
+            nm = i.toString();
+            data = this.upgrades[i];
+
+            //Cost
+            trueCost = parseInt(data["cost"]*(data["increment_count"]+1));
+            this.upgradesSection[nm].button.text.text = trueCost;
+
+            //Footnote Text
+            footnoteText = "Current "+data["type"]+": ";
+            switch(data["type"]){
+                case "one-off":
+                    footnoteText = "Activate";
+                    break;
+                case "chance":
+                    footnoteText += parseInt(100*this[nm])+"%";
+                    if(data["increment_count"]<data["max_increments"]){
+                        footnoteText += "\nUpgrade to: ";
+                        footnoteText += parseInt(100*(this[nm]+data["increment_value"]))+"%";
+                    } else{
+                        footnoteText += " (MAX)";
+                    }
+                    break;
+                case "time":
+                    if(nm=="shieldTimeInc"){
+                        if(data["increment_count"]<data["max_increments"]){
+                            footnoteText += parseFloat(this[nm]/100)+"s";
+                        } else{
+                            footnoteText += " (MAX)";
+                        }
+                        footnoteText += "\nUpgrade to: ";
+                        footnoteText += parseFloat((this[nm]+data["increment_value"])/100)+"s\n";
+                    }
+                    else{
+                        if(data["increment_count"]<data["max_increments"]){
+                            footnoteText += parseFloat(this[nm]/1000)+"s\n";
+                        } else{
+                            footnoteText += " (MAX)";
+                        }
+                        footnoteText += "Upgrade to: ";
+                        footnoteText += parseFloat((this[nm]+data["increment_value"])/1000)+"s\n";
+                    }
+                    break;
+                default: break;
+            }
+
+            this.upgradesSection[nm].button.footnote.text = footnoteText;
+        }
+
+        this.checkUpgradeAvailability();
+
+        this.shop.coin_text.text = this.coins;
+
+        renderer.render(stage);
+    }
+
+    this.checkUpgradeAvailability = function(specific_nm){
+        var needCheck = (specific_nm != null && typeof specific_nm != "undefined");
+        var ret = true;
+
+        for(i in this.upgrades){
+            if(!this.upgrades.hasOwnProperty(i)) continue;
+
+            nm = i.toString();
+            data = this.upgrades[i];
+
+            this.upgradesSection[nm].button.overlay.visible = true;
+            this.upgradesSection[nm].button.buttonMode = false;
+            this.upgradesSection[nm].button.interactive = false;
+
+            if(data["increment_count"]>=data["max_increments"]){
+                data["increment_count"] = data["max_increments"];
+
+                if(needCheck && nm == specific_nm){
+                    ret = false;
+                }
+                continue;
+            }
+
+            var trueCost = parseInt(data["cost"]*(data["increment_count"]+1));
+
+            if(trueCost>this.coins){
+                //Too expensive
+                if(needCheck && nm == specific_nm){
+                    ret = false;
+                }
+                continue;
+            }
+
+            this.upgradesSection[nm].button.overlay.visible = false;
+            this.upgradesSection[nm].button.buttonMode = true;
+            this.upgradesSection[nm].button.interactive = true;
+        }
+
+        renderer.render(stage);
+
+        return ret;
     };
 
     this.showInfo = function(e){
@@ -3272,11 +3389,20 @@ var SoaringSheepGame = function(){
 
             if(window.localStorage["coins"] != null){
                 this.coins = parseInt(window.localStorage["coins"]);
+                this.coins = Math.min(this.coins,100);
                 this.incCoins(0,false);
             }
 
             if(window.localStorage["upgrades"] != null){
                 this.upgrades = JSON.parse(window.localStorage["upgrades"]);
+
+                var nm;
+                for(i in this.upgrades){
+                    if(!this.upgrades.hasOwnProperty(i)) continue;
+
+                    nm = i.toString();
+                    this[nm] = this.upgrades[nm].value;
+                }
             }
 		}
 		else{
