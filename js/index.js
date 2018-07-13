@@ -2752,6 +2752,7 @@ var SoaringSheepGame = function(){
         console.log(data["title"]+" upgrade complete.");
 
         this.updateUpgradePage();
+        this.saveOptions("upgrades");
     };
 
     this.updateUpgradePage = function(){
