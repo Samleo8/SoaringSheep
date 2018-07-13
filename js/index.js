@@ -2232,7 +2232,7 @@ var SoaringSheepGame = function(){
     this.incCoins = function(amt,sound){
         this.coins+=amt;
 
-        //TODO: Update coin amount on screen/shop
+        //Update coin amount on screen/shop
         this.shop.coin_text.text = this.coins;
 
         this.saveOptions("coin");
@@ -2516,7 +2516,7 @@ var SoaringSheepGame = function(){
 
         this.loadOptions();
 
-        //Upgrades
+        /* UPGRADES */
         var totalUpgrades = Object.keys(this.upgrades).length;
 
         var button;
@@ -2659,7 +2659,74 @@ var SoaringSheepGame = function(){
 
         this.updateUpgradePage();
 
-        renderer.render(stage);
+        /* ACCESSORIES */
+
+
+        /* COINS */
+        buttonHeight = 105, buttonWidth = 335, padd = 100;
+        pseudoPaddX = 80, pseudoPaddY = 120; //for making the hitbox bigger
+        iconPos = 65;
+        textOpt2 = {
+            fontFamily: 'TimeBurner',
+            fill: "#cfd8dc",
+            letterSpacing: 5,
+            align: 'center',
+            padding: 10,
+            fontSize: 30
+        };
+
+        this.coinAdButton = new PIXI.Container();
+
+        this.coinAdButton.position.set(this.canvasWidth*2/3-buttonWidth/2,height/2);
+
+        this.coinAdButton.background = new PIXI.Graphics();
+        this.coinAdButton.background.beginFill(0x263238,0.9)
+            .drawRect(0,0,buttonWidth,buttonHeight)
+        .endFill();
+
+        this.coinAdButton.pseudoBg = new PIXI.Graphics();
+        this.coinAdButton.pseudoBg.beginFill(0x263238,0)
+            .drawRect(-pseudoPaddX,-pseudoPaddY,buttonWidth+2*pseudoPaddX,buttonHeight+2*pseudoPaddY)
+        .endFill();
+        this.coinAdButton.pseudoBg.alpha = 0;
+
+        this.coinAdButton.icon = this.sprites.icons["ad"];
+        this.coinAdButton.icon.anchor.set(0.5,0.5);
+        this.coinAdButton.icon.scale.set(0.6,0.6);
+        this.coinAdButton.icon.position.set(iconPos,buttonHeight/2);
+        this.coinAdButton.icon.alpha = 1;
+        this.coinAdButton.icon.tint = 0xcfd8dc;
+
+        this.coinAdButton.text = new PIXI.Text("Watch ads",textOpt2);
+        this.coinAdButton.text.anchor.set(0.5,0.5);
+        this.coinAdButton.text.position.set(buttonWidth/2+iconPos/2, buttonHeight/2);
+
+        this.coinAdButton.interactive = true;
+        this.coinAdButton.buttonMode = true;
+        this.coinAdButton.on((_isMobile)?"touchend":"mouseup",this.ads.showAd.bind(this.ads,"rewardvideo","coins",10*getRandomInt(5,20)));
+
+        this.coinAdButton.overlay = new PIXI.Graphics();
+        this.coinAdButton.overlay.beginFill(0xb0bec5,0.75)
+            .drawRect(0,0,buttonWidth,buttonHeight)
+        .endFill();
+        this.coinAdButton.overlay.visible = false;
+
+        this.coinAdButton.footnote = new PIXI.Text("Watch ads to earn between 50-200 coins!",textOpt4);
+        this.coinAdButton.footnote.anchor.set(0.5,0);
+        this.coinAdButton.footnote.position.set(buttonWidth/2, buttonHeight+15);
+
+        this.coinAdButton.addChild(this.coinAdButton.pseudoBg);
+        this.coinAdButton.addChild(this.coinAdButton.background);
+        this.coinAdButton.addChild(this.coinAdButton.icon);
+        this.coinAdButton.addChild(this.coinAdButton.text);
+        this.coinAdButton.addChild(this.coinAdButton.overlay);
+        this.coinAdButton.addChild(this.coinAdButton.footnote);
+
+        this.shop.tabContent["coins"].addChild(this.coinAdButton);
+
+        this.updateCoinsPage();
+
+        this.saveOptions();
     };
 
     this.performUpgrade = function(nm,e){
@@ -2683,8 +2750,6 @@ var SoaringSheepGame = function(){
         console.log(data["title"]+" upgrade complete.");
 
         this.updateUpgradePage();
-
-        this.saveOptions();
     };
 
     this.updateUpgradePage = function(){
@@ -2731,7 +2796,7 @@ var SoaringSheepGame = function(){
                         } else{
                             footnoteText += " (MAX)";
                         }
-                        footnoteText += "Upgrade to: ";
+                        footnoteText += "\nUpgrade to: ";
                         footnoteText += parseFloat((this[nm]+data["increment_value"])/1000)+"s\n";
                     }
                     break;
@@ -2790,6 +2855,33 @@ var SoaringSheepGame = function(){
 
         return ret;
     };
+
+    this.updateCoinsPage = function(){
+        //Mainly check for whether ads can be shown
+        if(typeof admob == "undefined" || admob==null){
+            this.coinAdButton.buttonMode = false;
+            this.coinAdButton.interactive = false;
+            this.coinAdButton.overlay.visible = true;
+
+            this.coinAdButton.footnote.text = "Only available on the mobile app";
+        }
+        else if(!this.isOnline || !this.ads.types.rewardvideo.loaded){
+            this.coinAdButton.buttonMode = false;
+            this.coinAdButton.interactive = false;
+            this.coinAdButton.overlay.visible = true;
+
+            this.coinAdButton.footnote.text = "Ad failed to load\nCheck your connection and try again";
+
+            //Attempt to load ad
+            admob["rewardvideo"].prepare();
+        }
+        else{
+            this.coinAdButton.buttonMode = true;
+            this.coinAdButton.interactive = true;
+            this.coinAdButton.overlay.visible = false;
+            this.coinAdButton.footnote.text = "Watch ads to earn between 50-200 coins!";
+        }
+    }
 
     this.showInfo = function(e){
 		var i,nm;
@@ -3237,7 +3329,7 @@ var SoaringSheepGame = function(){
 
         //ADS
         if(this.score>=15){
-            this.ads.showAd("rewardvideo","coins",50*getRandomInt(1,5));
+            this.ads.showAd("rewardvideo","coins",10*getRandomInt(5,20));
         }
         else if(this.totalGamesPlayed>=10){
             this.ads.showAd("interstitial");
