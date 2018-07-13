@@ -110,6 +110,7 @@ var SoaringSheepGame = function(){
     this.heroShield = null;
     this.heroJumpStrength = 5.5;
 
+    this.startingShield = false;
     this.shieldTimer;
     this.shieldTimeInc = 500; //ms
     this.shieldFadeInc = 0.1;
@@ -194,7 +195,7 @@ var SoaringSheepGame = function(){
 	this.nObstacleSections = 1;
 
     //Coins and Shop
-    this.coins = 100;
+    this.coins = 200;
     this.coinIncAmt = 10;
 
     this.shop;
@@ -216,7 +217,7 @@ var SoaringSheepGame = function(){
             "increment_count":0,
             "type":"chance",
             "cost":100,
-            "value":0
+            "value":0.3
         },
         "noDeathChance":{
             "title":"Adrenaline",
@@ -236,7 +237,7 @@ var SoaringSheepGame = function(){
             "increment_count":0,
             "type":"time",
             "cost":200,
-            "value":0
+            "value":500
         },
         "obstaclesFreezeTime":{
             "title":"Sub-Zero",
@@ -246,7 +247,7 @@ var SoaringSheepGame = function(){
             "increment_count":0,
             "type":"time",
             "cost":200,
-            "value":0
+            "value":3000
         },
         "startingShield":{
             "title":"Armour",
@@ -256,7 +257,7 @@ var SoaringSheepGame = function(){
             "increment_count":0,
             "type":"one-off",
             "cost":5000,
-            "value":0
+            "value":false
         }
     }
     this.upgradesSection = {};
@@ -2007,10 +2008,14 @@ var SoaringSheepGame = function(){
 
         //--Hero's shield
         this.heroShield.position = this.hero.position;
-        this.heroShield.alpha = 0;
+        if(this.startingShield){
+            this.collectPowerup("shield");
+        }
+        else{
+            this.heroShield.alpha = 0;
 
-        this.shieldTimer = null;
-
+            this.shieldTimer = null;
+        }
 		this.preventHeroJump = 0;
 
         //-Overlays
@@ -2699,7 +2704,7 @@ var SoaringSheepGame = function(){
             footnoteText = "Current "+data["type"]+": ";
             switch(data["type"]){
                 case "one-off":
-                    footnoteText = "Activate";
+                    footnoteText = (data["increment_count"]==data["max_increments"])?"Activated":"Activate";
                     break;
                 case "chance":
                     footnoteText += parseInt(100*this[nm])+"%";
@@ -3335,7 +3340,12 @@ var SoaringSheepGame = function(){
 		this.hero.y = this.canvasHeight/2;
 
         this.heroShield.position = this.hero.position;
-        this.heroShield.alpha = 0;
+        if(this.startingShield){
+            this.collectPowerup("shield");
+        }
+        else{
+            this.heroShield.alpha = 0;
+        }
 
 		this.preventHeroJump = 0;
 
@@ -3389,13 +3399,27 @@ var SoaringSheepGame = function(){
 
             if(window.localStorage["coins"] != null){
                 this.coins = parseInt(window.localStorage["coins"]);
-                this.coins = Math.min(this.coins,100);
+                this.coins = Math.max(this.coins,200);
                 this.incCoins(0,false);
             }
 
-            if(window.localStorage["upgrades"] != null){
-                this.upgrades = JSON.parse(window.localStorage["upgrades"]);
+            if(window.localStorage.getItem("upgrades_fix") && parseBoolean(window.localStorage["upgrades_fix"]) ){
+                if(window.localStorage["upgrades"] != null){
+                    this.upgrades = JSON.parse(window.localStorage["upgrades"]);
 
+                    var nm;
+                    for(i in this.upgrades){
+                        if(!this.upgrades.hasOwnProperty(i)) continue;
+
+                        nm = i.toString();
+                        this[nm] = this.upgrades[nm].value;
+                    }
+                }
+            }
+            else{
+                window.localStorage["upgrades_fix"] = true;
+                this.incCoins(5000,false);
+                this.saveOptions("upgrades");
                 var nm;
                 for(i in this.upgrades){
                     if(!this.upgrades.hasOwnProperty(i)) continue;
