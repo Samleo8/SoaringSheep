@@ -2233,7 +2233,8 @@ var SoaringSheepGame = function(){
         this.coins+=amt;
 
         //Update coin amount on screen/shop
-        this.shop.coin_text.text = this.coins;
+        if(this.shop && this.shop.coin_text)
+            this.shop.coin_text.text = this.coins;
 
         this.saveOptions("coin");
 
@@ -2496,6 +2497,7 @@ var SoaringSheepGame = function(){
 
         //Upgrades buttons overlays
         this.updateUpgradePage();
+        this.updateCoinsPage();
 
         //Tab overlays
         for(i=0;i<this.shopTabNames.length;i++){
@@ -2782,22 +2784,23 @@ var SoaringSheepGame = function(){
                     break;
                 case "time":
                     if(nm=="shieldTimeInc"){
+                        footnoteText += parseFloat(this[nm]/100)+"s";
                         if(data["increment_count"]<data["max_increments"]){
-                            footnoteText += parseFloat(this[nm]/100)+"s";
+                            footnoteText += "\nUpgrade to: ";
+                            footnoteText += parseFloat((this[nm]+data["increment_value"])/100)+"s";
                         } else{
                             footnoteText += " (MAX)";
                         }
-                        footnoteText += "\nUpgrade to: ";
-                        footnoteText += parseFloat((this[nm]+data["increment_value"])/100)+"s\n";
                     }
                     else{
+                        footnoteText += parseFloat(this[nm]/1000)+"s";
                         if(data["increment_count"]<data["max_increments"]){
-                            footnoteText += parseFloat(this[nm]/1000)+"s\n";
+                            footnoteText += "\nUpgrade to: ";
+                            footnoteText += parseFloat((this[nm]+data["increment_value"])/1000)+"s";
                         } else{
                             footnoteText += " (MAX)";
                         }
-                        footnoteText += "\nUpgrade to: ";
-                        footnoteText += parseFloat((this[nm]+data["increment_value"])/1000)+"s\n";
+
                     }
                     break;
                 default: break;
