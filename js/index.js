@@ -3,7 +3,7 @@
 
 var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
-var forceIsApp = true;
+var forceIsApp = false;
 
 var _isApp = null;
 var _isAndroid = null;
@@ -2862,8 +2862,19 @@ var SoaringSheepGame = function(){
         console.log(data["title"]+" upgrade complete.");
 
         this.updateUpgradesPage();
-        this.saveOptions("upgrades");
-        this.saveOptions("coins");
+
+        //ACHIEVEMENT:
+            //-Single (Enhanced):
+            if(!this.achievements.single.enhanced_once.complete || !this.achievements.single.enhanced_once.synced)  {       this.GooglePlayServices.unlockAchievement("enhanced_once");
+            }
+            //-Incremental:
+            for(i=0;i<this.achievements.incremental.enhanced.length;i++){
+                if(!this.achievements.incremental.enhanced[i].complete || !this.achievements.incremental.enhanced[i].synced) {
+                    this.GooglePlayServices.incrementAchievement("enhanced",i,1);
+                }
+            }
+
+        this.saveOptions();
     };
 
     this.updateUpgradesPage = function(){
@@ -2953,6 +2964,11 @@ var SoaringSheepGame = function(){
 
             if(data["increment_count"]>=data["max_increments"]){
                 data["increment_count"] = data["max_increments"];
+
+                //-Single (Max-out):
+                if(this.achievements.single.max_upgrade!=null)
+                    if(!this.achievements.single.max_upgrade.complete || !this.achievements.single.max_upgrade.synced)  {       this.GooglePlayServices.unlockAchievement("max_upgrade");
+                    }
 
                 if(needCheck && nm == specific_nm){
                     ret = false;
@@ -3653,20 +3669,19 @@ var SoaringSheepGame = function(){
                 for(j=0;j<this.updates[i].length;j++){
                     nm =this.updates[i][j];
 
-                        switch(ii){
-                            case "achievements_single":
-                                if(this.achievements["single"][nm]==null || typeof this.achievements["single"][nm] == "undefined")
-                                    this.achievements["single"][nm] = this.partsForUpdate[ii][nm];
-                                break;
-                            case "achievements_increment":
-                                if(this.achievements["incremental"][nm]==null || typeof this.achievements["incremental"][nm] == "undefined")
-                                    this.achievements["incremental"][nm] = this.partsForUpdate[ii][nm];
-                                break;
-                            default:
-                                if(this[i][nm]==null || typeof this[i][nm] == "undefined")
-                                    this[ii][nm] = this.partsForUpdate[ii][nm];
-                                break;
-                        }
+                    switch(i){
+                        case "achievements_single":
+                            if(this.achievements["single"][nm]==null || typeof this.achievements["single"][nm] == "undefined")
+                                this.achievements["single"][nm] = this.partsForUpdate[ii][nm];
+                            break;
+                        case "achievements_increment":
+                            if(this.achievements["incremental"][nm]==null || typeof this.achievements["incremental"][nm] == "undefined")
+                                this.achievements["incremental"][nm] = this.partsForUpdate[ii][nm];
+                            break;
+                        default:
+                            if(this[i][nm]==null || typeof this[i][nm] == "undefined")
+                                this[ii][nm] = this.partsForUpdate[ii][nm];
+                            break;
                     }
 
                     this.partsForUpdate[i][nm];
