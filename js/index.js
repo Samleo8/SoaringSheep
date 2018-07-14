@@ -101,8 +101,12 @@ var SoaringSheepGame = function(){
 			"callback":"toggleMuteFX"
 		},
 		"info":{
-			"keys":["I".charCodeAt()], //M
+			"keys":["I".charCodeAt()], //I
 			"callback":"showInfo"
+		},
+		"store":{
+			"keys":["S".charCodeAt()], //S
+			"callback":"showShop"
 		}
 	}
 
@@ -163,7 +167,7 @@ var SoaringSheepGame = function(){
 	}
 
     //Icons and Buttons
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings","restart","ad","shop","coin"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings","restart","ad","shop","coin","back"];
 
 	this.pauseButton;
 	this.muteMusicButton;
@@ -258,9 +262,31 @@ var SoaringSheepGame = function(){
             "type":"one-off",
             "cost":5000,
             "value":false
+        },
+        "coinIncAmt":{
+            "title":"Merchant",
+            "desc":"Increases the amount of coins earned per powerup",
+            "increment_value":10,
+            "max_increments":9,
+            "increment_count":0,
+            "type":"value",
+            "cost":100,
+            "value":10
+        },
+        "coinIncAmt":{
+            "title":"Merchant",
+            "desc":"Increases the amount of coins earned per powerup",
+            "increment_value":10,
+            "max_increments":9,
+            "increment_count":0,
+            "type":"value",
+            "cost":100,
+            "value":10
         }
     }
     this.upgradesSection = {};
+
+    this.coinAdButton;
 
     //Powerups
     this.powerupNames = ["coin","freeze","shield"];
@@ -538,6 +564,26 @@ var SoaringSheepGame = function(){
         this.achievements.totalSteps[ii] = [];
         for(jj=0;jj<_achInc[ii].length;jj++){
             this.achievements.totalSteps[ii].push(_achInc[ii][jj].totalSteps);
+        }
+    }
+
+    //Updates
+    this.updates = {
+        "upgrades":["coinIncAmt"],
+        "achievements":[]
+    }
+
+    this.partsForUpdate = {
+    }
+
+    var nm;
+    for(ii in this.updates){
+        if(!this.updates.hasOwnProperty(ii)) continue;
+
+        this.partsForUpdate[ii] = {};
+        for(jj=0;jj<this.updates[ii].length;jj++){
+            nm =this.updates[ii][jj];
+            this.partsForUpdate[ii][nm] = this[ii][nm];
         }
     }
 
@@ -1576,6 +1622,28 @@ var SoaringSheepGame = function(){
             this.shop.addChild(content);
         }
 
+        //Back button
+        this.shop.backButton = new PIXI.Container();
+        this.shop.backButton.icon = this.sprites.icons["back"];
+        this.shop.backButton.icon.alpha = 1;
+        this.shop.backButton.icon.tint = 0x455A64;
+        this.shop.backButton.icon.position.set(this.canvasWidth-80,this.canvasHeight-100);
+
+        this.shop.backButton.text = new PIXI.Text("BACK", Object.assign(textOpt3,{fontSize:25}));
+        this.shop.backButton.text.anchor.set(0.5,0.5);
+        this.shop.backButton.text.position.set(this.canvasWidth-80,this.canvasHeight-39);
+
+        this.shop.backButton.addChild(this.shop.backButton.icon);
+        this.shop.backButton.addChild(this.shop.backButton.text);
+
+        this.shop.addChild(this.shop.backButton);
+        this.shop.backButton.interactive = true;
+        this.shop.backButton.buttonMode = true;
+        this.shop.backButton.on((_isMobile)?"touchend":"mouseup",function(){
+            this.preventHeroJump--;
+            this.showShop();
+        }.bind(this));
+
         //Prepare actual content for the upgrades and store
         this.prepareShopContent();
 
@@ -2496,7 +2564,7 @@ var SoaringSheepGame = function(){
         var nm;
 
         //Upgrades buttons overlays
-        this.updateUpgradePage();
+        this.updateUpgradesPage();
         this.updateCoinsPage();
 
         //Tab overlays
@@ -2586,7 +2654,7 @@ var SoaringSheepGame = function(){
 
             this.upgradesSection[nm] = new PIXI.Container();
 
-            this.upgradesSection[nm].position.set(width*(cnt%5),(cnt<=5)?0:(height/2));
+            this.upgradesSection[nm].position.set(width*(cnt%5),(cnt<5)?-5:(contentHeight/2-27));
 
             this.upgradesSection[nm].bg = new PIXI.Graphics();
             this.upgradesSection[nm].bg.lineStyle(1,0x263238,0.2)
@@ -2659,7 +2727,7 @@ var SoaringSheepGame = function(){
             cnt++;
         }
 
-        this.updateUpgradePage();
+        this.updateUpgradesPage();
 
         /* ACCESSORIES */
 
@@ -2692,7 +2760,7 @@ var SoaringSheepGame = function(){
         .endFill();
         this.coinAdButton.pseudoBg.alpha = 0;
 
-        this.coinAdButton.icon = this.sprites.icons["ad"];
+        this.coinAdButton.icon = new PIXI.Sprite(this.sprites.icons["ad"].texture);
         this.coinAdButton.icon.anchor.set(0.5,0.5);
         this.coinAdButton.icon.scale.set(0.6,0.6);
         this.coinAdButton.icon.position.set(iconPos,buttonHeight/2);
@@ -2751,11 +2819,12 @@ var SoaringSheepGame = function(){
 
         console.log(data["title"]+" upgrade complete.");
 
-        this.updateUpgradePage();
+        this.updateUpgradesPage();
         this.saveOptions("upgrades");
+        this.saveOptions("coins");
     };
 
-    this.updateUpgradePage = function(){
+    this.updateUpgradesPage = function(){
         var nm, data, trueCost;
 
         for(i in this.upgrades){
@@ -2773,6 +2842,15 @@ var SoaringSheepGame = function(){
             switch(data["type"]){
                 case "one-off":
                     footnoteText = (data["increment_count"]==data["max_increments"])?"Activated":"Activate";
+                    break;
+                case "value":
+                    footnoteText += parseInt(this[nm]);
+                    if(data["increment_count"]<data["max_increments"]){
+                        footnoteText += "\nUpgrade to: ";
+                        footnoteText += parseInt(this[nm]+data["increment_value"]);
+                    } else{
+                        footnoteText += " (MAX)";
+                    }
                     break;
                 case "chance":
                     footnoteText += parseInt(100*this[nm])+"%";
@@ -3522,6 +3600,21 @@ var SoaringSheepGame = function(){
 
                     nm = i.toString();
                     this[nm] = this.upgrades[nm].value;
+                }
+            }
+
+            //Updates
+            var nm;
+            for(i in this.updates){
+                if(!this.updates.hasOwnProperty(i)) continue;
+
+                for(j=0;j<this.updates[i].length;j++){
+                    nm =this.updates[i][j];
+                    if(this[i][nm]==null || typeof this[i][nm] == "undefined"){
+                        this[i][nm] = this.partsForUpdate[i][nm];
+                    }
+
+                    this.partsForUpdate[i][nm];
                 }
             }
 		}
