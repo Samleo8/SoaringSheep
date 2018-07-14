@@ -634,7 +634,7 @@ var SoaringSheepGame = function(){
 
     this.ads = {
         "enabled": true,
-        "testing": true,
+        "testing": false,
         "reward_type": "revive",
         "types":{
             /*
@@ -2282,7 +2282,7 @@ var SoaringSheepGame = function(){
         for(i=0;i<this.obstacles.children.length;i++){
             var obs = this.obstacles.children[i];
 
-            if(this.hitTest(this.hero,obs,10,15)){
+            if(this.hitTest(this.hero,obs,15,20)){
                 this.obstacles.removeChild(obs);
                 this.obstacleSectionActive[obs.section] = false;
 
@@ -2309,7 +2309,7 @@ var SoaringSheepGame = function(){
             var pwr = this.powerups.children[i];
 
             //Check for hero and powerup hitTest
-            if(this.hitTest(this.hero,pwr,10,10)){
+            if(this.hitTest(this.hero,pwr,5,5)){
                 this.collectPowerup(this.powerupNames[pwr.type]);
                 this.powerups.removeChild(pwr);
             }
