@@ -280,7 +280,7 @@ var SoaringSheepGame = function(){
             "max_increments":9,
             "increment_count":0,
             "type":"value",
-            "cost":100,
+            "cost":200,
             "value":10
         }
     }
