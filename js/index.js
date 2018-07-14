@@ -3,7 +3,7 @@
 
 var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
-var forceIsApp = false;
+var forceIsApp = true;
 
 var _isApp = null;
 var _isAndroid = null;
@@ -348,7 +348,7 @@ var SoaringSheepGame = function(){
         out = '{\n';
         for(j in y){
             if(!y.hasOwnProperty(j)) continue;
-            out+="\t'"+j.toString()+"': '"+y[j]+"'\n";
+            out+="\t'"+j.toString()+"': '"+y[j]+",'\n";
         }
         out+="}"
         console.log(out);
@@ -405,6 +405,20 @@ var SoaringSheepGame = function(){
             	'complete': false,
             	'synced': false
             }],
+            "enhanced_once":[{
+                	'id': 'CgkI8sq82fwOEAIQHA',
+                	'name': 'Enhanced Sheep 1',
+                	'points': 5,
+                	'complete': 'false',
+                	'synced': 'false'
+            }],
+            "max_upgrade":[{
+            	'id': 'CgkI8sq82fwOEAIQHg',
+            	'name': 'Super Sheep',
+                'points': 20,
+            	'complete': 'false',
+            	'synced': 'false'
+            }]
         },
         "incremental":{
             "die":[{
@@ -537,6 +551,26 @@ var SoaringSheepGame = function(){
             	'complete': false,
             	'synced': false
             }],
+            "enhanced":[{
+            	'id': 'CgkI8sq82fwOEAIQHQ',
+            	'name': 'Enhanced Sheep 2',
+            	'points': 10,
+                'completedSteps': 0,
+                'completedSteps_synced': 0,
+                'totalSteps': 10,
+            	'complete': 'false',
+            	'synced': 'false'
+            },
+            {
+                'id': 'CgkI8sq82fwOEAIQHQ',
+                'name': 'Enhanced Sheep 3',
+                'points': 15,
+                'completedSteps': 0,
+                'completedSteps_synced': 0,
+                'totalSteps': 25,
+                'complete': 'false',
+                'synced': 'false'
+            }],
             "addicted":[{
             	'id': 'CgkI8sq82fwOEAIQGw',
             	'name': 'Clearly Addicted',
@@ -546,7 +580,7 @@ var SoaringSheepGame = function(){
                 'totalSteps': 3,
             	'complete': false,
             	'synced': false
-            }],
+            }]
         },
         "totalSteps":{} //Dynamically generated based on this.achievements data
     }
@@ -570,11 +604,11 @@ var SoaringSheepGame = function(){
     //Updates
     this.updates = {
         "upgrades":["coinIncAmt"],
-        "achievements":[]
-    }
+        "achievements_single":["enhanced_once","max_upgrade"],
+        "achievements_increment":["enhanced"]
+    };
 
-    this.partsForUpdate = {
-    }
+    this.partsForUpdate = {};
 
     var nm;
     for(ii in this.updates){
@@ -582,8 +616,16 @@ var SoaringSheepGame = function(){
 
         this.partsForUpdate[ii] = {};
         for(jj=0;jj<this.updates[ii].length;jj++){
-            nm =this.updates[ii][jj];
-            this.partsForUpdate[ii][nm] = this[ii][nm];
+            nm = this.updates[ii][jj];
+            if(ii == "achievements_single"){
+                this.partsForUpdate[ii][nm] = this.achievements["single"][nm];
+            }
+            else if(ii == "achievements_increment"){
+                this.partsForUpdate[ii][nm] = this.achievements["incremental"][nm];
+            }
+            else{
+                this.partsForUpdate[ii][nm] = this[ii][nm];
+            }
         }
     }
 
@@ -3610,8 +3652,21 @@ var SoaringSheepGame = function(){
 
                 for(j=0;j<this.updates[i].length;j++){
                     nm =this.updates[i][j];
-                    if(this[i][nm]==null || typeof this[i][nm] == "undefined"){
-                        this[i][nm] = this.partsForUpdate[i][nm];
+
+                        switch(ii){
+                            case "achievements_single":
+                                if(this.achievements["single"][nm]==null || typeof this.achievements["single"][nm] == "undefined")
+                                    this.achievements["single"][nm] = this.partsForUpdate[ii][nm];
+                                break;
+                            case "achievements_increment":
+                                if(this.achievements["incremental"][nm]==null || typeof this.achievements["incremental"][nm] == "undefined")
+                                    this.achievements["incremental"][nm] = this.partsForUpdate[ii][nm];
+                                break;
+                            default:
+                                if(this[i][nm]==null || typeof this[i][nm] == "undefined")
+                                    this[ii][nm] = this.partsForUpdate[ii][nm];
+                                break;
+                        }
                     }
 
                     this.partsForUpdate[i][nm];
