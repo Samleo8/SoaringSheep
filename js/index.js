@@ -634,7 +634,7 @@ var SoaringSheepGame = function(){
 
     this.ads = {
         "enabled": true,
-        "testing": false,
+        "testing": true,
         "reward_type": "revive",
         "types":{
             /*
@@ -2863,6 +2863,9 @@ var SoaringSheepGame = function(){
 
         this.updateUpgradesPage();
 
+        this.saveOptions("coins");
+        this.saveOptions("upgrades");
+
         //ACHIEVEMENT:
             //-Single (Enhanced):
             if(!this.achievements.single.enhanced_once.complete || !this.achievements.single.enhanced_once.synced)  {       this.GooglePlayServices.unlockAchievement("enhanced_once");
@@ -2874,7 +2877,7 @@ var SoaringSheepGame = function(){
                 }
             }
 
-        this.saveOptions();
+        this.saveOptions("achievements");
     };
 
     this.updateUpgradesPage = function(){
