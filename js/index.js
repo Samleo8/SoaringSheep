@@ -409,15 +409,15 @@ var SoaringSheepGame = function(){
                 	'id': 'CgkI8sq82fwOEAIQHA',
                 	'name': 'Enhanced Sheep 1',
                 	'points': 5,
-                	'complete': 'false',
-                	'synced': 'false'
+                	'complete': false,
+                	'synced': false
             }],
             "max_upgrade":[{
             	'id': 'CgkI8sq82fwOEAIQHg',
             	'name': 'Super Sheep',
                 'points': 20,
-            	'complete': 'false',
-            	'synced': 'false'
+            	'complete': false,
+            	'synced': false
             }]
         },
         "incremental":{
@@ -558,8 +558,8 @@ var SoaringSheepGame = function(){
                 'completedSteps': 0,
                 'completedSteps_synced': 0,
                 'totalSteps': 10,
-            	'complete': 'false',
-            	'synced': 'false'
+            	'complete': false,
+            	'synced': false
             },
             {
                 'id': 'CgkI8sq82fwOEAIQHQ',
@@ -568,8 +568,8 @@ var SoaringSheepGame = function(){
                 'completedSteps': 0,
                 'completedSteps_synced': 0,
                 'totalSteps': 25,
-                'complete': 'false',
-                'synced': 'false'
+                'complete': false,
+                'synced': false
             }],
             "addicted":[{
             	'id': 'CgkI8sq82fwOEAIQGw',
