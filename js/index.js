@@ -3675,15 +3675,15 @@ var SoaringSheepGame = function(){
                     switch(i){
                         case "achievements_single":
                             if(this.achievements["single"][nm]==null || typeof this.achievements["single"][nm] == "undefined")
-                                this.achievements["single"][nm] = this.partsForUpdate[ii][nm];
+                                this.achievements["single"][nm] = this.partsForUpdate[i][nm];
                             break;
                         case "achievements_increment":
                             if(this.achievements["incremental"][nm]==null || typeof this.achievements["incremental"][nm] == "undefined")
-                                this.achievements["incremental"][nm] = this.partsForUpdate[ii][nm];
+                                this.achievements["incremental"][nm] = this.partsForUpdate[i][nm];
                             break;
                         default:
                             if(this[i][nm]==null || typeof this[i][nm] == "undefined")
-                                this[ii][nm] = this.partsForUpdate[ii][nm];
+                                this[i][nm] = this.partsForUpdate[i][nm];
                             break;
                     }
 
