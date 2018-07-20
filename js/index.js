@@ -323,9 +323,9 @@ var SoaringSheepGame = function(){
     //Google Play
     this.isLoggedIn = false;
     this.playGamesMenu;
-    this.leaderboardID = "CgkI8sq82fwOEAIQAg";
+    this.leaderboardID = "CgkI8sq82fwOEAIQIA";//"CgkI8sq82fwOEAIQAg";
     this.leaderboard = {
-        "id":"CgkI8sq82fwOEAIQAg", //GPlay leaderboardID
+        "id":"CgkI8sq82fwOEAIQIA",//"CgkI8sq82fwOEAIQAg", //GPlay leaderboardID
         "maxResults": 10,
         "self":{
             "rank":{},
@@ -2250,6 +2250,8 @@ var SoaringSheepGame = function(){
 		//HERO BOUNDS CHECKS
 		//Check for hero x-direction bounds, and bounce off wall
 		if(this.hero.x<=this.hero.sheep.width/2 || this.hero.x>=(this.canvasWidth-this.hero.sheep.width/2)){
+            this.hero.x = Math.min(Math.max(this.hero.sheep.width/2,this.hero.x), (this.canvasWidth-this.hero.sheep.width/2));
+
 			this.hero.vx *= -this.speedInc;
 
             var _dir = (this.hero.vx<0)?-1:1;
@@ -3617,7 +3619,7 @@ var SoaringSheepGame = function(){
 	this.loadOptions = function(){
 		if(window.localStorage){
 			if(window.localStorage["muteFX"] != null){
-				this.highscore = window.localStorage["highscore"];
+				this.highscore = Math.min(window.localStorage["highscore"],20);
 
 				this.toggleMuteFX(parseBoolean(window.localStorage["muteFX"]));
 				this.toggleMuteMain(parseBoolean(window.localStorage["muteMain"]));
@@ -3634,7 +3636,7 @@ var SoaringSheepGame = function(){
 
             if(window.localStorage["coins"] != null){
                 this.coins = parseInt(window.localStorage["coins"]);
-                this.coins = Math.max(this.coins,200);
+                //this.coins = Math.max(this.coins,200);
                 this.incCoins(0,false);
             }
 
@@ -3653,7 +3655,7 @@ var SoaringSheepGame = function(){
             }
             else{
                 window.localStorage["upgrades_fix"] = true;
-                this.incCoins(5000,false);
+                //this.incCoins(5000,false);
                 this.saveOptions("upgrades");
                 var nm;
                 for(i in this.upgrades){
