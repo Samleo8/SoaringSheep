@@ -3619,7 +3619,7 @@ var SoaringSheepGame = function(){
 	this.loadOptions = function(){
 		if(window.localStorage){
 			if(window.localStorage["muteFX"] != null){
-				this.highscore = Math.min(window.localStorage["highscore"],20);
+				this.highscore = window.localStorage["highscore"];
 
 				this.toggleMuteFX(parseBoolean(window.localStorage["muteFX"]));
 				this.toggleMuteMain(parseBoolean(window.localStorage["muteMain"]));
