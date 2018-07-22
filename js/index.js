@@ -683,7 +683,10 @@ var SoaringSheepGame = function(){
                     console.log("Load failed");
                     data["loaded"] = false;
 
-                    if(Game.isOnline){
+                    if(nm == "rewardvideo"){
+                        this.updateButtons();
+                    }
+                    else if(Game.isOnline){
                         console.log("Loading ad again");
                         admob[nm].prepare();
                     }
@@ -693,14 +696,7 @@ var SoaringSheepGame = function(){
                     data["loaded"] = true;
 
                     if(nm == "rewardvideo"){
-                        if(typeof Game.reviveButton == "undefined") return;
-
-                        Game.reviveButton.buttonMode = true;
-                        Game.reviveButton.interactive = true;
-                        Game.reviveButton.overlay.visible = false;
-                        Game.reviveButton.footnote.text = "Watch an ad to revive\nUsable once per game";
-
-                        renderer.render(stage);
+                        this.updateButtons();
                     }
                 }.bind(self));
 
@@ -708,6 +704,8 @@ var SoaringSheepGame = function(){
                     document.addEventListener('admob.'+nm+'.events.CLOSE', function(event) {
                         data["loaded"] = false;
                         admob[nm].prepare();
+
+                        this.updateButtons();
                     }.bind(self));
                 }
 
@@ -752,6 +750,52 @@ var SoaringSheepGame = function(){
             }
 
             admob[type].show();
+        },
+        "updateButtons":function(){
+            //-Check if ads are available, if not, disable revive and coin ad button
+            var i, buttons = [Game.reviveButton, Game.coinAdButton];
+            var btn;
+            var disabled = false, text = "";
+
+            for(i=0;i<buttons.length;i++){
+                btn = buttons[i];
+                if(typeof btn == "undefined" || btn == null) continue;
+
+                if(typeof admob == "undefined" || admob==null){
+                    disabled = true;
+
+                    text = (btn==Game.reviveButton)?"Revive is":"Ads are"+" only available\non the mobile app";
+                }
+                else if(Game._revived && btn == Game.reviveButton){
+                    disabled = true;
+
+                    text = "You can only revive once per game";
+                }
+                else if(!Game.isOnline){
+                    disabled = true;
+
+                    text = "Ad failed to load\nCheck your connection and try again";
+                }
+                else if(!this.types.rewardvideo.loaded){
+                    disabled = true;
+
+                    text = "Loading ad...";
+
+                    //Attempt to load ad
+                    admob["rewardvideo"].prepare();
+                }
+                else{
+                    disabled = false;
+                    text = (btn==Game.reviveButton)?"Watch an ad to revive\nUsable once per game":"Watch ads to earn between 50-200 coins!";
+                }
+
+                btn.buttonMode = !disabled;
+                btn.interactive = !disabled;
+                btn.overlay.visible = disabled;
+                btn.footnote.text = text;
+            }
+
+            renderer.render(stage);
         }
     }
 
@@ -3002,30 +3046,11 @@ var SoaringSheepGame = function(){
     };
 
     this.updateCoinsPage = function(){
-        //Mainly check for whether ads can be shown
-        if(typeof admob == "undefined" || admob==null){
-            this.coinAdButton.buttonMode = false;
-            this.coinAdButton.interactive = false;
-            this.coinAdButton.overlay.visible = true;
+        //Check for whether ads can be shown
+        this.ads.updateButtons();
 
-            this.coinAdButton.footnote.text = "Only available on the mobile app";
-        }
-        else if(!this.isOnline || !this.ads.types.rewardvideo.loaded){
-            this.coinAdButton.buttonMode = false;
-            this.coinAdButton.interactive = false;
-            this.coinAdButton.overlay.visible = true;
-
-            this.coinAdButton.footnote.text = "Ad failed to load\nCheck your connection and try again";
-
-            //Attempt to load ad
-            admob["rewardvideo"].prepare();
-        }
-        else{
-            this.coinAdButton.buttonMode = true;
-            this.coinAdButton.interactive = true;
-            this.coinAdButton.overlay.visible = false;
-            this.coinAdButton.footnote.text = "Watch ads to earn between 50-200 coins!";
-        }
+        //Update coin amount
+        this.shop.coin_text.text = this.coins;
     }
 
     this.showInfo = function(e){
@@ -3080,6 +3105,15 @@ var SoaringSheepGame = function(){
 
             //Fetch and save player data
             this.GooglePlayServices.fetchPlayerData();
+
+            //Syncing Locally-stored and Cloud-stored scores from old leaderboard
+            window.plugins.playGamesServices.getPlayerScore({
+                "leaderboardId":"CgkI8sq82fwOEAIQAg" //old leaderboard ID
+            }, function(result){
+                var sc = parseInt(result.playerScore);
+
+                this.highscore = Math.min(25,Math.max(this.highscore,sc));
+            }.bind(Game));
 
             //Syncing Locally-stored and Cloud-stored scores
             window.plugins.playGamesServices.getPlayerScore({
@@ -3498,37 +3532,7 @@ var SoaringSheepGame = function(){
             //-Display Tips
             this.gameoverScreen.tipText.text = "Tip: "+this.tips[getRandomInt(0,this.tips.length-1)];
 
-            //-Check if ads are available, if not, disable revive button
-        if(typeof admob == "undefined" || admob==null){
-            this.reviveButton.buttonMode = false;
-            this.reviveButton.interactive = false;
-            this.reviveButton.overlay.visible = true;
-
-            this.reviveButton.footnote.text = "Revive is only available\non the mobile app";
-        }
-        else if(this._revived){
-            this.reviveButton.buttonMode = false;
-            this.reviveButton.interactive = false;
-            this.reviveButton.overlay.visible = true;
-
-            this.reviveButton.footnote.text = "You can only revive once per game";
-        }
-        else if(!this.isOnline || !this.ads.types.rewardvideo.loaded){
-            this.reviveButton.buttonMode = false;
-            this.reviveButton.interactive = false;
-            this.reviveButton.overlay.visible = true;
-
-            this.reviveButton.footnote.text = "Ad failed to load\nCheck your connection and try again";
-
-            //Attempt to load ad
-            admob["rewardvideo"].prepare();
-        }
-        else{
-            this.reviveButton.buttonMode = true;
-            this.reviveButton.interactive = true;
-            this.reviveButton.overlay.visible = false;
-            this.reviveButton.footnote.text = "Watch an ad to revive\nUsable once per game";
-        }
+            this.ads.updateButtons();
 
         renderer.render(stage);
 
@@ -3538,12 +3542,13 @@ var SoaringSheepGame = function(){
 
     this.try_revive = function(){
         //Check to see if player can watch an ad to revive himself
+        this.ads.updateButtons();
+
         if(typeof admob == "undefined" || admob==null){
             console.log("Ads only available for mobile app.");
         }
         else if(!this.isOnline || !this.ads.types.rewardvideo.loaded){
-            alert("Sorry, ad could not be loaded. Restarting game instead!");
-            this.newGame();
+            console.log("Ad is loading, please be patient...");
             return;
         }
 
