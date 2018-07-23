@@ -33,8 +33,8 @@ var app = {
             console.log("Mobile device detected");
         }
 
-        document.addEventListener('online', this.connectionChange.bind(this) );
-        document.addEventListener('offline', this.connectionChange.bind(this) );
+        document.addEventListener('online', this.onConnectionChange.bind(this) );
+        document.addEventListener('offline', this.onConnectionChange.bind(this) );
 
         if(isApp())
             document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
@@ -51,12 +51,13 @@ var app = {
 		Game.initStage();
     },
 
-    connectionChange: function(e){
+    onConnectionChange: function(e){
         if(e.type == "offline"){
             console.log("Oh no, you lost connection.");
 
             //GPlay.noConnection = true;
             Game.isOnline = false;
+            Game.ads.updateButtons();
         }
         else if(e.type == "online"){
             console.log("Yay! You are now back online!");
@@ -67,6 +68,8 @@ var app = {
             //Load Play Games and Ads
             if(!Game.isLoggedIn) Game.initPlayGames();
             if(!Game.ads.types["rewardvideo"].loaded) Game.ads.init();
+
+            Game.ads.updateButtons();
         }
     }
 };
@@ -286,7 +289,8 @@ var SoaringSheepGame = function(){
     }
     this.upgradesSection = {};
 
-    this.coinAdButton;
+    this.coinAdButton = null;
+    this.coinBuyButton = null;
 
     //Powerups
     this.powerupNames = ["coin","freeze","shield"];
@@ -786,7 +790,7 @@ var SoaringSheepGame = function(){
                 }
                 else{
                     disabled = false;
-                    text = (btn==Game.reviveButton)?"Watch an ad to revive\nUsable once per game":"Watch ads to earn between 50-200 coins!";
+                    text = (btn==Game.reviveButton)?"Watch an ad to revive\nUsable once per game":"Watch ads to earn between 10-150 coins!";
                 }
 
                 btn.buttonMode = !disabled;
@@ -796,6 +800,130 @@ var SoaringSheepGame = function(){
             }
 
             renderer.render(stage);
+        }
+    }
+
+    //In-app purchases
+    this.purchases = {
+        "loaded":false,
+        "appId":"io.samleo8.SoaringSheep",
+        "productIdNames":["coins500"],
+        "productIds":[],
+        "productData":null,
+        "checkAvail":function(){
+            this.updateButtons();
+
+            return (typeof inAppPurchase!="undefined" && inAppPurchase!=null && Game.isOnline);
+        },
+        "updateButtons":function(){
+            //-Check if purchases are available, if not, disable
+            var i, buttons = [Game.coinBuyButton];
+            var btn;
+            var disabled = false, text = "";
+
+            for(i=0;i<buttons.length;i++){
+                btn = buttons[i];
+                if(typeof btn == "undefined" || btn == null) continue;
+
+                if(typeof inAppPurchase == "undefined" || inAppPurchase==null){
+                    disabled = true;
+
+                    text = "Only available on the mobile app";
+                }
+                else if(!Game.isOnline){
+                    disabled = true;
+
+                    text = "Ad failed to load\nCheck your connection and try again";
+                }
+                else{
+                    disabled = false;
+                    switch(btn){
+                        case Game.coinBuyButton:
+                            if(this.productData==null)
+                                text = "Buy 500 coins for $0.99";
+                            else
+                                text = "Buy 500 coins for "+this.productData[i]["currency"]+""+this.productData[i]["priceAsDecimal"]
+                            break;
+                        default: break;
+                    }
+                }
+
+                btn.buttonMode = !disabled;
+                btn.interactive = !disabled;
+                btn.overlay.visible = disabled;
+                btn.footnote.text = text;
+            }
+
+            renderer.render(stage);
+        },
+        "load":function(){
+            var i;
+
+            if(!this.checkAvail()) return;
+
+            //Need to convert from base name to actual id based on app id
+            for(i=0;i<this.productIdNames.length;i++){
+                this.productIds.push(this.appId+"."+this.productIdNames[i]);
+            }
+
+            inAppPurchase.getProducts(this.productIds)
+            .then(function(products){
+                this.productData = products;
+                this.loaded = true;
+
+                this.updateButtons();
+            })
+            .catch(function(err){
+                console.log(err);
+                this.loaded = false;
+            });
+        },
+        "buy":function(id){
+            var i,j,ind=-1;
+
+            if(!this.checkAvail()) return;
+
+            if(!this.loaded) this.load();
+
+            if(typeof id=="undefined" || id==null) return;
+
+            //Check if ids are in array
+            var isValid = false;
+            for(i=0;i<this.productIdNames.length;i++){
+                if(this.productIdNames[i] == id){
+                    ind = i;
+                    continue;
+                }
+            }
+            if(ind==-1) return;
+
+            inAppPurchase.buy(this.productIds[ind])
+                .then(function(data){
+                    console.log(JSON.stringify(data));
+
+                    //TODO: Some verification of sorts
+                    //NOTE: The consume() function should only be called after purchasing consumable products, otherwise, you should skip this step
+                    switch(id){
+                        case "coins500":
+                            this.incCoins(500,true);
+
+                            return inAppPurchase.consume(data.type, data.receipt, data.signature);
+                            break;
+                        default: return;
+                    }
+                })
+                .catch(function(err){
+                    console.log(err);
+                });
+        },
+        "restore":function(){
+            inAppPurchase.restorePurchases()
+            .then(function (purchases) {
+                console.log(JSON.stringify(purchases));
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
         }
     }
 
@@ -1872,6 +2000,7 @@ var SoaringSheepGame = function(){
 
             this.generateOverlays();
             this.ads.init();
+            this.purchases.load();
 
 			console.log("All assets loaded.");
 
@@ -2833,6 +2962,7 @@ var SoaringSheepGame = function(){
             fontSize: 30
         };
 
+        //-Coin Ad Button
         this.coinAdButton = new PIXI.Container();
 
         this.coinAdButton.position.set(this.canvasWidth*2/3-buttonWidth/2,height/2);
@@ -2861,7 +2991,7 @@ var SoaringSheepGame = function(){
 
         this.coinAdButton.interactive = true;
         this.coinAdButton.buttonMode = true;
-        this.coinAdButton.on((_isMobile)?"touchend":"mouseup",this.ads.showAd.bind(this.ads,"rewardvideo","coins",10*getRandomInt(5,20)));
+        this.coinAdButton.on((_isMobile)?"touchend":"mouseup",this.ads.showAd.bind(this.ads,"rewardvideo","coins",10*getRandomInt(1,15)));
 
         this.coinAdButton.overlay = new PIXI.Graphics();
         this.coinAdButton.overlay.beginFill(0xb0bec5,0.75)
@@ -2869,7 +2999,7 @@ var SoaringSheepGame = function(){
         .endFill();
         this.coinAdButton.overlay.visible = false;
 
-        this.coinAdButton.footnote = new PIXI.Text("Watch ads to earn between 50-200 coins!",textOpt4);
+        this.coinAdButton.footnote = new PIXI.Text("Watch ads to earn between 10-150 coins!",textOpt4);
         this.coinAdButton.footnote.anchor.set(0.5,0);
         this.coinAdButton.footnote.position.set(buttonWidth/2, buttonHeight+15);
 
@@ -2881,6 +3011,56 @@ var SoaringSheepGame = function(){
         this.coinAdButton.addChild(this.coinAdButton.footnote);
 
         this.shop.tabContent["coins"].addChild(this.coinAdButton);
+
+        //-Coin Buy Button
+        this.coinBuyButton = new PIXI.Container();
+
+        this.coinBuyButton.position.set(this.canvasWidth*1/3-buttonWidth/2,height/2);
+
+        this.coinBuyButton.background = new PIXI.Graphics();
+        this.coinBuyButton.background.beginFill(0x263238,0.9)
+            .drawRect(0,0,buttonWidth,buttonHeight)
+        .endFill();
+
+        this.coinBuyButton.pseudoBg = new PIXI.Graphics();
+        this.coinBuyButton.pseudoBg.beginFill(0x263238,0)
+            .drawRect(-pseudoPaddX,-pseudoPaddY,buttonWidth+2*pseudoPaddX,buttonHeight+2*pseudoPaddY)
+        .endFill();
+        this.coinBuyButton.pseudoBg.alpha = 0;
+
+        this.coinBuyButton.icon = new PIXI.Sprite(this.sprites.icons["coin"].texture);
+        this.coinBuyButton.icon.anchor.set(0.5,0.5);
+        this.coinBuyButton.icon.scale.set(0.6,0.6);
+        this.coinBuyButton.icon.position.set(iconPos,buttonHeight/2);
+        this.coinBuyButton.icon.alpha = 1;
+        this.coinBuyButton.icon.tint = 0xcfd8dc;
+
+        this.coinBuyButton.text = new PIXI.Text("Buy coins",textOpt2);
+        this.coinBuyButton.text.anchor.set(0.5,0.5);
+        this.coinBuyButton.text.position.set(buttonWidth/2+iconPos/2, buttonHeight/2);
+
+        this.coinBuyButton.interactive = true;
+        this.coinBuyButton.buttonMode = true;
+        this.coinBuyButton.on((_isMobile)?"touchend":"mouseup",this.purchases.buy.bind(this.purchases,"coins500"));
+
+        this.coinBuyButton.overlay = new PIXI.Graphics();
+        this.coinBuyButton.overlay.beginFill(0xb0bec5,0.75)
+            .drawRect(0,0,buttonWidth,buttonHeight)
+        .endFill();
+        this.coinBuyButton.overlay.visible = false;
+
+        this.coinBuyButton.footnote = new PIXI.Text("Buy 500 coins for $0.99",textOpt4);
+        this.coinBuyButton.footnote.anchor.set(0.5,0);
+        this.coinBuyButton.footnote.position.set(buttonWidth/2, buttonHeight+15);
+
+        this.coinBuyButton.addChild(this.coinBuyButton.pseudoBg);
+        this.coinBuyButton.addChild(this.coinBuyButton.background);
+        this.coinBuyButton.addChild(this.coinBuyButton.icon);
+        this.coinBuyButton.addChild(this.coinBuyButton.text);
+        this.coinBuyButton.addChild(this.coinBuyButton.overlay);
+        this.coinBuyButton.addChild(this.coinBuyButton.footnote);
+
+        this.shop.tabContent["coins"].addChild(this.coinBuyButton);
 
         this.updateCoinsPage();
 
@@ -3046,8 +3226,9 @@ var SoaringSheepGame = function(){
     };
 
     this.updateCoinsPage = function(){
-        //Check for whether ads can be shown
+        //Check for whether ads can be shown, purchases can be made
         this.ads.updateButtons();
+        this.purchases.updateButtons();
 
         //Update coin amount
         this.shop.coin_text.text = this.coins;
