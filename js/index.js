@@ -152,7 +152,7 @@ var SoaringSheepGame = function(){
 
     //Animations and sprites
 	this.animations = {
-		"jumping":{
+		"sheep_base":{
 			"frames":[],
 			"totalFrames":7
 		}
@@ -768,7 +768,7 @@ var SoaringSheepGame = function(){
                 if(typeof admob == "undefined" || admob==null){
                     disabled = true;
 
-                    text = (btn==Game.reviveButton)?"Revive is":"Ads are"+" only available\non the mobile app";
+                    text = "Only available\non the mobile app";
                 }
                 else if(Game._revived && btn == Game.reviveButton){
                     disabled = true;
@@ -996,9 +996,13 @@ var SoaringSheepGame = function(){
 			this.loader.add("icon_"+this.iconNames[i].toString(),"img/icons/"+this.iconNames[i]+".png");
 		}
 
-		for(i=0;i<this.animations.jumping.totalFrames;i++){
-			this.loader.add("sheep_"+i,"img/jumpingAnimation/"+i+".png");
-		}
+        for(i in this.animations){
+            if(!this.animations.hasOwnProperty(i)) continue;
+
+    		for(j=0;j<this.animations[i].totalFrames;j++){
+    			this.loader.add(i.toString()+"_"+j,"img/animations/"+i.toString()+"/"+j+".png");
+    		}
+        }
 
 		//PRELOADING OF AUDIO
 		for(i=0;i<this.audioLib.length;i++){
@@ -1207,19 +1211,19 @@ var SoaringSheepGame = function(){
             this.shopButton.addChild(text);
 
 			//ANIMATIONS
-			for (i=0;i<this.animations.jumping.totalFrames;i++) {
-				this.animations.jumping.frames.push(resources["sheep_"+i].texture);
-			}
-			this.animations.jumping.frames.push(resources["sheep_0"].texture);
+            for(j in this.animations){
+                if(!this.animations.hasOwnProperty(j)) continue;
+
+                for(i=0;i<this.animations[j].totalFrames;i++) {
+                    this.animations[j].frames.push(resources[j+"_"+i].texture);
+                }
+                this.animations[j].frames.push(resources[j+"_0"].texture);
+            }
 
 			//-HERO
 			this.hero = new PIXI.Container();
 
-            this.hero.sheep = new PIXI.extras.AnimatedSprite(this.animations.jumping.frames);
-			this.hero.sheep.animationSpeed = 0.15;
-			this.hero.sheep.loop = false;
-			this.hero.sheep.anchor.set(0.5);
-			this.hero.sheep.scale.set(0.35,0.35);
+            this.setSkin("sheep_base");
 
             this.hero.width = this.hero.sheep.width;
             this.hero.height = this.hero.sheep.height;
@@ -2007,7 +2011,7 @@ var SoaringSheepGame = function(){
 			this.sprites.background.alpha = 0;
 
 			//Sheep
-			sheep = new PIXI.Sprite(this.animations.jumping.frames[0]);
+			sheep = new PIXI.Sprite(this.animations.sheep_base.frames[0]);
 			sheep.anchor.set(0.5,0.5);
 			sheep.scale.set(0.35,0.35);
 			sheep.rotation = -Math.PI/40;
@@ -3232,6 +3236,16 @@ var SoaringSheepGame = function(){
 
         //Update coin amount
         this.shop.coin_text.text = this.coins;
+    }
+
+    this.setSkin = function(skin){
+        if(skin == null || typeof skin == "undefined") skin = "sheep_base";
+
+        this.hero.sheep = new PIXI.extras.AnimatedSprite(this.animations[skin].frames);
+        this.hero.sheep.animationSpeed = 0.15;
+        this.hero.sheep.loop = false;
+        this.hero.sheep.anchor.set(0.5);
+        this.hero.sheep.scale.set(0.35,0.35);
     }
 
     this.showInfo = function(e){
