@@ -806,7 +806,7 @@ var SoaringSheepGame = function(){
     //In-app purchases
     this.purchases = {
         "loaded":false,
-        "appId":"io.samleo8.SoaringSheep",
+        "appId":"io.samleo8.soaringsheep",
         "productIdNames":["coins500"],
         "productIds":[],
         "productData":null,
@@ -897,7 +897,7 @@ var SoaringSheepGame = function(){
             }
             if(ind==-1) return;
 
-            inAppPurchase.buy(this.productIds[ind])
+            inAppPurchase.buy(this.productIds[ind].toLowerCase())
                 .then(function(data){
                     console.log(JSON.stringify(data));
 
