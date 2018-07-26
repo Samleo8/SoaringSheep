@@ -155,6 +155,10 @@ var SoaringSheepGame = function(){
 		"sheep_base":{
 			"frames":[],
 			"totalFrames":7
+		},
+        "sheep_gold":{
+			"frames":[],
+			"totalFrames":7
 		}
 	};
 
@@ -638,7 +642,7 @@ var SoaringSheepGame = function(){
 
     this.ads = {
         "enabled": true,
-        "testing": true,
+        "testing": false,
         "reward_type": "revive",
         "types":{
             /*
@@ -2453,7 +2457,7 @@ var SoaringSheepGame = function(){
 		}
 
         //RENDER
-            //Do it here so that hit testing doesn't seem to be "off"
+            //Do it here so that hit test doesn't seem to be "off"
         renderer.render(stage);
 
         //COLLISION CHECKS
@@ -3680,7 +3684,7 @@ var SoaringSheepGame = function(){
         }
 
         for(i=0;i<this.achievements.incremental.score_times.length;i++){
-            if(this.score>=10){
+            if(this.score>=15){
                 this.GooglePlayServices.incrementAchievement("score_times",i);
             }
         }
