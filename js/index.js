@@ -3,7 +3,7 @@
 
 var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
-var forceIsApp = false;
+var forceIsApp = true;
 
 var _isApp = null;
 var _isAndroid = null;
@@ -861,7 +861,7 @@ var SoaringSheepGame = function(){
             renderer.render(stage);
         },
         "load":function(){
-            var i;
+            var i, self = this;
 
             if(!this.checkAvail()) return;
 
@@ -872,18 +872,19 @@ var SoaringSheepGame = function(){
 
             inAppPurchase.getProducts(this.productIds)
             .then(function(products){
-                this.productData = products;
-                this.loaded = true;
+                self.productData = products;
+                self.loaded = true;
 
-                this.updateButtons();
+                self.updateButtons();
             })
             .catch(function(err){
                 console.log(err);
-                this.loaded = false;
+                self.loaded = false;
             });
         },
         "buy":function(id){
             var i,j,ind=-1;
+            var self = this;
 
             if(!this.checkAvail()) return;
 
@@ -901,7 +902,7 @@ var SoaringSheepGame = function(){
             }
             if(ind==-1) return;
 
-            inAppPurchase.buy(this.productIds[ind].toLowerCase())
+            inAppPurchase.buy(self.productIds[ind].toLowerCase())
                 .then(function(data){
                     console.log(JSON.stringify(data));
 
@@ -909,7 +910,7 @@ var SoaringSheepGame = function(){
                     //NOTE: The consume() function should only be called after purchasing consumable products, otherwise, you should skip this step
                     switch(id){
                         case "coins500":
-                            this.incCoins(500,true);
+                            Game.incCoins(500,true);
 
                             return inAppPurchase.consume(data.type, data.receipt, data.signature);
                             break;
