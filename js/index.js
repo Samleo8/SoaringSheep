@@ -174,7 +174,7 @@ var SoaringSheepGame = function(){
 	}
 
     //Icons and Buttons
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings","restart","ad","shop","coin","back"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings","restart","ad","shop","coin","back","share"];
 
 	this.pauseButton;
 	this.muteMusicButton;
@@ -931,6 +931,8 @@ var SoaringSheepGame = function(){
             });
         }
     }
+
+    this.backButton;
 
     //Functions
 	this.initStage = function(){
@@ -1845,28 +1847,6 @@ var SoaringSheepGame = function(){
             this.shop.addChild(content);
         }
 
-        //Back button
-        this.shop.backButton = new PIXI.Container();
-        this.shop.backButton.icon = this.sprites.icons["back"];
-        this.shop.backButton.icon.alpha = 1;
-        this.shop.backButton.icon.tint = 0x455A64;
-        this.shop.backButton.icon.position.set(this.canvasWidth-80,this.canvasHeight-100);
-
-        this.shop.backButton.text = new PIXI.Text("BACK", Object.assign(textOpt3,{fontSize:25}));
-        this.shop.backButton.text.anchor.set(0.5,0.5);
-        this.shop.backButton.text.position.set(this.canvasWidth-80,this.canvasHeight-39);
-
-        this.shop.backButton.addChild(this.shop.backButton.icon);
-        this.shop.backButton.addChild(this.shop.backButton.text);
-
-        this.shop.addChild(this.shop.backButton);
-        this.shop.backButton.interactive = true;
-        this.shop.backButton.buttonMode = true;
-        this.shop.backButton.on((_isMobile)?"touchend":"mouseup",function(){
-            this.preventHeroJump--;
-            this.showShop();
-        }.bind(this));
-
         //Prepare actual content for the upgrades and store
         this.prepareShopContent();
 
@@ -2002,6 +1982,34 @@ var SoaringSheepGame = function(){
         this.playGamesMenu.on((_isMobile)?"touchend":"mouseup",function(){
             this.preventHeroJump++;
         }.bind(this));
+
+        /* Back button */
+        textOpt4 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0x90a4ae",
+            letterSpacing: 5,
+            padding:10,
+            align: 'center',
+            fontSize: 25
+        };
+
+        this.backButton = new PIXI.Container();
+        this.backButton.icon = this.sprites.icons["back"];
+        this.backButton.icon.alpha = 1;
+        this.backButton.icon.position.set(this.canvasWidth-80,this.canvasHeight-100);
+
+        this.backButton.text = new PIXI.Text("BACK",textOpt4);
+        this.backButton.text.anchor.set(0.5,0.5);
+        this.backButton.text.position.set(this.canvasWidth-80,this.canvasHeight-39);
+
+        this.backButton.addChild(this.backButton.icon);
+        this.backButton.addChild(this.backButton.text);
+
+        this.backButton.interactive = true;
+        this.backButton.buttonMode = true;
+        this.backButton.on((_isMobile)?"touchend":"mouseup", this.closeAllMenus.bind(this));
+
+        this.backButton.visible = false;
     };
 
 	this.allAssetsLoaded = function(){
@@ -2060,7 +2068,7 @@ var SoaringSheepGame = function(){
 			this.loadOptions();
 
 			//Fade In Animation
-			this.fadeObjects = [sheep, speech_bubble, this.infoOverlay, this.playGamesMenu, this.shop, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton, this.webButton, this.shopButton];
+			this.fadeObjects = [sheep, speech_bubble, this.infoOverlay, this.playGamesMenu, this.shop, this.muteMusicButton, this.muteFXButton, this.infoButton, this.gamesButton, this.webButton, this.shopButton, this.backButton];
                 //in order of intended z-index
 
 			for(i=0;i<this.fadeObjects.length;i++){
@@ -2250,6 +2258,9 @@ var SoaringSheepGame = function(){
 
         this.shop.visible = false;
         stage.addChild(this.shop);
+
+        this.backButton.visible = false;
+        stage.addChild(this.backButton);
 
 		//ADD BUTTONS
 		//..GRAPHICS FOR BUTTONS IS DONE IN INITIALISATION FOR PERFORMANCE
@@ -2779,8 +2790,14 @@ var SoaringSheepGame = function(){
         else{
             this.togglePause(true);
 
+            this.closeAllMenus();
+
             this.shop.visible = true;
             this.switchShopTab(this.shopTabNames[0]);
+
+            this.backButton.icon.tint = 0x455a64;
+            this.backButton.text.style.fill = 0x455a64;
+            this.backButton.visible = true;
         }
 
         renderer.render(stage);
@@ -3271,10 +3288,14 @@ var SoaringSheepGame = function(){
             this.togglePause(false);
         }
         else{
+            this.closeAllMenus();
+
             this.infoOverlay.alpha = 1;
 
             this.infoOverlay.buttonMode = true;
             this.infoOverlay.interactive = true;
+
+            this.backButton.visible = true;
 
             this.togglePause(true);
         }
@@ -3471,13 +3492,15 @@ var SoaringSheepGame = function(){
             }
             //*/
 
+            this.closeAllMenus();
+
             //Make menu appear, and pause game
             this.playGamesMenu.alpha = 1;
             this.playGamesMenu.visible = true;
 
             this.playGamesMenu.profile.player_text.text = this.GooglePlayServices.player.name;
 
-            //this.pressPlayGamesButton("leaderboard");
+            this.backButton.visible = true;
 
             this.togglePause(true);
         }
@@ -3735,7 +3758,13 @@ var SoaringSheepGame = function(){
 		//this.newGame();
 	};
 
-    this.closeAllMenus = function(){
+    this.closeAllMenus = function(e){
+        if(typeof e == "object"){
+			if(e.type=="mouseup" || e.type=="touchend"){
+				this.preventHeroJump++;
+			}
+		}
+
         this.infoOverlay.buttonMode = false;
         this.infoOverlay.interactive = false;
         this.infoOverlay.alpha = 0;
@@ -3744,6 +3773,12 @@ var SoaringSheepGame = function(){
         this.playGamesMenu.visible = false;
 
         this.shop.visible = false;
+
+        this.backButton.icon.tint = 0x90a4ae;
+        this.backButton.text.style.fill = 0x90a4ae;
+        this.backButton.visible = false;
+
+        renderer.render(stage);
     }
 
     this.try_revive = function(){
