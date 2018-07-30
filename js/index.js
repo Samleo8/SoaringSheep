@@ -174,7 +174,7 @@ var SoaringSheepGame = function(){
 	}
 
     //Icons and Buttons
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings","restart","ad","shop","coin","back","share"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings","restart","ad","shop","coin","post","back"];
 
 	this.pauseButton;
 	this.muteMusicButton;
@@ -312,6 +312,7 @@ var SoaringSheepGame = function(){
     this.gameoverScreen;
     this.restartButton;
     this.reviveButton;
+    this.shareButton;
 
     this.tips = [
         "Did you know about the achievements under Google Play Games?",
@@ -846,7 +847,7 @@ var SoaringSheepGame = function(){
                             if(this.productData==null)
                                 text = "Buy 500 coins for $0.99";
                             else
-                                text = "Buy 500 coins for "+this.productData[i]["currency"]+""+this.productData[i]["priceAsDecimal"]
+                                text = "Buy 500 coins for "+this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"]
                             break;
                         default: break;
                     }
@@ -1679,6 +1680,45 @@ var SoaringSheepGame = function(){
         this.reviveButton.addChild(this.reviveButton.footnote);
 
         this.gameoverScreen.addChild(this.reviveButton);
+
+            //-Share Button
+        this.shareButton = new PIXI.Container();
+        this.shareButton.position.set(this.canvasWidth/2+280,(this.gameoverScreen.scoreText.y+this.gameoverScreen.highscoreText.y)/2-20);
+
+        this.shareButton.pseudoBg = new PIXI.Graphics();
+        this.shareButton.pseudoBg.beginFill(0x263238,0)
+            .drawCircle(0, 0,100)
+        .endFill();
+        this.shareButton.pseudoBg.alpha = 0;
+
+        this.shareButton.icon = this.sprites.icons["post"]; //weird bug where icons with names share and social are prevented from loading. possibly by adblocker
+        this.shareButton.icon.anchor.set(0.5,0.5);
+        this.shareButton.icon.scale.set(0.8,0.8);
+        this.shareButton.icon.tint = 0x263238;
+        this.shareButton.icon.alpha = 1;
+
+        textOpt3 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0x263238",
+            letterSpacing: 4,
+            align: 'center',
+            padding: 10,
+            fontSize: 20,
+        };
+
+        this.shareButton.text = new PIXI.Text("SHARE",textOpt3);
+        this.shareButton.text.anchor.set(0.5,0.5);
+        this.shareButton.text.position.set(this.shareButton.icon.x, this.shareButton.icon.y+60);
+
+        this.shareButton.addChild(this.shareButton.pseudoBg);
+        this.shareButton.addChild(this.shareButton.icon);
+        this.shareButton.addChild(this.shareButton.text);
+
+        this.shareButton.buttonMode = true;
+        this.shareButton.interactive = true;
+        this.shareButton.on((_isMobile)?"touchend":"mouseup",this.share_social.bind(this));
+
+        this.gameoverScreen.addChild(this.shareButton);
 
             //-Tips
         var textOpt4 = {
@@ -3442,8 +3482,7 @@ var SoaringSheepGame = function(){
                     };
 
                     //Close the play games menu
-                    this.playGamesMenu.alpha = 0;
-                    this.playGamesMenu.visible = false;
+                    this.closeAllMenus();
 
                     renderer.render(stage);
                 }.bind(Game),function(){
@@ -3860,6 +3899,32 @@ var SoaringSheepGame = function(){
 
         this._paused = false;
         this.togglePause(true);
+    }
+
+    this.share_social = function(){
+        var r;
+        var options = {
+          message: 'Can you beat my score of '+this.score+' on Soaring Sheep?', // not supported on some apps (Facebook, Instagram)
+          subject: 'Soaring Sheep Highscore', // fi. for email
+          url: 'https://play.google.com/store/apps/details?id=io.samleo8.SoaringSheep'
+          //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
+        };
+
+        if(typeof window.plugins != "undefined" && window.plugins != null){
+            window.plugins.socialsharing.shareWithOptions(options,
+            function(result){
+
+            },
+            function(err){
+                console.log(err);
+            });
+        }
+        else{
+            if(confirm("For now, you can only share your scores on the Android app. Click 'OK' to download it now!")){
+                this.gotoURL("https://play.google.com/store/apps/details?id=io.samleo8.SoaringSheep");
+            }
+
+        }
     }
 
 	this.loadOptions = function(){
