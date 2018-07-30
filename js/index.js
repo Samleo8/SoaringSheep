@@ -214,7 +214,7 @@ var SoaringSheepGame = function(){
     this.shopButton;
     this.shopTabNames = ["upgrades","accessories","coins"];
 
-    //Upgrades
+    //-Upgrades
     /* NOTE:
         - The name in this.upgrades refers to the variable name that will be incremented
         - Chances
@@ -293,15 +293,34 @@ var SoaringSheepGame = function(){
     }
     this.upgradesSection = {};
 
-    this.coinAdButton = null;
-    this.coinBuyButton = null;
-
-    //Powerups
+    //--Powerups
     this.powerupNames = ["coin","freeze","shield"];
     this.powerups;
     this.powerupChance = 0.3;
 
     this.noDeathChance = 0;
+
+    //-Skins and Accessories
+    /* NOTE:
+        - The name in this.skins refers to the name of the skin, hat or cape in this.animations or this.sprite
+        - "currency" is either coins or dollar
+        - "type" is either: skin, hat or cape (necklaces are under capes)
+    */
+    this.skins = {
+        "sheep_gold":{
+            "title":"Golden Sheep",
+            "desc":"Just a golden sheep",
+            "type":"skin",
+            "currency":"coins",
+            "cost":200,
+            "purchased":false,
+            "activated":false
+        }
+    }
+
+    //-Coins
+    this.coinAdButton = null;
+    this.coinBuyButton = null;
 
     //Pausing
 	this.pauseTime;
@@ -3013,7 +3032,99 @@ var SoaringSheepGame = function(){
         this.updateUpgradesPage();
 
         /* ACCESSORIES */
+        /* UPGRADES */
+        var totalAccessories = Object.keys(this.skins).length;
 
+        var contentHeight = this.shop.tabContent["accessories"].bg.height;
+
+        width = (this.canvasWidth)/Math.min(totalUpgrades,5);
+        height = contentHeight/2;
+        //height = contentHeight/Math.ceil(totalUpgrades/5);
+        cnt = 0;
+
+        for(i in this.skins){
+            break;
+            if(!this.skins.hasOwnProperty(i)) continue;
+
+            nm = i.toString();
+            data = this.skins[i];
+
+            this.upgradesSection[nm] = new PIXI.Container();
+
+            this.skinsSection[nm].position.set(width*(cnt%5),(cnt<5)?-5:(contentHeight/2-27));
+
+            this.skinsSection[nm].bg = new PIXI.Graphics();
+            this.skinsSection[nm].bg.lineStyle(1,0x263238,0.2)
+                .moveTo(0,20).lineTo(0,contentHeight-20);
+
+                //-Title
+            this.skinsSection[nm].title = new PIXI.Text(data["title"],textOpt3);
+            this.skinsSection[nm].title.anchor.set(0.5,0.5);
+            this.skinsSection[nm].title.position.set(width/2,60);
+
+                //-Desc
+            this.skinsSection[nm].desc = new PIXI.Text(data["desc"],textOpt4);
+            this.skinsSection[nm].desc.anchor.set(0.5,0.5);
+            this.skinsSection[nm].desc.position.set(width/2,130);
+
+                //-Button
+            this.skinsSection[nm].button = new PIXI.Container();
+
+            this.skinsSection[nm].button.position.set(width/2-buttonWidth/2, height-buttonHeight-62);
+
+            this.skinsSection[nm].button.icon = new PIXI.Sprite(this.sprites.icons["coin"].texture);
+            this.skinsSection[nm].button.icon.anchor.set(0.5,0.5);
+            this.skinsSection[nm].button.icon.scale.set(0.5,0.5);
+            this.skinsSection[nm].button.icon.position.set(iconPos,buttonHeight/2-2.5);
+            this.skinsSection[nm].button.icon.alpha = 1;
+            this.skinsSection[nm].button.icon.tint = 0xcfd8dc;
+
+            this.skinsSection[nm].button.background = new PIXI.Graphics();
+            this.skinsSection[nm].button.background.beginFill(0x263238,0.9)
+                .drawRect(0,0,buttonWidth,buttonHeight)
+            .endFill();
+
+            this.skinsSection[nm].button.pseudoBg = new PIXI.Graphics();
+            this.skinsSection[nm].button.pseudoBg.beginFill(0x263238,0)
+                .drawRect(-pseudoPaddX,-pseudoPaddY,buttonWidth+2*pseudoPaddX,buttonHeight+2*pseudoPaddY)
+            .endFill();
+
+            this.skinsSection[nm].button.text = new PIXI.Text(data["cost"]*(data["increment_count"]+1),textOpt);
+            this.skinsSection[nm].button.text.anchor.set(0.5,0.5);
+            this.skinsSection[nm].button.text.position.set(buttonWidth/2+iconPos/2-15, buttonHeight/2);
+
+            this.skinsSection[nm].button.interactive = true;
+            this.skinsSection[nm].button.buttonMode = true;
+            this.skinsSection[nm].button.on((_isMobile)?"touchend":"mouseup",this.performUpgrade.bind(this,nm));
+
+            this.skinsSection[nm].button.footnote = new PIXI.Text(footnoteText,textOpt2);
+            this.skinsSection[nm].button.footnote.anchor.set(0.5,0);
+            this.skinsSection[nm].button.footnote.position.set(buttonWidth/2, buttonHeight+10);
+
+            this.skinsSection[nm].button.overlay = new PIXI.Graphics();
+            this.skinsSection[nm].button.overlay.beginFill(0xb0bec5,0.75)
+                .drawRect(0,0,buttonWidth,buttonHeight)
+            .endFill();
+            this.skinsSection[nm].button.overlay.visible = false;
+
+            this.skinsSection[nm].button.addChild(this.skinsSection[nm].button.pseudoBg);
+            this.skinsSection[nm].button.addChild(this.skinsSection[nm].button.background);
+            this.skinsSection[nm].button.addChild(this.skinsSection[nm].button.icon);
+            this.skinsSection[nm].button.addChild(this.skinsSection[nm].button.text);
+            this.skinsSection[nm].button.addChild(this.skinsSection[nm].button.footnote);
+            this.skinsSection[nm].button.addChild(this.skinsSection[nm].button.overlay);
+
+            if(cnt) this.skinsSection[nm].addChild(this.skinsSection[nm].bg);
+            this.skinsSection[nm].addChild(this.skinsSection[nm].title);
+            this.skinsSection[nm].addChild(this.skinsSection[nm].desc);
+            this.skinsSection[nm].addChild(this.skinsSection[nm].button);
+
+            this.shop.tabContent["upgrades"].addChild(this.skinsSection[nm]);
+
+            cnt++;
+        }
+
+        this.updateUpgradesPage();
 
         /* COINS */
         buttonHeight = 105, buttonWidth = 335, padd = 100;
