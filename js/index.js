@@ -3,7 +3,7 @@
 
 var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
-var forceIsApp = true;
+var forceIsApp = false;
 
 var _isApp = null;
 var _isAndroid = null;
@@ -2774,7 +2774,7 @@ var SoaringSheepGame = function(){
 
         //Toggle shop visibility
         if(this.shop.visible){
-            this.shop.visible = false;
+            this.closeAllMenus();
         }
         else{
             this.togglePause(true);
@@ -3266,10 +3266,7 @@ var SoaringSheepGame = function(){
 
         //Toggle the display of the info page, along with the pausing
         if(this.infoOverlay.alpha){
-            this.infoOverlay.alpha = 0;
-
-            this.infoOverlay.buttonMode = false;
-            this.infoOverlay.interactive = false;
+            this.closeAllMenus();
 
             this.togglePause(false);
         }
@@ -3485,9 +3482,7 @@ var SoaringSheepGame = function(){
             this.togglePause(true);
         }
         else{
-            this.playGamesMenu.alpha = 0;
-            this.playGamesMenu.visible = false;
-            //this.togglePause(false);
+            this.closeAllMenus();
         }
 
         //Render the stage to show the info screen
@@ -3739,6 +3734,17 @@ var SoaringSheepGame = function(){
 		//RESTART GAME
 		//this.newGame();
 	};
+
+    this.closeAllMenus = function(){
+        this.infoOverlay.buttonMode = false;
+        this.infoOverlay.interactive = false;
+        this.infoOverlay.alpha = 0;
+
+        this.playGamesMenu.alpha = 0;
+        this.playGamesMenu.visible = false;
+
+        this.shop.visible = false;
+    }
 
     this.try_revive = function(){
         //Check to see if player can watch an ad to revive himself
