@@ -207,7 +207,7 @@ var SoaringSheepGame = function(){
 
     //Coins and Shop
     this.coins = 200;
-    this.coinIncAmt = 10;
+    this.coinIncAmt = 60;
 
     this.shop;
 
@@ -278,17 +278,7 @@ var SoaringSheepGame = function(){
             "increment_count":0,
             "type":"value",
             "cost":100,
-            "value":10
-        },
-        "coinIncAmt":{
-            "title":"Merchant",
-            "desc":"Increases the amount of coins earned per powerup",
-            "increment_value":10,
-            "max_increments":9,
-            "increment_count":0,
-            "type":"value",
-            "cost":200,
-            "value":10
+            "value":50
         }
     }
     this.upgradesSection = {};
@@ -344,7 +334,8 @@ var SoaringSheepGame = function(){
         "Coins can be used to upgrade or customise your sheep!",
         "Earn coins by watching ads or collecting them as powerups",
         "You can still die from running into a frozen spike, so watch out!",
-        "Reviving gives you an opportunity to crush your friends' highscores"
+        "Reviving gives you an opportunity to crush your friends' highscores",
+        "Every score above 10 gives you coins proportional to your score"
         //,"Taps in quick succession give your sheep a boost"
     ]
 
@@ -3875,6 +3866,10 @@ var SoaringSheepGame = function(){
         */
 
         //ADS
+        if(this.score>=10){
+            this.incCoins(Math.floor(1.5*this.score), true);
+        }
+
         if(this.score>=15){
             this.ads.showAd("rewardvideo","coins",10*getRandomInt(5,20));
         }
@@ -4086,6 +4081,16 @@ var SoaringSheepGame = function(){
                     nm = i.toString();
                     this[nm] = this.upgrades[nm].value;
                 }
+            }
+
+            if(window.localStorage.getItem("coins_powerup_promo1") && parseBoolean(window.localStorage["coins_powerup_promo1"]) ){
+                //Do nothing for now.
+            }
+            else if(window.localStorage["upgrades"] != null){
+                alert("Special Promotion!\nFrom 2-9Aug, for every coin powerup you collect, 50 extra coins will be awarded!");
+
+                this.upgrades = JSON.parse(window.localStorage["upgrades"]);
+                this.coinIncAmt += 50;
             }
 
             //Updates
