@@ -3480,6 +3480,7 @@ var SoaringSheepGame = function(){
                 oldHS = Math.min(sc,20);
                 this.highscore = Math.max(oldHS,this.highscore);
                 //If player has an existing highscore, this will ensure that the old highscore doesn't override the new one if the new one is higher
+                this.saveOptions("score");
             }.bind(Game));
 
             //Syncing Locally-stored and Cloud-stored scores
@@ -4177,15 +4178,23 @@ var SoaringSheepGame = function(){
 		if(window.localStorage){
 			this.highscore = Math.max(this.score,this.highscore);
 
-			if(opt=="all" || opt=="score") window.localStorage["highscore"] = this.highscore;
+			if(opt=="all" || opt=="score" || opt=="highscore")
+                window.localStorage["highscore"] = this.highscore;
 
-			if(opt=="all" || opt=="muteFX") window.localStorage["muteFX"] = this._FXMuted;
-			if(opt=="all" || opt=="muteMain") window.localStorage["muteMain"] = this._musicMuted;
-            if(opt=="all" || opt=="achievements" || opt=="achievement") window.localStorage["achievements"] = JSON.stringify(this.achievements);
+			if(opt=="all" || opt=="muteFX")
+                window.localStorage["muteFX"] = this._FXMuted;
 
-            if(opt=="all" || opt=="coins" || opt=="coin") window.localStorage["coins"] = this.coins;
+			if(opt=="all" || opt=="muteMain")
+                window.localStorage["muteMain"] = this._musicMuted;
 
-            if(opt=="all" || opt=="upgrades" || opt=="upgrade") window.localStorage["upgrades"] = JSON.stringify(this.upgrades);
+            if(opt=="all" || opt=="achievements" || opt=="achievement")
+                window.localStorage["achievements"] = JSON.stringify(this.achievements);
+
+            if(opt=="all" || opt=="coins" || opt=="coin")
+                window.localStorage["coins"] = this.coins;
+
+            if(opt=="all" || opt=="upgrades" || opt=="upgrade")
+                window.localStorage["upgrades"] = JSON.stringify(this.upgrades);
 		}
 		else{
 			console.log("WARNING: Browser does not support localStorage! Highscores, achievements and options will not be saved.");
