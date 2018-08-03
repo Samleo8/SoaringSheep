@@ -116,6 +116,7 @@ var SoaringSheepGame = function(){
 	this.hero = null;
     this.heroShield = null;
     this.heroJumpStrength = 5.5;
+    this.heroJumpStrength_small = 7.5;
 
     this.startingShield = false;
     this.shieldTimer;
@@ -174,7 +175,7 @@ var SoaringSheepGame = function(){
 	}
 
     //Icons and Buttons
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","restart","ad","shop","coin","post","back","left_arrow","right_arrow","tick","shirt"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","restart","ad","shop","coin","dollar","post","back","left_arrow","right_arrow","tick","shirt"];
 
 	this.pauseButton;
 	this.muteMusicButton;
@@ -293,7 +294,7 @@ var SoaringSheepGame = function(){
     //-Skins and Accessories
     /* NOTE:
         - The name in this.accessories refers to the name of the skin, hat or cape in this.animations or this.sprite
-        - "currency" is either coins or dollar
+        - "currency" is either coin or dollar
         - "type" is either: skin, hat or cape (necklaces are under capes)
     */
     this.accessories = {
@@ -301,7 +302,7 @@ var SoaringSheepGame = function(){
             "title":"Base Sheep",
             "desc":"Back to basics",
             "type":"skin",
-            "currency":"coins",
+            "currency":"coin",
             "cost":0,
             "purchased":true,
             "activated":true
@@ -310,17 +311,17 @@ var SoaringSheepGame = function(){
             "title":"Golden Sheep",
             "desc":"All that glitters is not gold.\nThen again, who cares - where else can you get a golden sheep?!?.",
             "type":"skin",
-            "currency":"coins",
+            "currency":"coin",
             "cost":200,
             "purchased":false,
             "activated":false
         },
-        "sheep_gold2":{
-            "title":"Pro Sheep",
-            "desc":"Something to buy with $$",
+        "little_lamb":{
+            "title":"Little Lamb",
+            "desc":"A cute little lamb.\n\nSmaller surface area, but jumping is harder to control",
             "type":"skin",
             "currency":"dollar",
-            "cost":0.99,
+            "cost":1.99,
             "purchased":false,
             "activated":false
         }
@@ -646,7 +647,7 @@ var SoaringSheepGame = function(){
         "upgrades":["coinIncAmt"],
         "achievements_single":["enhanced_once","max_upgrade"],
         "achievements_increment":["enhanced"],
-        "accessories":["sheep_gold2"]
+        "accessories":["little_lamb"]
     };
 
     this.partsForUpdate = {};
@@ -855,6 +856,7 @@ var SoaringSheepGame = function(){
         "updateButtons":function(){
             //-Check if purchases are available, if not, disable
             var i, buttons = [Game.coinBuyButton];
+            var accessoryButtonNames = [null];
             var btn;
             var disabled = false, text = "";
 
@@ -864,17 +866,30 @@ var SoaringSheepGame = function(){
                 if(!Game.accessories.hasOwnProperty(i)) continue;
                 acc = Game.accessories[i];
 
-                if(acc.currency == "dollar") buttons.push(Game.skinsSection[i.toString()].button);
+                if(acc.currency == "dollar"){       buttons.push(Game.skinsSection[i.toString()].button);
+                    accessoryButtonNames[buttons.length-1] = i.toString();
+                }
             }
 
             for(i=0;i<buttons.length;i++){
                 btn = buttons[i];
                 if(typeof btn == "undefined" || btn == null) continue;
 
-                if(typeof inAppPurchase == "undefined" || inAppPurchase==null){
+                if(btn!=Game.coinBuyButton){
+                    if(Game.accessories[accessoryButtonNames[i]].purchased){
+                        if(Game.accessories[accessoryButtonNames[i]].activated){
+                            disabled = true;
+                        }
+                        else{
+                            disabled = false;
+                        }
+                        text = "";
+                    }
+                }
+                else if(typeof inAppPurchase == "undefined" || inAppPurchase==null){
                     disabled = true;
 
-                    text = "Only available on the mobile app";
+                    text = "Only available\non the mobile app";
                 }
                 else if(!Game.isOnline){
                     disabled = true;
@@ -893,6 +908,7 @@ var SoaringSheepGame = function(){
                         default:
                             if(this.productData!=null){
                                 btn.text.text = this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"];
+                                btn.icon.visible = false;
                             }
                             break;
                     }
@@ -2564,7 +2580,7 @@ var SoaringSheepGame = function(){
         for(i=0;i<this.obstacles.children.length;i++){
             var obs = this.obstacles.children[i];
 
-            if(this.hitTest(this.hero,obs,15,20)){
+            if(this.hitTest(this.hero,obs,this.hero.sheep.width*0.25,this.hero.sheep.height*0.15)){
                 this.obstacles.removeChild(obs);
                 this.obstacleSectionActive[obs.section] = false;
 
@@ -3133,7 +3149,7 @@ var SoaringSheepGame = function(){
 
             //-Skins for sale
         width = (this.canvasWidth-2*navArrowWidth)/4;
-        height = contentHeight/2;
+        height = contentHeight;
         //height = contentHeight/Math.ceil(totalUpgrades/5);
         cnt = 0;
 
@@ -3150,6 +3166,17 @@ var SoaringSheepGame = function(){
         }
 
         var pageNo = 0;
+
+        textOpt4 = {
+            fontFamily: 'TimeBurnerBold',
+            fill: "0x263238",
+            letterSpacing: 1,
+            align: 'center',
+            padding: 10,
+            fontSize: 21,
+            wordWrap: true,
+            wordWrapWidth: width-80
+        };
 
         for(i in this.accessories){
             if(!this.accessories.hasOwnProperty(i)) continue;
@@ -3172,17 +3199,39 @@ var SoaringSheepGame = function(){
             this.skinsSection[nm].title.anchor.set(0.5,0.5);
             this.skinsSection[nm].title.position.set(width/2,60);
 
+                //-Preview Image
+            this.skinsSection[nm].img = new PIXI.Sprite();
+            this.skinsSection[nm].img.anchor.set(0.5,0.5);
+            this.skinsSection[nm].img.position.set(width/2,200);
+
+            switch(data["type"]){
+                case "skin":
+                    if(this.animations[nm]){
+                        this.skinsSection[nm].img.texture = this.animations[nm].frames[0];
+                        this.skinsSection[nm].img.scale.set(0.45,0.45);
+                    }
+                    else if(nm=="little_lamb"){
+                        this.skinsSection[nm].img.texture = this.animations["sheep_base"].frames[0];
+                        this.skinsSection[nm].img.scale.set(0.3,0.3);
+                    }
+                    break;
+                case "hat":
+                case "necklace":
+                    this.skinsSection[nm].img.texture = this.sprites[nm];
+                    break
+            }
+
                 //-Desc
             this.skinsSection[nm].desc = new PIXI.Text(data["desc"],textOpt4);
-            this.skinsSection[nm].desc.anchor.set(0.5,0.5);
-            this.skinsSection[nm].desc.position.set(width/2,130);
+            this.skinsSection[nm].desc.anchor.set(0.5,0);
+            this.skinsSection[nm].desc.position.set(width/2,320);
 
                 //-Button
             this.skinsSection[nm].button = new PIXI.Container();
 
-            this.skinsSection[nm].button.position.set(width/2-buttonWidth/2, height-buttonHeight-62);
+            this.skinsSection[nm].button.position.set(width/2-buttonWidth/2, height-buttonHeight-90);
 
-            this.skinsSection[nm].button.icon = new PIXI.Sprite(this.sprites.icons["coin"].texture);
+            this.skinsSection[nm].button.icon = new PIXI.Sprite(this.sprites.icons[data["currency"].toString()].texture);
             this.skinsSection[nm].button.icon.anchor.set(0.5,0.5);
             this.skinsSection[nm].button.icon.scale.set(0.5,0.5);
             this.skinsSection[nm].button.icon.position.set(iconPos,buttonHeight/2-2.5);
@@ -3226,6 +3275,7 @@ var SoaringSheepGame = function(){
 
             if(cnt) this.skinsSection[nm].addChild(this.skinsSection[nm].bg);
             this.skinsSection[nm].addChild(this.skinsSection[nm].title);
+            this.skinsSection[nm].addChild(this.skinsSection[nm].img);
             this.skinsSection[nm].addChild(this.skinsSection[nm].desc);
             this.skinsSection[nm].addChild(this.skinsSection[nm].button);
 
@@ -3542,7 +3592,7 @@ var SoaringSheepGame = function(){
         if(accessory == null || typeof accessory == "undefined") accessory = "sheep_base";
         if(type == null || typeof type == "undefined") return;
 
-        var data, currFrame;
+        var data, currFrame, scaleDir;
         if(this.accessories[accessory]){
             data = this.accessories[accessory];
 
@@ -3566,16 +3616,33 @@ var SoaringSheepGame = function(){
                 if(this.hero.sheep == null || typeof this.hero.sheep == "undefined"){
                     //Initializing of the sheep
 
-                    this.hero.sheep = new PIXI.extras.AnimatedSprite(this.animations[accessory].frames);
+                    this.hero.sheep = new PIXI.extras.AnimatedSprite(this.animations[((accessory=="little_lamb")?"sheep_base":accessory)].frames);
                     this.hero.sheep.animationSpeed = 0.15;
                     this.hero.sheep.loop = false;
                     this.hero.sheep.anchor.set(0.5);
-                    this.hero.sheep.scale.set(0.35,0.35);
+
+                    if(accessory == "little_lamb"){
+                        this.hero.sheep.scale.set(0.25,0.25);
+                        this.hero.jumpStrength = this.heroJumpStrength_small;
+                    } else{
+                        this.hero.sheep.scale.set(0.35,0.35);
+                        this.hero.jumpStrength = this.heroJumpStrength;
+                    }
                 }
                 else{
                     currFrame = this.hero.sheep.currentFrame;
-                    this.hero.sheep.textures = this.animations[accessory].frames;
+                    this.hero.sheep.textures = this.animations[((accessory=="little_lamb")?"sheep_base":accessory)].frames;
                     this.hero.sheep.gotoAndPlay(currFrame);
+
+                    scaleDir = (this.hero.sheep.scale.x<0)?-1:1;
+
+                    if(accessory == "little_lamb"){
+                        this.hero.sheep.scale.set(0.25*scaleDir,0.25);
+                        this.hero.jumpStrength = this.heroJumpStrength_small;
+                    } else{
+                        this.hero.sheep.scale.set(0.35*scaleDir,0.35);
+                        this.hero.jumpStrength = this.heroJumpStrength;
+                    }
                 }
 
                 data.activated = true;
@@ -3645,11 +3712,13 @@ var SoaringSheepGame = function(){
             if(data["purchased"]){
                 if(data["activated"]){
                     btn.text.text = "In Use";
+                    btn.icon.visible = true;
                     btn.icon.texture = this.sprites.icons["tick"].texture;
                     continue;
                 }
                 else{
                     btn.text.text = "Use";
+                    btn.icon.visible = true;
                     btn.icon.texture = this.sprites.icons["shirt"].texture;
                 }
             }
@@ -4414,8 +4483,6 @@ var SoaringSheepGame = function(){
                 for(j=0;j<this.updates[i].length;j++){
                     nm =this.updates[i][j];
 
-                    this.achievements = JSON.parse(window.localStorage["achievements"] );
-
                     switch(i){
                         case "achievements_single":
                             if(this.achievements["single"][nm]==null || typeof this.achievements["single"][nm] == "undefined")
@@ -4433,13 +4500,17 @@ var SoaringSheepGame = function(){
                             else{
                                 //It exists, now check if desc and title needs an update
                                 if(i=="accessories" || i=="upgrades"){
-                                    //if(this.partsForUpdate)
+                                    if(this[i][nm].title != this.partsForUpdate[i][nm].title){
+                                        this[i][nm].title = this.partsForUpdate[i][nm].title
+                                    }
+
+                                    if(this[i][nm].desc != this.partsForUpdate[i][nm].desc){
+                                        this[i][nm].desc = this.partsForUpdate[i][nm].desc
+                                    }
                                 }
                             }
                             break;
                     }
-
-                    this.partsForUpdate[i][nm];
                 }
             }
 		}
