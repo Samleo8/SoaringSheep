@@ -278,7 +278,7 @@ var SoaringSheepGame = function(){
             "increment_count":0,
             "type":"value",
             "cost":100,
-            "value":50
+            "value":10
         }
     }
     this.upgradesSection = {};
@@ -335,7 +335,8 @@ var SoaringSheepGame = function(){
         "Earn coins by watching ads or collecting them as powerups",
         "You can still die from running into a frozen spike, so watch out!",
         "Reviving gives you an opportunity to crush your friends' highscores",
-        "Every score above 10 gives you coins proportional to your score"
+        "Every score above 10 gives you coins proportional to your score",
+        "Complete achievements and earn coins!"
         //,"Taps in quick succession give your sheep a boost"
     ]
 
@@ -2770,6 +2771,7 @@ var SoaringSheepGame = function(){
             case 0:
             case "coin":
                 this.incCoins(this.coinIncAmt, true);
+                this.incCoins(50); //coin_powerup_promo1: remove after 9 Aug
                 break;
             //SHIELD
             case 1:
@@ -3467,12 +3469,15 @@ var SoaringSheepGame = function(){
             this.GooglePlayServices.fetchPlayerData();
 
             //Syncing Locally-stored and Cloud-stored scores from old leaderboard
+            var oldHS = 0;
+
             window.plugins.playGamesServices.getPlayerScore({
                 "leaderboardId":"CgkI8sq82fwOEAIQAg" //old leaderboard ID
             }, function(result){
                 var sc = parseInt(result.playerScore);
-
-                this.highscore = Math.min(25,Math.max(this.highscore,sc));
+                oldHS = Math.min(sc,20);
+                this.highscore = Math.max(oldHS,this.highscore);
+                //If player has an existing highscore, this will ensure that the old highscore doesn't override the new one if the new one is higher
             }.bind(Game));
 
             //Syncing Locally-stored and Cloud-stored scores
@@ -4083,17 +4088,47 @@ var SoaringSheepGame = function(){
                 }
             }
 
-            if(window.localStorage.getItem("coins_powerup_promo1") && parseBoolean(window.localStorage["coins_powerup_promo1"]) ){
-                //Do nothing for now.
-            }
-            else if(window.localStorage["upgrades"] != null){
-                alert("Special Promotion!\nFrom 2-9Aug, for every coin powerup you collect, 50 extra coins will be awarded!");
+            if(!window.localStorage.getItem("achievements_coins_fix") || !parseBoolean(window.localStorage["achievements_coins_fix"]) ){
+                //Time to fix
+                if(window.localStorage["achievements"] != null){
+                    alert("In this latest update, all completed achievements earns you coins to use in the shop!");
+                    //Achievement obj exists, therefore need to give the coins accordingly
+                    for(i in this.achievements.single){
+                        if(!this.achievements.single.hasOwnProperty(i)) continue;
 
-                this.upgrades = JSON.parse(window.localStorage["upgrades"]);
-                this.coinIncAmt += 50;
+                        for(j=0;j<this.achievements.single[i].length;j++){
+                            if(this.achievements.single[i][j].complete){
+                                if(this.achievements.single[i][j].synced || typeof window.plugins == "undefined"){
+                                    //NOTE: if the achievement isn't synced, the coins inc will take care of itself in the auto-sync function, unless it's web-based, then it'll never be synced
+                                    this.incCoins(this.achievements.single[i][j].points,false);
+                                }
+                            }
+                        }
+
+                    }
+
+                    for(i in this.achievements.incremental){
+                        if(!this.achievements.incremental.hasOwnProperty(i)) continue;
+
+                        for(j=0;j<this.achievements.incremental[i].length;j++){
+                            if(this.achievements.incremental[i][j].complete){
+                                if(this.achievements.incremental[i][j].synced || typeof window.plugins == "undefined"){
+                                    //NOTE: if the achievement isn't synced, the coins inc will take care of itself in the auto-sync function
+                                    this.incCoins(this.achievements.incremental[i][j].points,false);
+                                }
+                            }
+                        }
+                    }
+                }
+                window.localStorage["achievements_coins_fix"] = true;
             }
 
             //Updates
+            if(!window.localStorage.getItem("coin_powerup_promo1") || !parseBoolean(window.localStorage["coin_powerup_promo1"]) ){
+                alert("Special Promotion!\nFrom 2-9 Aug, for every coin powerup you collect, 50 more coins than base will be added!");
+                window.localStorage["coin_powerup_promo1"] = true;
+            }
+
             var nm;
             for(i in this.updates){
                 if(!this.updates.hasOwnProperty(i)) continue;
@@ -4228,6 +4263,7 @@ var SoaringSheepGame = function(){
                 console.log("Achievement Unlocked: "+achData["name"]);
                 achData["synced"] = true;
                 Game.saveOptions("achievements");
+                this.incCoins(achData["points"],true);
             }, function(){
                 console.log("Failed to sync achievement");
                 achData["synced"] = false;
@@ -4255,6 +4291,8 @@ var SoaringSheepGame = function(){
             if(!syncing){
                 achData["completedSteps"] = Math.min(achData["completedSteps"]+steps,achData["totalSteps"]);
                 achData["completed"] = (achData["completedSteps"] == achData["totalSteps"]);
+
+                if(achData["completed"]) this.incCoins(achData["points"],true);
             }
 
             Game.saveOptions("achievements");
