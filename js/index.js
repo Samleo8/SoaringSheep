@@ -160,7 +160,7 @@ var SoaringSheepGame = function(){
 			"frames":[],
 			"totalFrames":7
 		}
-	};
+    };
 
 	this.sprites = {
 
@@ -312,6 +312,15 @@ var SoaringSheepGame = function(){
             "type":"skin",
             "currency":"coins",
             "cost":200,
+            "purchased":false,
+            "activated":false
+        },
+        "sheep_gold2":{
+            "title":"Pro Sheep",
+            "desc":"Something to buy with $$",
+            "type":"skin",
+            "currency":"dollar",
+            "cost":0.99,
             "purchased":false,
             "activated":false
         }
@@ -637,7 +646,7 @@ var SoaringSheepGame = function(){
         "upgrades":["coinIncAmt"],
         "achievements_single":["enhanced_once","max_upgrade"],
         "achievements_increment":["enhanced"],
-        //"accessories":[]
+        "accessories":["sheep_gold2"]
     };
 
     this.partsForUpdate = {};
@@ -849,6 +858,15 @@ var SoaringSheepGame = function(){
             var btn;
             var disabled = false, text = "";
 
+            //Must include buttons from accessories
+            var acc;
+            for(i in Game.accessories){
+                if(!Game.accessories.hasOwnProperty(i)) continue;
+                acc = Game.accessories[i];
+
+                if(acc.currency == "dollar") buttons.push(Game.skinsSection[i.toString()].button);
+            }
+
             for(i=0;i<buttons.length;i++){
                 btn = buttons[i];
                 if(typeof btn == "undefined" || btn == null) continue;
@@ -872,7 +890,11 @@ var SoaringSheepGame = function(){
                             else
                                 text = "Buy 500 coins for "+this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"]
                             break;
-                        default: break;
+                        default:
+                            if(this.productData!=null){
+                                btn.text.text = this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"];
+                            }
+                            break;
                     }
                 }
 
@@ -3641,6 +3663,8 @@ var SoaringSheepGame = function(){
             btn.interactive = true;
         }
 
+        this.purchases.updateButtons();
+
         this.saveOptions("accessories");
         renderer.render(stage);
     };
@@ -3724,9 +3748,6 @@ var SoaringSheepGame = function(){
             }, function(result){
                 var sc = parseInt(result.playerScore);
                 oldHS = Math.min(sc,20);
-                this.highscore = Math.max(oldHS,this.highscore);
-                //If player has an existing highscore, this will ensure that the old highscore doesn't override the new one if the new one is higher
-                this.saveOptions("score");
             }.bind(Game));
 
             //Syncing Locally-stored and Cloud-stored scores
@@ -3736,9 +3757,9 @@ var SoaringSheepGame = function(){
                 var sc = parseInt(result.playerScore);
                 console.log("Retrieved score: "+sc);
 
-                if(this.highscore > sc){
+                if(this.highscore > sc || oldHS > sc){
                     //Send the locally-stored highscore since it's the highest
-                    this.GooglePlayServices.sendScore(sc);
+                    this.GooglePlayServices.sendScore(Math.max(this.highscore,oldHS));
                 }
                 else if(this.highscore < sc){
                     //Locally store the Google Play highscore since it's the highest
@@ -4405,8 +4426,16 @@ var SoaringSheepGame = function(){
                                 this.achievements["incremental"][nm] = this.partsForUpdate[i][nm];
                             break;
                         default:
-                            if(this[i][nm]==null || typeof this[i][nm] == "undefined")
+                            if(this[i][nm]==null || typeof this[i][nm] == "undefined"){
+                                //Doesn't exist; create it
                                 this[i][nm] = this.partsForUpdate[i][nm];
+                            }
+                            else{
+                                //It exists, now check if desc and title needs an update
+                                if(i=="accessories" || i=="upgrades"){
+                                    //if(this.partsForUpdate)
+                                }
+                            }
                             break;
                     }
 
