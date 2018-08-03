@@ -2586,7 +2586,9 @@ var SoaringSheepGame = function(){
 	};
 
     this.incCoins = function(amt,sound){
-        this.coins+=amt;
+        if(amt == null || typeof amt == "undefined") return;
+
+        this.coins+=parseInt(amt);
 
         //Update coin amount on screen/shop
         if(this.shop && this.shop.coin_text)
@@ -2949,7 +2951,7 @@ var SoaringSheepGame = function(){
 
             this.upgradesSection[nm] = new PIXI.Container();
 
-            this.upgradesSection[nm].position.set(width*(cnt%5),(cnt<5)?-5:(contentHeight/2-27));
+            this.upgradesSection[nm].position.set(width*(cnt%5),(cnt<5)?-5:(contentHeight/2-25));
 
             this.upgradesSection[nm].bg = new PIXI.Graphics();
             this.upgradesSection[nm].bg.lineStyle(1,0x263238,0.2)
@@ -3552,7 +3554,7 @@ var SoaringSheepGame = function(){
         }.bind(Game));
 
         //GPlay.init();
-        renderer.render(stage);
+        if(renderer && stage) renderer.render(stage);
     }
 
     this.pressPlayGamesButton = function(button_name){
@@ -4088,10 +4090,11 @@ var SoaringSheepGame = function(){
                 }
             }
 
-            if(!window.localStorage.getItem("achievements_coins_fix") || !parseBoolean(window.localStorage["achievements_coins_fix"]) ){
+            if(!window.localStorage.getItem("achievements_coins_fix2") || !parseBoolean(window.localStorage["achievements_coins_fix2"]) ){
                 //Time to fix
                 if(window.localStorage["achievements"] != null){
                     alert("In this latest update, all completed achievements earns you coins to use in the shop!");
+
                     //Achievement obj exists, therefore need to give the coins accordingly
                     for(i in this.achievements.single){
                         if(!this.achievements.single.hasOwnProperty(i)) continue;
@@ -4119,8 +4122,11 @@ var SoaringSheepGame = function(){
                             }
                         }
                     }
+
+                    this.saveOptions("achievements");
+                    this.saveOptions("coins");
                 }
-                window.localStorage["achievements_coins_fix"] = true;
+                window.localStorage["achievements_coins_fix2"] = true;
             }
 
             //Updates
@@ -4135,6 +4141,8 @@ var SoaringSheepGame = function(){
 
                 for(j=0;j<this.updates[i].length;j++){
                     nm =this.updates[i][j];
+
+                    this.achievements = JSON.parse(window.localStorage["achievements"] );
 
                     switch(i){
                         case "achievements_single":
@@ -4263,7 +4271,7 @@ var SoaringSheepGame = function(){
                 console.log("Achievement Unlocked: "+achData["name"]);
                 achData["synced"] = true;
                 Game.saveOptions("achievements");
-                this.incCoins(achData["points"],true);
+                Game.incCoins( parseInt(achData["points"]) ,true);
             }, function(){
                 console.log("Failed to sync achievement");
                 achData["synced"] = false;
@@ -4291,8 +4299,6 @@ var SoaringSheepGame = function(){
             if(!syncing){
                 achData["completedSteps"] = Math.min(achData["completedSteps"]+steps,achData["totalSteps"]);
                 achData["completed"] = (achData["completedSteps"] == achData["totalSteps"]);
-
-                if(achData["completed"]) this.incCoins(achData["points"],true);
             }
 
             Game.saveOptions("achievements");
@@ -4310,6 +4316,7 @@ var SoaringSheepGame = function(){
                 achData["completedSteps_synced"] = (achData["completedSteps_synced"] == achData["totalSteps"]);
 
                 Game.saveOptions("achievements");
+                Game.incCoins( parseInt(achData["points"]) ,true);
             }, function(){
                 console.log("Failed to sync achievement");
             });
