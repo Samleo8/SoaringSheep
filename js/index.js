@@ -116,7 +116,7 @@ var SoaringSheepGame = function(){
 	this.hero = null;
     this.heroShield = null;
     this.heroJumpStrength = 5.5;
-    this.heroJumpStrength_small = 7.5;
+    this.heroJumpStrength_lamb = 7.5;
 
     this.startingShield = false;
     this.shieldTimer;
@@ -2330,7 +2330,7 @@ var SoaringSheepGame = function(){
 		this.hero.ax = 0;
 		this.hero.vy = 0;
 		this.hero.ay = 0.10;
-		this.hero.jumpStrength = this.heroJumpStrength;
+		this.hero.jumpStrength = (this.hero.scale.y>=0.35)?this.heroJumpStrength:this.heroJumpStrength_lamb;
 
 		this.preventHeroJump = 0;
 
@@ -2410,7 +2410,7 @@ var SoaringSheepGame = function(){
 		this.hero.ax = 0;
 		this.hero.vy = 0;
 		this.hero.ay = 0.10;
-		this.hero.jumpStrength = this.heroJumpStrength;
+		this.hero.jumpStrength = (this.hero.scale.y>=0.35)?this.heroJumpStrength:this.heroJumpStrength_lamb;;
 
         //--Hero's shield
         this.heroShield.position = this.hero.position;
@@ -3623,7 +3623,7 @@ var SoaringSheepGame = function(){
 
                     if(accessory == "little_lamb"){
                         this.hero.sheep.scale.set(0.25,0.25);
-                        this.hero.jumpStrength = this.heroJumpStrength_small;
+                        this.hero.jumpStrength = this.heroJumpStrength_lamb;
                     } else{
                         this.hero.sheep.scale.set(0.35,0.35);
                         this.hero.jumpStrength = this.heroJumpStrength;
@@ -3638,7 +3638,7 @@ var SoaringSheepGame = function(){
 
                     if(accessory == "little_lamb"){
                         this.hero.sheep.scale.set(0.25*scaleDir,0.25);
-                        this.hero.jumpStrength = this.heroJumpStrength_small;
+                        this.hero.jumpStrength = this.heroJumpStrength_lamb;
                     } else{
                         this.hero.sheep.scale.set(0.35*scaleDir,0.35);
                         this.hero.jumpStrength = this.heroJumpStrength;
