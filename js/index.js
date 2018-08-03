@@ -174,7 +174,7 @@ var SoaringSheepGame = function(){
 	}
 
     //Icons and Buttons
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","settings","restart","ad","shop","coin","post","back"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","restart","ad","shop","coin","post","back","left_arrow","right_arrow","tick","shirt"];
 
 	this.pauseButton;
 	this.muteMusicButton;
@@ -292,14 +292,23 @@ var SoaringSheepGame = function(){
 
     //-Skins and Accessories
     /* NOTE:
-        - The name in this.skins refers to the name of the skin, hat or cape in this.animations or this.sprite
+        - The name in this.accessories refers to the name of the skin, hat or cape in this.animations or this.sprite
         - "currency" is either coins or dollar
         - "type" is either: skin, hat or cape (necklaces are under capes)
     */
-    this.skins = {
+    this.accessories = {
+        "sheep_base":{
+            "title":"Base Sheep",
+            "desc":"Back to basics",
+            "type":"skin",
+            "currency":"coins",
+            "cost":0,
+            "purchased":true,
+            "activated":true
+        },
         "sheep_gold":{
             "title":"Golden Sheep",
-            "desc":"Just a golden sheep",
+            "desc":"All that glitters is not gold.\nThen again, who cares - where else can you get a golden sheep?!?.",
             "type":"skin",
             "currency":"coins",
             "cost":200,
@@ -307,6 +316,8 @@ var SoaringSheepGame = function(){
             "activated":false
         }
     }
+    this.skinsSection = {};
+    this.skinsPages = {};
 
     //-Coins
     this.coinAdButton = null;
@@ -625,7 +636,8 @@ var SoaringSheepGame = function(){
     this.updates = {
         "upgrades":["coinIncAmt"],
         "achievements_single":["enhanced_once","max_upgrade"],
-        "achievements_increment":["enhanced"]
+        "achievements_increment":["enhanced"],
+        //"accessories":[]
     };
 
     this.partsForUpdate = {};
@@ -1242,7 +1254,7 @@ var SoaringSheepGame = function(){
 			//-HERO
 			this.hero = new PIXI.Container();
 
-            this.setSkin("sheep_base");
+            this.setAllAccessories();
 
             this.hero.width = this.hero.sheep.width;
             this.hero.height = this.hero.sheep.height;
@@ -2045,13 +2057,15 @@ var SoaringSheepGame = function(){
         };
 
         this.backButton = new PIXI.Container();
+        this.backButton.position.set(this.canvasWidth-70,this.canvasHeight-100);
+
         this.backButton.icon = this.sprites.icons["back"];
         this.backButton.icon.alpha = 1;
-        this.backButton.icon.position.set(this.canvasWidth-80,this.canvasHeight-100);
+        this.backButton.icon.position.set(0,0);
 
         this.backButton.text = new PIXI.Text("BACK",textOpt4);
         this.backButton.text.anchor.set(0.5,0.5);
-        this.backButton.text.position.set(this.canvasWidth-80,this.canvasHeight-39);
+        this.backButton.text.position.set(-0.5,62);
 
         this.backButton.addChild(this.backButton.icon);
         this.backButton.addChild(this.backButton.text);
@@ -2858,11 +2872,19 @@ var SoaringSheepGame = function(){
     };
 
     this.switchShopTab = function(name){
-        var nm;
-
         //Upgrades buttons overlays
-        this.updateUpgradesPage();
-        this.updateCoinsPage();
+        switch(name){
+            case "upgrades":
+                this.updateUpgradesPage();
+                break;
+            case "accessories":
+                this.updateAccessoriesPage();
+                break;
+            case "coins":
+                this.updateCoinsPage();
+                break;
+            default: return;
+        }
 
         //Tab overlays
         for(i=0;i<this.shopTabNames.length;i++){
@@ -3027,26 +3049,97 @@ var SoaringSheepGame = function(){
         this.updateUpgradesPage();
 
         /* ACCESSORIES */
-        /* UPGRADES */
-        var totalAccessories = Object.keys(this.skins).length;
+        /* For accessories, there are multiple pages, so there are 2 columns of "left" and "right" buttons
+         * As a result, only 4 columns can fit inside the content page.
+        */
+
+        var totalAccessories = Object.keys(this.accessories).length;
+        var totalPages = Math.ceil(totalAccessories/4);
 
         var contentHeight = this.shop.tabContent["accessories"].bg.height;
 
-        width = (this.canvasWidth)/Math.min(totalUpgrades,5);
+            //-Navigation Arrows
+            var navArrowWidth = 150;
+            var navArrowHeight = contentHeight;
+        this.shop.navArrows = new PIXI.Container();
+
+        this.shop.navArrows.left = new PIXI.Container();
+        this.shop.navArrows.left.name = "left";
+
+        this.shop.navArrows.left.position.set(0,0);
+        this.shop.navArrows.left.bg = new PIXI.Graphics();
+        this.shop.navArrows.left.bg.beginFill(0x90a4ae,0.5)
+            .drawRect(0,0,navArrowWidth,navArrowHeight)
+        .endFill();
+
+        this.shop.navArrows.left.icon = this.sprites.icons.left_arrow;
+        this.shop.navArrows.left.icon.alpha = 0.6;
+        this.shop.navArrows.left.icon.scale.set(1.1,1.1);
+        this.shop.navArrows.left.icon.tint = 0x546e7a;
+        this.shop.navArrows.left.icon.position.set(navArrowWidth/2,navArrowHeight/2);
+
+        this.shop.navArrows.left.addChild(this.shop.navArrows.left.bg);
+        this.shop.navArrows.left.addChild(this.shop.navArrows.left.icon);
+
+        this.shop.navArrows.left.on((_isMobile)?"touchend":"mouseup",this.skinPagesNav.bind(this,"prev"));
+
+        this.shop.navArrows.addChild(this.shop.navArrows.left);
+
+        this.shop.navArrows.right = new PIXI.Container();
+        this.shop.navArrows.right.name = "right";
+
+        this.shop.navArrows.right.position.set(this.canvasWidth-navArrowWidth,0);
+        this.shop.navArrows.right.bg = new PIXI.Graphics();
+        this.shop.navArrows.right.bg.beginFill(0x90a4ae,0.5)
+            .drawRect(0,0,navArrowWidth,navArrowHeight)
+        .endFill();
+
+        this.shop.navArrows.right.icon = this.sprites.icons.right_arrow;
+        this.shop.navArrows.right.icon.alpha = 0.6;
+        this.shop.navArrows.right.icon.scale.set(1.1,1.1);
+        this.shop.navArrows.right.icon.tint = 0x546e7a;
+        this.shop.navArrows.right.icon.position.set(navArrowWidth/2,navArrowHeight/2);
+
+        this.shop.navArrows.right.addChild(this.shop.navArrows.right.bg);
+        this.shop.navArrows.right.addChild(this.shop.navArrows.right.icon);
+
+        this.shop.navArrows.right.on((_isMobile)?"touchend":"mouseup",this.skinPagesNav.bind(this,"next"));
+
+        this.shop.navArrows.addChild(this.shop.navArrows.right);
+
+        this.shop.tabContent["accessories"].addChild(this.shop.navArrows);
+
+            //-Skins for sale
+        width = (this.canvasWidth-2*navArrowWidth)/4;
         height = contentHeight/2;
         //height = contentHeight/Math.ceil(totalUpgrades/5);
         cnt = 0;
 
-        for(i in this.skins){
-            break;
-            if(!this.skins.hasOwnProperty(i)) continue;
+        this.skinsPages = {
+            "currPage":0,
+            "totalPages": totalPages,
+            "containers": []
+        };
+
+        for(i=0;i<this.skinsPages.totalPages;i++){
+            var c = new PIXI.Container();
+            this.skinsPages.containers.push(c);
+            this.shop.tabContent["accessories"].addChild(this.skinsPages.containers[i]);
+        }
+
+        var pageNo = 0;
+
+        for(i in this.accessories){
+            if(!this.accessories.hasOwnProperty(i)) continue;
+
+            pageNo = Math.floor(cnt/4);
 
             nm = i.toString();
-            data = this.skins[i];
+            data = this.accessories[i];
 
-            this.upgradesSection[nm] = new PIXI.Container();
+            this.skinsSection[nm] = new PIXI.Container();
 
-            this.skinsSection[nm].position.set(width*(cnt%5),(cnt<5)?-5:(contentHeight/2-27));
+            this.skinsSection[nm].position.set(navArrowWidth+width*(cnt%4),0);//((cnt%8)<4)?-5:(contentHeight/2-27));
 
             this.skinsSection[nm].bg = new PIXI.Graphics();
             this.skinsSection[nm].bg.lineStyle(1,0x263238,0.2)
@@ -3084,15 +3177,15 @@ var SoaringSheepGame = function(){
                 .drawRect(-pseudoPaddX,-pseudoPaddY,buttonWidth+2*pseudoPaddX,buttonHeight+2*pseudoPaddY)
             .endFill();
 
-            this.skinsSection[nm].button.text = new PIXI.Text(data["cost"]*(data["increment_count"]+1),textOpt);
+            this.skinsSection[nm].button.text = new PIXI.Text(data["cost"],textOpt);
             this.skinsSection[nm].button.text.anchor.set(0.5,0.5);
             this.skinsSection[nm].button.text.position.set(buttonWidth/2+iconPos/2-15, buttonHeight/2);
 
             this.skinsSection[nm].button.interactive = true;
             this.skinsSection[nm].button.buttonMode = true;
-            this.skinsSection[nm].button.on((_isMobile)?"touchend":"mouseup",this.performUpgrade.bind(this,nm));
+            this.skinsSection[nm].button.on((_isMobile)?"touchend":"mouseup",this.setAccessory.bind(this,nm,data["type"]));
 
-            this.skinsSection[nm].button.footnote = new PIXI.Text(footnoteText,textOpt2);
+            this.skinsSection[nm].button.footnote = new PIXI.Text("",textOpt2);
             this.skinsSection[nm].button.footnote.anchor.set(0.5,0);
             this.skinsSection[nm].button.footnote.position.set(buttonWidth/2, buttonHeight+10);
 
@@ -3114,12 +3207,12 @@ var SoaringSheepGame = function(){
             this.skinsSection[nm].addChild(this.skinsSection[nm].desc);
             this.skinsSection[nm].addChild(this.skinsSection[nm].button);
 
-            this.shop.tabContent["upgrades"].addChild(this.skinsSection[nm]);
+            this.skinsPages.containers[pageNo].addChild(this.skinsSection[nm]);
 
             cnt++;
         }
 
-        this.updateUpgradesPage();
+        this.updateAccessoriesPage();
 
         /* COINS */
         buttonHeight = 105, buttonWidth = 335, padd = 100;
@@ -3406,14 +3499,167 @@ var SoaringSheepGame = function(){
         this.shop.coin_text.text = this.coins;
     }
 
-    this.setSkin = function(skin){
-        if(skin == null || typeof skin == "undefined") skin = "sheep_base";
+    this.setAllAccessories = function(){
+        this.loadOptions();
 
-        this.hero.sheep = new PIXI.extras.AnimatedSprite(this.animations[skin].frames);
-        this.hero.sheep.animationSpeed = 0.15;
-        this.hero.sheep.loop = false;
-        this.hero.sheep.anchor.set(0.5);
-        this.hero.sheep.scale.set(0.35,0.35);
+        var i;
+        for(i in this.accessories){
+            if(!this.accessories.hasOwnProperty(i)) continue;
+
+            console.log(this.accessories);
+
+            if(this.accessories[i].activated){
+                this.setAccessory(i.toString(), this.accessories[i].type);
+            }
+        }
+
+        renderer.render(stage);
+    }
+
+    this.setAccessory = function(accessory,type){
+        if(accessory == null || typeof accessory == "undefined") accessory = "sheep_base";
+        if(type == null || typeof type == "undefined") return;
+
+        var data, currFrame;
+        if(this.accessories[accessory]){
+            data = this.accessories[accessory];
+
+            if(!data.purchased){
+                if(data.cost>this.coins){
+                    return;
+                }
+
+                this.coins-=data.cost;
+                this.saveOptions("coins");
+                data.purchased = true;
+            }
+
+            this.deactivateAccessories(type);
+        }
+        else return;
+
+        switch(type){
+            case "skin":
+            case "body":
+                if(this.hero.sheep == null || typeof this.hero.sheep == "undefined"){
+                    //Initializing of the sheep
+
+                    this.hero.sheep = new PIXI.extras.AnimatedSprite(this.animations[accessory].frames);
+                    this.hero.sheep.animationSpeed = 0.15;
+                    this.hero.sheep.loop = false;
+                    this.hero.sheep.anchor.set(0.5);
+                    this.hero.sheep.scale.set(0.35,0.35);
+                }
+                else{
+                    currFrame = this.hero.sheep.currentFrame;
+                    this.hero.sheep.textures = this.animations[accessory].frames;
+                    this.hero.sheep.gotoAndPlay(currFrame);
+                }
+
+                data.activated = true;
+                break;
+            case "necklace":
+            case "cape":
+                break;
+            case "hat":
+            case "cap":
+            case "headdress":
+                break;
+            default:
+                return;
+        }
+
+        this.updateAccessoriesPage();
+    }
+
+    this.deactivateAccessories = function(type){
+        var i, data;
+
+        switch(type){
+            case "skin":
+            case "body":
+                type = "skin";
+                break;
+            case "necklace":
+            case "cape":
+                type = "necklace";
+                break;
+            case "hat":
+            case "cap":
+            case "headdress":
+                type = "hat";
+                break;
+            default:
+                type = "all";
+                return;
+        }
+
+        for(i in this.accessories){
+            if(!this.accessories.hasOwnProperty(i)) continue;
+
+            data = this.accessories[i];
+            if(data.type == type || type=="all"){
+                data.activated = false;
+            }
+        }
+    }
+
+    this.updateAccessoriesPage = function(){
+        var i, nm, data, btn;
+
+        for(i in this.accessories){
+            if(!this.accessories.hasOwnProperty(i)) continue;
+
+            nm = i.toString();
+            data = this.accessories[i];
+
+            if(this.skinsSection[nm] == null || this.skinsSection[nm] == "undefined") return;
+            btn = this.skinsSection[nm].button;
+
+            btn.overlay.visible = true;
+            btn.buttonMode = false;
+            btn.interactive = false;
+
+            if(data["purchased"]){
+                if(data["activated"]){
+                    btn.text.text = "In Use";
+                    btn.icon.texture = this.sprites.icons["tick"].texture;
+                    continue;
+                }
+                else{
+                    btn.text.text = "Use";
+                    btn.icon.texture = this.sprites.icons["shirt"].texture;
+                }
+            }
+            else if(data["cost"]>this.coins){
+                //Too expensive
+                continue;
+            }
+
+            btn.overlay.visible = false;
+            btn.buttonMode = true;
+            btn.interactive = true;
+        }
+
+        this.saveOptions("accessories");
+        renderer.render(stage);
+    };
+
+    this.skinPagesNav = function(page){
+        if(page == null || typeof page == "undefined"){
+            page = 0;
+        }
+
+        if(page == "next"){
+            page = Math.min(this.skinsPages.totalPages,this.skinsPages.currPage+1);
+        }
+        else if(page == "prev" || page == "previous"){
+            page = Math.max(0,this.skinsPages.currPage-1);
+        }
+
+        console.log("Navigating to page: "+page);
+
+        renderer.render(stage);
     }
 
     this.showInfo = function(e){
@@ -4065,6 +4311,10 @@ var SoaringSheepGame = function(){
                 this.incCoins(0,false);
             }
 
+            if(window.localStorage["accessories"] != null){
+                this.accessories = JSON.parse(window.localStorage["accessories"]);
+            }
+
             if(window.localStorage.getItem("upgrades_fix") && parseBoolean(window.localStorage["upgrades_fix"]) ){
                 if(window.localStorage["upgrades"] != null){
                     this.upgrades = JSON.parse(window.localStorage["upgrades"]);
@@ -4195,6 +4445,9 @@ var SoaringSheepGame = function(){
 
             if(opt=="all" || opt=="upgrades" || opt=="upgrade")
                 window.localStorage["upgrades"] = JSON.stringify(this.upgrades);
+
+            if(opt=="all" || opt=="accessories" || opt=="accessory")
+                window.localStorage["accessories"] = JSON.stringify(this.accessories);
 		}
 		else{
 			console.log("WARNING: Browser does not support localStorage! Highscores, achievements and options will not be saved.");
