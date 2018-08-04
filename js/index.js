@@ -207,7 +207,7 @@ var SoaringSheepGame = function(){
 	this.nObstacleSections = 1;
 
     //Coins and Shop
-    this.coins = 200;
+    this.coins = 500;
     this.coinIncAmt = 60;
 
     this.shop;
@@ -4427,6 +4427,11 @@ var SoaringSheepGame = function(){
 		this._paused = true;
 		this.audio["die"].play();
 
+        //Crown Special Bonus
+        if(this.hero.hat.name == "crown"){
+            this.score += 1;
+        }
+
         //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
         if(this.isLoggedIn){
             var sc = this.score;
@@ -4476,11 +4481,6 @@ var SoaringSheepGame = function(){
             GPlay.sendScore(this.score, "highscore");
         }
         */
-
-        //Crown Special Bonus
-        if(this.hero.hat.name == "crown"){
-            this.score += 1;
-        }
 
         //ADS
         if(this.score>=10){
