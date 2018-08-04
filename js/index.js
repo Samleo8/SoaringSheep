@@ -676,8 +676,8 @@ var SoaringSheepGame = function(){
     this.updates = {
         "upgrades":["coinIncAmt"],
         "achievements_single":["enhanced_once","max_upgrade"],
-        "achievements_increment":["enhanced"],
-        "accessories":["little_lamb"]
+        "achievements_increment":["enhanced"]
+        //,"accessories":[]
     };
 
     this.partsForUpdate = {};
@@ -875,7 +875,7 @@ var SoaringSheepGame = function(){
     this.purchases = {
         "loaded":false,
         "appId":"io.samleo8.soaringsheep",
-        "productIdNames":["coins500"],
+        "productIdNames":["coins500","little_lamb"],
         "productIds":[],
         "productData":null,
         "checkAvail":function(){
@@ -976,7 +976,7 @@ var SoaringSheepGame = function(){
         },
         "buy":function(id){
             var i,j,ind=-1;
-            var self = this;
+            var self = this, success = false;
 
             if(!this.checkAvail()) return;
 
@@ -992,35 +992,68 @@ var SoaringSheepGame = function(){
                     continue;
                 }
             }
-            if(ind==-1) return;
+            if(ind==-1) return false;
 
             inAppPurchase.buy(self.productIds[ind].toLowerCase())
                 .then(function(data){
                     console.log(JSON.stringify(data));
 
-                    //TODO: Some verification of sorts
-                    //NOTE: The consume() function should only be called after purchasing consumable products, otherwise, you should skip this step
-                    switch(id){
-                        case "coins500":
-                            Game.incCoins(500,true);
-
-                            return inAppPurchase.consume(data.type, data.receipt, data.signature);
-                            break;
-                        default: return;
-                    }
+                    success = Game.purchases.giveReward(id,data);
                 })
                 .catch(function(err){
                     console.log(err);
                 });
+
+            return success;
         },
         "restore":function(){
+            //TODO: Make a proper restoration for purchases
+            var i, data, data2, id;
+            var self = this;
+
             inAppPurchase.restorePurchases()
-            .then(function (purchases) {
-                console.log(JSON.stringify(purchases));
-            })
+            .then(function (purchase_data) {
+                //console.log(JSON.stringify(purchase_data));
+
+                for(i=0;i<purchase_data.length;i++){
+                    data = purchase_data[i];
+                    if(data.state == 0){ //active
+                        data2 = {
+                            "receipt":data.receipt,
+                            "signature":data.signature,
+                            "type":data.productType,
+                        }
+
+                        id = data.productId.split("."+self.appId)[0];
+
+                        self.giveReward(id,data2);
+                    }
+                }
+            }.bind(self))
             .catch(function (err) {
                 console.log(err);
             });
+        },
+        "giveReward":function(id,data){
+            //Use this function to handle the rewarding of user with whatever item he made purchase for.
+
+            if(id==null || typeof id=="undefined") return;
+            if(data==null || typeof data=="undefined") return;
+
+            //TODO: Some verification of sorts
+            //NOTE: The consume() function should only be called after purchasing consumable products, otherwise, you should skip this step
+            switch(id){
+                case "coins500":
+                    Game.incCoins(500,true);
+
+                    return inAppPurchase.consume(data.type, data.receipt, data.signature);
+                case "little_lamb":
+                    Game.accessories[id].purchased = true;
+                    Game.setAccessory(id,"skin");
+                    return true;
+                default:
+                    return;
+            }
         }
     }
 
@@ -2159,6 +2192,12 @@ var SoaringSheepGame = function(){
         this.backButton = new PIXI.Container();
         this.backButton.position.set(this.canvasWidth-70,this.canvasHeight-100);
 
+        this.backButton.pseudoBg = new PIXI.Graphics();
+        this.backButton.pseudoBg.beginFill(0x263238,0)
+            .drawCircle(0,18,90)
+        .endFill();
+        this.backButton.pseudoBg.alpha = 0;
+
         this.backButton.icon = this.sprites.icons["back"];
         this.backButton.icon.alpha = 1;
         this.backButton.icon.position.set(0,0);
@@ -2167,6 +2206,7 @@ var SoaringSheepGame = function(){
         this.backButton.text.anchor.set(0.5,0.5);
         this.backButton.text.position.set(-0.5,62);
 
+        this.backButton.addChild(this.backButton.pseudoBg);
         this.backButton.addChild(this.backButton.icon);
         this.backButton.addChild(this.backButton.text);
 
@@ -2704,6 +2744,7 @@ var SoaringSheepGame = function(){
 
     this.incCoins = function(amt,sound){
         if(amt == null || typeof amt == "undefined") return;
+        if(sound == null || typeof sound == "undefined") sound = false;
 
         this.coins+=parseInt(amt);
 
@@ -2713,11 +2754,11 @@ var SoaringSheepGame = function(){
 
         this.saveOptions("coin");
 
-        if(sound){
+        if(sound && this.audio["coin"]){
             this.audio["coin"].play();
         }
 
-        renderer.render(stage);
+        if(renderer) renderer.render(stage);
     }
 
 	this.incScore = function(){
@@ -2890,7 +2931,7 @@ var SoaringSheepGame = function(){
             case 0:
             case "coin":
                 this.incCoins(this.coinIncAmt, true);
-                this.incCoins(50); //coin_powerup_promo1: remove after 9 Aug
+                this.incCoins(50, false); //coin_powerup_promo1: remove after 9 Aug
                 break;
             //SHIELD
             case 1:
@@ -3674,13 +3715,18 @@ var SoaringSheepGame = function(){
             data = this.accessories[accessory];
 
             if(!data.purchased){
-                if(data.cost>this.coins){
+                if(data.currency == "coin"){
+                    if(data.cost>this.coins){
+                        return;
+                    }
+
+                    this.incCoins(-data.cost);
+                    data.purchased = true;
+                }
+                else if(data.currency == "dollar"){
+                    this.purchases.buy(accessory.toString());
                     return;
                 }
-
-                this.coins-=data.cost;
-                this.saveOptions("coins");
-                data.purchased = true;
             }
 
             this.deactivateAccessories(type);
@@ -4743,7 +4789,7 @@ var SoaringSheepGame = function(){
                 console.log("Achievement Unlocked: "+achData["name"]);
                 achData["synced"] = true;
                 Game.saveOptions("achievements");
-                Game.incCoins( parseInt(achData["points"]) ,true);
+                Game.incCoins(parseInt(achData["points"]), false);
             }, function(){
                 console.log("Failed to sync achievement");
                 achData["synced"] = false;
@@ -4773,6 +4819,9 @@ var SoaringSheepGame = function(){
                 achData["completed"] = (achData["completedSteps"] == achData["totalSteps"]);
             }
 
+            if(achData["completed"])
+                Game.incCoins(parseInt(achData["points"]),false);
+
             Game.saveOptions("achievements");
 
             if(!window.plugins || !Game.isLoggedIn) return;
@@ -4788,7 +4837,6 @@ var SoaringSheepGame = function(){
                 achData["completedSteps_synced"] = (achData["completedSteps_synced"] == achData["totalSteps"]);
 
                 Game.saveOptions("achievements");
-                Game.incCoins( parseInt(achData["points"]) ,true);
             }, function(){
                 console.log("Failed to sync achievement");
             });
