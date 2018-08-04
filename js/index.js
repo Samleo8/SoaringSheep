@@ -335,6 +335,15 @@ var SoaringSheepGame = function(){
             "purchased":true,
             "activated":true
         },
+        "crown":{
+            "title":"Crown",
+            "desc":"Who's the king?\nI'm the king!",
+            "type":"hat",
+            "currency":"coin",
+            "cost":100,
+            "purchased":false,
+            "activated":false
+        },
         "no_cape":{
             "title":"Invisible\nCape",
             "desc":"An invisible cape!",
@@ -677,8 +686,8 @@ var SoaringSheepGame = function(){
     this.updates = {
         "upgrades":["coinIncAmt"],
         "achievements_single":["enhanced_once","max_upgrade"],
-        "achievements_increment":["enhanced"]
-        ,"accessories":["no_cape","no_hat"]
+        "achievements_increment":["enhanced"],
+        "accessories":["no_cape","no_hat","crown"]
     };
 
     this.partsForUpdate = {};
@@ -792,7 +801,6 @@ var SoaringSheepGame = function(){
                             case "coin":
                             case "coins":
                                 this.incCoins(self.reward_amount);
-                                this.saveOptions("coins");
                                 break;
                             default:
                                 return;
@@ -1203,8 +1211,7 @@ var SoaringSheepGame = function(){
                 nm = this.hatNames[i].toString();
                 this.sprites.hats[nm] = new PIXI.Sprite(resources["hat_"+nm].texture);
                 this.sprites.hats[nm].anchor.set(0.5);
-                this.sprites.hats[nm].scale.set(0.8,0.8);
-                this.sprites.hats[nm].alpha = 0;
+                this.sprites.hats[nm].scale.set(0.25,0.25);
                 this.sprites.hats[nm].tint = 0x90a4ae;
                 this.sprites.hats[nm].name = nm;
             }
@@ -1214,8 +1221,7 @@ var SoaringSheepGame = function(){
                 nm = this.capeNames[i].toString();
                 this.sprites.capes[nm] = new PIXI.Sprite(resources["cape_"+nm].texture);
                 this.sprites.capes[nm].anchor.set(0.5);
-                this.sprites.capes[nm].scale.set(0.8,0.8);
-                this.sprites.capes[nm].alpha = 0;
+                this.sprites.capes[nm].scale.set(0.25,0.25);
                 this.sprites.capes[nm].tint = 0x90a4ae;
                 this.sprites.capes[nm].name = nm;
             }
@@ -1892,9 +1898,7 @@ var SoaringSheepGame = function(){
             letterSpacing: 1,
             align: 'center',
             padding: 10,
-            fontSize: 30,
-            wordWrap: true,
-            wordWrapWidth: this.canvasWidth*0.75
+            fontSize: 30
         };
 
         this.gameoverScreen.tipText = new PIXI.Text("Tip: ",textOpt4);
@@ -2434,10 +2438,6 @@ var SoaringSheepGame = function(){
 		this.hero.x = this.canvasWidth/2;
 		this.hero.y = this.canvasHeight/2;
 
-        //-Hats and Capes Positions
-        this.hero.hat.anchor.set(0.5,0.5);
-        this.hero.hat.position.set(this.hero.width-10,-10);
-
         //-Set direction of all hero's children to the right
         for(i=0;i<this.hero.children.length;i++){
             this.hero.children[i].scale.x = Math.abs(this.hero.children[i].scale.x);
@@ -2520,6 +2520,11 @@ var SoaringSheepGame = function(){
         this.hero.visible = true;
         this.hero.x = this.canvasWidth/2;
 		this.hero.y = this.canvasHeight/2;
+
+        //-Hats and Capes Positions
+        this.hero.hat.anchor.set(0.5,0.5);
+        this.hero.hat.position.set(this.hero.width-10,-10);
+
         for(i=0;i<this.hero.children.length;i++){
             this.hero.children[i].scale.x = Math.abs(this.hero.children[i].scale.x);
         }
@@ -3340,8 +3345,8 @@ var SoaringSheepGame = function(){
                     break;
                 case "hat":
                 case "cape":
-                    if(this.sprites[nm]){
-                        this.skinsSection[nm].img.texture = this.sprites[nm];
+                    if(this.sprites.hats[nm]){
+                        this.skinsSection[nm].img.texture = this.sprites.hats[nm].texture;
                     }
                     else if(nm=="no_hat" || nm=="no_cape"){
 
@@ -3600,7 +3605,7 @@ var SoaringSheepGame = function(){
         data = this.upgrades[nm];
         var trueCost = parseInt(data["cost"]*(data["increment_count"]+1));
 
-        this.coins -= trueCost;
+        this.incCoins(-trueCost,false);
         this[nm] += data["increment_value"];
         this.upgrades[nm].value = this[nm];
         this.upgrades[nm].increment_count++;
@@ -3609,7 +3614,6 @@ var SoaringSheepGame = function(){
 
         this.updateUpgradesPage();
 
-        this.saveOptions("coins");
         this.saveOptions("upgrades");
 
         //ACHIEVEMENT:
@@ -3844,7 +3848,7 @@ var SoaringSheepGame = function(){
                     this.hero.cape.texture = PIXI.Texture.EMPTY;
                 }
                 else{
-                    this.hero.cape.texture = this.sprites.hats[accessory];
+                    this.hero.cape.texture = this.sprites.hats[accessory].texture;
                 }
 
                 data.activated = true;
@@ -3854,12 +3858,13 @@ var SoaringSheepGame = function(){
             case "headdress":
                 if(this.hero.hat == null || typeof this.hero.hat == "undefined"){
                     this.hero.hat = new PIXI.Sprite(PIXI.Texture.EMPTY);
+                    console.log("Set hat: ",this.hero.hat);
                 }
                 else if(accessory=="no_hat"){
                     this.hero.hat.texture = PIXI.Texture.EMPTY;
                 }
                 else{
-                    this.hero.hat.texture = this.sprites.hats[accessory];
+                    this.hero.hat.texture = this.sprites.hats[accessory].texture;
                 }
 
                 data.activated = true;
@@ -4687,7 +4692,6 @@ var SoaringSheepGame = function(){
                     }
 
                     this.saveOptions("achievements");
-                    this.saveOptions("coins");
                 }
             }
 
@@ -4854,6 +4858,8 @@ var SoaringSheepGame = function(){
                 console.log("Achievement Unlocked: "+achData["name"]);
                 achData["synced"] = true;
                 Game.saveOptions("achievements");
+
+                alert("Giving you "+achData["points"]+" coins for unlocking achievement: "+achData["name"]);
                 Game.incCoins(parseInt(achData["points"]), false);
             }, function(){
                 console.log("Failed to sync achievement");
@@ -4884,9 +4890,6 @@ var SoaringSheepGame = function(){
                 achData["completed"] = (achData["completedSteps"] == achData["totalSteps"]);
             }
 
-            if(achData["completed"])
-                Game.incCoins(parseInt(achData["points"]),false);
-
             Game.saveOptions("achievements");
 
             if(!window.plugins || !Game.isLoggedIn) return;
@@ -4899,9 +4902,14 @@ var SoaringSheepGame = function(){
             window.plugins.playGamesServices.incrementAchievement(data, function(){
                 console.log("Achievement "+achData["name"]+" incremented by "+steps+" steps");
                 achData["completedSteps_synced"] = Math.min(achData["completedSteps_synced"]+steps,achData["totalSteps"]);
-                achData["completedSteps_synced"] = (achData["completedSteps_synced"] == achData["totalSteps"]);
+                achData["synced"] = (achData["completedSteps_synced"] == achData["totalSteps"]);
 
                 Game.saveOptions("achievements");
+
+                if(achData["completed"] && achData["synced"]){
+                    Game.incCoins(parseInt(achData["points"]),false);
+                    alert("Giving you "+achData["points"]+" coins for unlocking achievement: "+achData["name"]);
+                }
             }, function(){
                 console.log("Failed to sync achievement");
             });
