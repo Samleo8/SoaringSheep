@@ -175,7 +175,7 @@ var SoaringSheepGame = function(){
 	}
 
     //Icons and Buttons
-	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","restart","ad","shop","coin","dollar","post","back","left_arrow","right_arrow","tick","shirt"];
+	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","restart","ad","shop","coin","dollar","post","back","left_arrow","right_arrow","shirt","tick","restore"];
 
 	this.pauseButton;
 	this.muteMusicButton;
@@ -327,7 +327,7 @@ var SoaringSheepGame = function(){
             "activated":false
         },
         "no_hat":{
-            "title":"Invisible Hat",
+            "title":"Invisible\nHat",
             "desc":"An invisible hat!",
             "type":"hat",
             "currency":"coin",
@@ -336,7 +336,7 @@ var SoaringSheepGame = function(){
             "activated":true
         },
         "no_cape":{
-            "title":"Invisible Cape",
+            "title":"Invisible\nCape",
             "desc":"An invisible cape!",
             "type":"cape",
             "currency":"coin",
@@ -362,6 +362,7 @@ var SoaringSheepGame = function(){
     //-Coins
     this.coinAdButton = null;
     this.coinBuyButton = null;
+    this.restorePurchasesButton = null;
 
     //Pausing
 	this.pauseTime;
@@ -677,7 +678,7 @@ var SoaringSheepGame = function(){
         "upgrades":["coinIncAmt"],
         "achievements_single":["enhanced_once","max_upgrade"],
         "achievements_increment":["enhanced"]
-        //,"accessories":[]
+        ,"accessories":["no_cape","no_hat"]
     };
 
     this.partsForUpdate = {};
@@ -885,7 +886,7 @@ var SoaringSheepGame = function(){
         },
         "updateButtons":function(){
             //-Check if purchases are available, if not, disable
-            var i, buttons = [Game.coinBuyButton];
+            var i, buttons = [Game.coinBuyButton,Game.restorePurchasesButton];
             var accessoryButtonNames = [null];
             var btn;
             var disabled = false, text = "";
@@ -905,7 +906,7 @@ var SoaringSheepGame = function(){
                 btn = buttons[i];
                 if(typeof btn == "undefined" || btn == null) continue;
 
-                if(btn!=Game.coinBuyButton){
+                if(btn!=Game.coinBuyButton && btn!=Game.restorePurchasesButton){
                     if(Game.accessories[accessoryButtonNames[i]].purchased){
                         if(Game.accessories[accessoryButtonNames[i]].activated){
                             disabled = true;
@@ -920,6 +921,7 @@ var SoaringSheepGame = function(){
                     disabled = true;
 
                     text = "Only available\non the mobile app";
+                    if(btn==Game.restorePurchasesButton) text = text.split("\n").join(" ");
                 }
                 else if(!Game.isOnline){
                     disabled = true;
@@ -929,6 +931,9 @@ var SoaringSheepGame = function(){
                 else{
                     disabled = false;
                     switch(btn){
+                        case Game.restorePurchasesButton:
+                            text = "";
+                            break;
                         case Game.coinBuyButton:
                             if(this.productData==null)
                                 text = "Buy 500 coins for $0.99";
@@ -937,6 +942,7 @@ var SoaringSheepGame = function(){
                             break;
                         default:
                             if(this.productData!=null){
+                                text = "";
                                 btn.text.text = this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"];
                                 btn.icon.visible = false;
                             }
@@ -1011,9 +1017,12 @@ var SoaringSheepGame = function(){
             var i, data, data2, id;
             var self = this;
 
+            if(!this.checkAvail()) return;
+
             inAppPurchase.restorePurchases()
             .then(function (purchase_data) {
                 //console.log(JSON.stringify(purchase_data));
+                console.log("Restoring Purchases...");
 
                 for(i=0;i<purchase_data.length;i++){
                     data = purchase_data[i];
@@ -2424,11 +2433,15 @@ var SoaringSheepGame = function(){
 		//HERO INITIALIZE
 		this.hero.x = this.canvasWidth/2;
 		this.hero.y = this.canvasHeight/2;
+
+        //-Hats and Capes Positions
+        this.hero.hat.anchor.set(0.5,0.5);
+        this.hero.hat.position.set(this.hero.width-10,-10);
+
+        //-Set direction of all hero's children to the right
         for(i=0;i<this.hero.children.length;i++){
             this.hero.children[i].scale.x = Math.abs(this.hero.children[i].scale.x);
         }
-
-        //-Hats and Capes Positions
 
         //--Speed and jump strength
 		this.hero.vx = this.maxSpeed;
@@ -3306,8 +3319,8 @@ var SoaringSheepGame = function(){
 
                 //-Title
             this.skinsSection[nm].title = new PIXI.Text(data["title"],textOpt3);
-            this.skinsSection[nm].title.anchor.set(0.5,0.5);
-            this.skinsSection[nm].title.position.set(width/2,60);
+            this.skinsSection[nm].title.anchor.set(0.5,0);
+            this.skinsSection[nm].title.position.set(width/2,45);
 
                 //-Preview Image
             this.skinsSection[nm].img = new PIXI.Sprite();
@@ -3420,7 +3433,7 @@ var SoaringSheepGame = function(){
         //-Coin Ad Button
         this.coinAdButton = new PIXI.Container();
 
-        this.coinAdButton.position.set(this.canvasWidth*2/3-buttonWidth/2,height/2);
+        this.coinAdButton.position.set(this.canvasWidth*2/3-buttonWidth/2,height/2+30);
 
         this.coinAdButton.background = new PIXI.Graphics();
         this.coinAdButton.background.beginFill(0x263238,0.9)
@@ -3470,7 +3483,7 @@ var SoaringSheepGame = function(){
         //-Coin Buy Button
         this.coinBuyButton = new PIXI.Container();
 
-        this.coinBuyButton.position.set(this.canvasWidth*1/3-buttonWidth/2,height/2);
+        this.coinBuyButton.position.set(this.canvasWidth*1/3-buttonWidth/2,this.coinAdButton.y);
 
         this.coinBuyButton.background = new PIXI.Graphics();
         this.coinBuyButton.background.beginFill(0x263238,0.9)
@@ -3516,6 +3529,58 @@ var SoaringSheepGame = function(){
         this.coinBuyButton.addChild(this.coinBuyButton.footnote);
 
         this.shop.tabContent["coins"].addChild(this.coinBuyButton);
+
+        //-Restore Purchases Button
+        pseudoPaddX = 100, pseudoPaddY = 55, buttonWidth = 500;
+
+        this.restorePurchasesButton = new PIXI.Container();
+
+        this.restorePurchasesButton.position.set(this.canvasWidth/2-buttonWidth/2,height*0.15);
+
+        this.restorePurchasesButton.background = new PIXI.Graphics();
+        this.restorePurchasesButton.background.beginFill(0x263238,0.9)
+            .drawRect(0,0,buttonWidth,buttonHeight)
+        .endFill();
+
+        this.restorePurchasesButton.pseudoBg = new PIXI.Graphics();
+        this.restorePurchasesButton.pseudoBg.beginFill(0x263238,0)
+            .drawRect(-pseudoPaddX,-pseudoPaddY,buttonWidth+2*pseudoPaddX,buttonHeight+2*pseudoPaddY)
+        .endFill();
+
+        this.restorePurchasesButton.icon = this.sprites.icons["restore"];
+        this.restorePurchasesButton.icon.anchor.set(0.5,0.5);
+        this.restorePurchasesButton.icon.scale.set(0.6,0.6);
+        this.restorePurchasesButton.icon.position.set(iconPos,buttonHeight/2);
+        this.restorePurchasesButton.icon.alpha = 1;
+        this.restorePurchasesButton.icon.tint = 0xcfd8dc;
+
+        this.restorePurchasesButton.text = new PIXI.Text("Restore Purchases",textOpt2);
+        this.restorePurchasesButton.text.anchor.set(0.5,0.5);
+        this.restorePurchasesButton.text.position.set(buttonWidth/2+iconPos/2, buttonHeight/2);
+
+        this.restorePurchasesButton.interactive = true;
+        this.restorePurchasesButton.buttonMode = true;
+        this.restorePurchasesButton.on((_isMobile)?"touchend":"mouseup",this.purchases.restore.bind(this.purchases));
+
+        this.restorePurchasesButton.overlay = new PIXI.Graphics();
+        this.restorePurchasesButton.overlay.beginFill(0xb0bec5,0.75)
+            .drawRect(0,0,buttonWidth,buttonHeight)
+        .endFill();
+        this.restorePurchasesButton.overlay.visible = false;
+
+        textOpt4 = Object.assign(textOpt4, {"wordWrapWidth": buttonWidth-10});
+        this.restorePurchasesButton.footnote = new PIXI.Text("",textOpt4);
+        this.restorePurchasesButton.footnote.anchor.set(0.5,0);
+        this.restorePurchasesButton.footnote.position.set(buttonWidth/2, buttonHeight+15);
+
+        this.restorePurchasesButton.addChild(this.restorePurchasesButton.pseudoBg);
+        this.restorePurchasesButton.addChild(this.restorePurchasesButton.background);
+        this.restorePurchasesButton.addChild(this.restorePurchasesButton.icon);
+        this.restorePurchasesButton.addChild(this.restorePurchasesButton.text);
+        this.restorePurchasesButton.addChild(this.restorePurchasesButton.overlay);
+        this.restorePurchasesButton.addChild(this.restorePurchasesButton.footnote);
+
+        this.shop.tabContent["coins"].addChild(this.restorePurchasesButton);
 
         this.updateCoinsPage();
 
