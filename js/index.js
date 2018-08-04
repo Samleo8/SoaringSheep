@@ -1289,6 +1289,17 @@ var SoaringSheepGame = function(){
                 this.animations[j].frames.push(resources[j+"_0"].texture);
             }
 
+			//LOAD AUDIO
+            //NOTE: Must be done first because when loadOptions() is called in setAllAccessories(), this.audio will be null
+			for(i=0;i<this.audioLib.length;i++){
+				nm = this.audioLib[i];
+				this.audio[nm] = resources["audio_"+nm].sound;
+				this.audio[nm].volume = this.audioVol[i];
+				this.audio[nm].defaultVolume = this.audioVol[i];
+			}
+			this.audio["main_music"].play({loop:true});
+			this.audio["main_music"].loop = true;
+
 			//-HERO
 			this.hero = new PIXI.Container();
 
@@ -1298,16 +1309,6 @@ var SoaringSheepGame = function(){
             this.hero.height = this.hero.sheep.height;
 
             this.hero.addChild(this.hero.sheep);
-
-			//LOAD AUDIO
-			for(i=0;i<this.audioLib.length;i++){
-				nm = this.audioLib[i];
-				this.audio[nm] = resources["audio_"+nm].sound;
-				this.audio[nm].volume = this.audioVol[i];
-				this.audio[nm].defaultVolume = this.audioVol[i];
-			}
-			this.audio["main_music"].play({loop:true});
-			this.audio["main_music"].loop = true;
 
 			this.allAssetsLoaded();
 		});
@@ -3572,13 +3573,13 @@ var SoaringSheepGame = function(){
     }
 
     this.setAllAccessories = function(){
-        this.loadOptions();
+        if(window.localStorage && window.localStorage.getItem("accessories")!=null){
+            this.accessories = JSON.parse(localStorage["accessories"]);
+        }
 
         var i;
         for(i in this.accessories){
             if(!this.accessories.hasOwnProperty(i)) continue;
-
-            console.log(this.accessories);
 
             if(this.accessories[i].activated){
                 this.setAccessory(i.toString(), this.accessories[i].type);
@@ -4015,7 +4016,7 @@ var SoaringSheepGame = function(){
 			this.muteMusicButton.getChildByName("music_on").alpha=1;
 			renderer.render(stage);
 
-			this.audio["main_music"].play();
+			if(this.audio["main_music"]) this.audio["main_music"].play();
 
 			this._musicMuted = false;
 		}
@@ -4024,7 +4025,7 @@ var SoaringSheepGame = function(){
 			this.muteMusicButton.getChildByName("music_on").alpha=0;
 			renderer.render(stage);
 
-			this.audio["main_music"].pause();
+			if(this.audio["main_music"]) this.audio["main_music"].pause();
 
 			this._musicMuted = true;
 		}
@@ -4055,7 +4056,7 @@ var SoaringSheepGame = function(){
 
 			for(i=0;i<this.audioLib.length;i++){
 				nm = this.audioLib[i];
-				if(nm == "main_music") continue;
+				if(nm == "main_music" || this.audio[nm]==null || typeof this.audio[nm] == "undefined") continue;
 
 				this.audio[nm].volume = this.audio[nm].defaultVolume;
 			}
@@ -4069,7 +4070,7 @@ var SoaringSheepGame = function(){
 
 			for(i=0;i<this.audioLib.length;i++){
 				nm = this.audioLib[i];
-				if(nm == "main_music") continue;
+				if(nm == "main_music" || this.audio[nm]==null || typeof this.audio[nm] == "undefined") continue;
 
 				this.audio[nm].volume = 0;
 			}
@@ -4379,7 +4380,7 @@ var SoaringSheepGame = function(){
 
 	this.loadOptions = function(){
 		if(window.localStorage){
-			if(window.localStorage["muteFX"] != null){
+			if(window.localStorage.getItem("muteFX") != null){
 				this.highscore = window.localStorage["highscore"];
 
 				this.toggleMuteFX(parseBoolean(window.localStorage["muteFX"]));
@@ -4391,21 +4392,21 @@ var SoaringSheepGame = function(){
 				this.toggleMuteMain(parseBoolean(this.defOptions["muteMain"]));
 			}
 
-            if(window.localStorage["achievements"] != null){
+            if(window.localStorage.getItem("achievements") != null){
                 this.achievements = JSON.parse(window.localStorage["achievements"]);
             }
 
-            if(window.localStorage["coins"] != null){
+            if(window.localStorage.getItem("coins") != null){
                 this.coins = parseInt(window.localStorage["coins"]);
                 //this.coins = Math.max(this.coins,200);
                 this.incCoins(0,false);
             }
 
-            if(window.localStorage["accessories"] != null){
+            if(window.localStorage.getItem("accessories") != null){
                 this.accessories = JSON.parse(window.localStorage["accessories"]);
             }
 
-            if(window.localStorage.getItem("upgrades_fix") && parseBoolean(window.localStorage["upgrades_fix"]) ){
+            if(window.localStorage.getItem("upgrades_fix")!=null && parseBoolean(window.localStorage["upgrades_fix"]) ){
                 if(window.localStorage["upgrades"] != null){
                     this.upgrades = JSON.parse(window.localStorage["upgrades"]);
 
@@ -4432,6 +4433,8 @@ var SoaringSheepGame = function(){
             }
 
             if(!window.localStorage.getItem("achievements_coins_fix2") || !parseBoolean(window.localStorage["achievements_coins_fix2"]) ){
+                window.localStorage["achievements_coins_fix2"] = true;
+
                 //Time to fix
                 if(window.localStorage["achievements"] != null){
                     alert("In this latest update, all completed achievements earns you coins to use in the shop!");
@@ -4442,7 +4445,7 @@ var SoaringSheepGame = function(){
 
                         for(j=0;j<this.achievements.single[i].length;j++){
                             if(this.achievements.single[i][j].complete){
-                                if(this.achievements.single[i][j].synced || typeof window.plugins == "undefined"){
+                                if(this.achievements.single[i][j].synced || !isApp()){
                                     //NOTE: if the achievement isn't synced, the coins inc will take care of itself in the auto-sync function, unless it's web-based, then it'll never be synced
                                     this.incCoins(this.achievements.single[i][j].points,false);
                                 }
@@ -4456,7 +4459,7 @@ var SoaringSheepGame = function(){
 
                         for(j=0;j<this.achievements.incremental[i].length;j++){
                             if(this.achievements.incremental[i][j].complete){
-                                if(this.achievements.incremental[i][j].synced || typeof window.plugins == "undefined"){
+                                if(this.achievements.incremental[i][j].synced || !isApp()){
                                     //NOTE: if the achievement isn't synced, the coins inc will take care of itself in the auto-sync function
                                     this.incCoins(this.achievements.incremental[i][j].points,false);
                                 }
@@ -4467,7 +4470,6 @@ var SoaringSheepGame = function(){
                     this.saveOptions("achievements");
                     this.saveOptions("coins");
                 }
-                window.localStorage["achievements_coins_fix2"] = true;
             }
 
             //Updates
