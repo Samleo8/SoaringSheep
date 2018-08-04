@@ -335,12 +335,21 @@ var SoaringSheepGame = function(){
             "purchased":true,
             "activated":true
         },
-        "crown":{
-            "title":"Crown",
-            "desc":"Who's the king?\nI'm the king!",
+        "top_hat":{
+            "title":"Top Hat",
+            "desc":"Fancy top hat for fancy chaps",
             "type":"hat",
             "currency":"coin",
             "cost":100,
+            "purchased":false,
+            "activated":false
+        },
+        "crown":{
+            "title":"Crown",
+            "desc":"Who's the king?\nI'm the king!\n\nBonus: +1 to final score",
+            "type":"hat",
+            "currency":"coin",
+            "cost":300,
             "purchased":false,
             "activated":false
         },
@@ -355,10 +364,13 @@ var SoaringSheepGame = function(){
         }
     }
 
+    this.accessoriesNames = [];
     this.hatNames = [];
     this.capeNames = [];
     for(ii in this.accessories){
         if(!this.accessories.hasOwnProperty(ii)) continue;
+        this.accessoriesNames.push(ii.toString());
+
         if(ii == "no_cape" || ii=="no_hat") continue;
 
         if(this.accessories[ii].type == "hat") this.hatNames.push(ii.toString());
@@ -399,7 +411,7 @@ var SoaringSheepGame = function(){
         "Every score above 10 gives you coins proportional to your score",
         "Complete achievements and earn coins!",
         "Hats and capes do not affect your sheep's hitbox",
-        "Some accessories have special abilities! Equip away!"  
+        "Some accessories have special abilities! Equip away!"
         //,"Taps in quick succession give your sheep a boost"
     ]
 
@@ -689,7 +701,7 @@ var SoaringSheepGame = function(){
         "upgrades":["coinIncAmt"],
         "achievements_single":["enhanced_once","max_upgrade"],
         "achievements_increment":["enhanced"],
-        "accessories":["no_cape","no_hat","crown"]
+        "accessories":["no_cape","no_hat","crown","top_hat"]
     };
 
     this.partsForUpdate = {};
@@ -3308,13 +3320,13 @@ var SoaringSheepGame = function(){
             wordWrapWidth: width-80
         };
 
-        for(i in this.accessories){
-            if(!this.accessories.hasOwnProperty(i)) continue;
+        for(j=0;j<this.accessoriesNames.length;j++){
+            i = this.accessoriesNames[j].toString();
 
             pageNo = Math.floor(cnt/4);
 
             nm = i.toString();
-            data = this.accessories[i];
+            data = this.accessories[nm];
 
             this.skinsSection[nm] = new PIXI.Container();
 
@@ -3816,7 +3828,6 @@ var SoaringSheepGame = function(){
                     this.hero.sheep.animationSpeed = 0.15;
                     this.hero.sheep.loop = false;
                     this.hero.sheep.anchor.set(0.5);
-                    this.hero.sheep.name = "hero_sheep";
 
                     if(accessory == "little_lamb"){
                         this.hero.sheep.scale.set(0.25,0.25);
@@ -3842,13 +3853,13 @@ var SoaringSheepGame = function(){
                     }
                 }
 
+                this.hero.sheep.name = accessory;
                 data.activated = true;
                 break;
             case "necklace":
             case "cape":
                 if(this.hero.cape == null || typeof this.hero.cape == "undefined"){
                     this.hero.cape = new PIXI.Sprite(((accessory=="no_cape")?PIXI.Texture.EMPTY:this.sprites.capes[accessory].texture));
-                    this.hero.cape.name = "hero_cape";
                 }
                 else if(accessory=="no_cape"){
                     this.hero.cape.texture = PIXI.Texture.EMPTY;
@@ -3857,6 +3868,7 @@ var SoaringSheepGame = function(){
                     this.hero.cape.texture = this.sprites.capes[accessory].texture;
                 }
 
+                this.hero.cape.name = accessory;
                 data.activated = true;
                 break;
             case "hat":
@@ -3869,8 +3881,6 @@ var SoaringSheepGame = function(){
                     this.hero.hat.angular_displacement = -0.05;
 
                     this.hero.hat.anchor.set(0.5,0.5);
-
-                    this.hero.hat.name = "hero_hat";
                 }
                 else if(accessory=="no_hat"){
                     this.hero.hat.texture = PIXI.Texture.EMPTY;
@@ -3879,6 +3889,7 @@ var SoaringSheepGame = function(){
                     this.hero.hat.texture = this.sprites.hats[accessory].texture;
                 }
 
+                this.hero.hat.name = accessory;
                 data.activated = true;
                 break;
             default:
@@ -4466,6 +4477,11 @@ var SoaringSheepGame = function(){
         }
         */
 
+        //Crown Special Bonus
+        if(this.hero.hat.name == "crown"){
+            this.score += 1;
+        }
+
         //ADS
         if(this.score>=10){
             this.incCoins(Math.floor(1.5*this.score), true);
@@ -4763,6 +4779,10 @@ var SoaringSheepGame = function(){
 
                                     if(this[i][nm].desc != this.partsForUpdate[i][nm].desc){
                                         this[i][nm].desc = this.partsForUpdate[i][nm].desc
+                                    }
+
+                                    if(this[i][nm].cost != this.partsForUpdate[i][nm].cost){
+                                        this[i][nm].cost = this.partsForUpdate[i][nm].cost
                                     }
                                 }
                             }
