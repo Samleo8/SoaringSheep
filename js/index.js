@@ -297,6 +297,7 @@ var SoaringSheepGame = function(){
         - "currency" is either coin or dollar
         - "type" is either: skin, hat or cape (necklaces are under capes)
     */
+
     this.accessories = {
         "sheep_base":{
             "title":"Base Sheep",
@@ -309,7 +310,7 @@ var SoaringSheepGame = function(){
         },
         "sheep_gold":{
             "title":"Golden Sheep",
-            "desc":"All that glitters is not gold.\nThen again, who cares - where else can you get a golden sheep?!?.",
+            "desc":"All that glitters is not gold.\n\nThen again, who cares - where else can you get a golden sheep?!?.",
             "type":"skin",
             "currency":"coin",
             "cost":200,
@@ -324,8 +325,37 @@ var SoaringSheepGame = function(){
             "cost":1.99,
             "purchased":false,
             "activated":false
+        },
+        "no_hat":{
+            "title":"Invisible Hat",
+            "desc":"An invisible hat!",
+            "type":"hat",
+            "currency":"coin",
+            "cost":0,
+            "purchased":true,
+            "activated":true
+        },
+        "no_cape":{
+            "title":"Invisible Cape",
+            "desc":"An invisible cape!",
+            "type":"cape",
+            "currency":"coin",
+            "cost":0,
+            "purchased":true,
+            "activated":true
         }
     }
+
+    this.hatNames = [];
+    this.capeNames = [];
+    for(ii in this.accessories){
+        if(!this.accessories.hasOwnProperty(ii)) continue;
+        if(ii == "no_cape" || ii=="no_hat") continue;
+
+        if(this.accessories[ii].type == "hat") this.hatNames.push(ii.toString());
+        else if(this.accessories[ii].type == "cape") this.capeNames.push(ii.toString());
+    }
+
     this.skinsSection = {};
     this.skinsPages = {};
 
@@ -1061,6 +1091,14 @@ var SoaringSheepGame = function(){
             this.loader.add("powerup_"+this.powerupNames[i].toString(),"img/powerups/"+this.powerupNames[i]+".png");
         }
 
+        for(i=0;i<this.hatNames.length;i++){
+            this.loader.add("hat_"+this.hatNames[i].toString(),"img/hats/"+this.hatNames[i]+".png");
+        }
+
+        for(i=0;i<this.capeNames.length;i++){
+            this.loader.add("cape_"+this.capeNames[i].toString(),"img/capes/"+this.capeNames[i]+".png");
+        }
+
 		for(i=0;i<this.iconNames.length;i++){
 			this.loader.add("icon_"+this.iconNames[i].toString(),"img/icons/"+this.iconNames[i]+".png");
 		}
@@ -1116,6 +1154,29 @@ var SoaringSheepGame = function(){
 			stage.addChild(this.sprites.background);
 
             var nm;
+
+            //HATS AND CAPES
+            this.sprites.hats = {};
+            for(i=0;i<this.hatNames.length;i++){
+                nm = this.hatNames[i].toString();
+                this.sprites.hats[nm] = new PIXI.Sprite(resources["hat_"+nm].texture);
+                this.sprites.hats[nm].anchor.set(0.5);
+                this.sprites.hats[nm].scale.set(0.8,0.8);
+                this.sprites.hats[nm].alpha = 0;
+                this.sprites.hats[nm].tint = 0x90a4ae;
+                this.sprites.hats[nm].name = nm;
+            }
+
+            this.sprites.capes = {};
+            for(i=0;i<this.capeNames.length;i++){
+                nm = this.capeNames[i].toString();
+                this.sprites.capes[nm] = new PIXI.Sprite(resources["cape_"+nm].texture);
+                this.sprites.capes[nm].anchor.set(0.5);
+                this.sprites.capes[nm].scale.set(0.8,0.8);
+                this.sprites.capes[nm].alpha = 0;
+                this.sprites.capes[nm].tint = 0x90a4ae;
+                this.sprites.capes[nm].name = nm;
+            }
 
             //POWERUPS
             this.sprites.powerups = {};
@@ -2327,6 +2388,9 @@ var SoaringSheepGame = function(){
             this.hero.children[i].scale.x = Math.abs(this.hero.children[i].scale.x);
         }
 
+        //-Hats and Capes Positions
+
+        //--Speed and jump strength
 		this.hero.vx = this.maxSpeed;
 		this.hero.ax = 0;
 		this.hero.vy = 0;
@@ -3121,6 +3185,8 @@ var SoaringSheepGame = function(){
         this.shop.navArrows.left.addChild(this.shop.navArrows.left.icon);
 
         this.shop.navArrows.left.on((_isMobile)?"touchend":"mouseup",this.skinPagesNav.bind(this,"prev"));
+        this.shop.navArrows.left.buttonMode = true;
+        this.shop.navArrows.left.interactive = true;
 
         this.shop.navArrows.addChild(this.shop.navArrows.left);
 
@@ -3143,6 +3209,8 @@ var SoaringSheepGame = function(){
         this.shop.navArrows.right.addChild(this.shop.navArrows.right.icon);
 
         this.shop.navArrows.right.on((_isMobile)?"touchend":"mouseup",this.skinPagesNav.bind(this,"next"));
+        this.shop.navArrows.right.buttonMode = true;
+        this.shop.navArrows.right.interactive = true;
 
         this.shop.navArrows.addChild(this.shop.navArrows.right);
 
@@ -3213,12 +3281,17 @@ var SoaringSheepGame = function(){
                     }
                     else if(nm=="little_lamb"){
                         this.skinsSection[nm].img.texture = this.animations["sheep_base"].frames[0];
-                        this.skinsSection[nm].img.scale.set(0.3,0.3);
+                        this.skinsSection[nm].img.scale.set(0.28,0.28);
                     }
                     break;
                 case "hat":
-                case "necklace":
-                    this.skinsSection[nm].img.texture = this.sprites[nm];
+                case "cape":
+                    if(this.sprites[nm]){
+                        this.skinsSection[nm].img.texture = this.sprites[nm];
+                    }
+                    else if(nm=="no_hat" || nm=="no_cape"){
+
+                    }
                     break
             }
 
@@ -3285,6 +3358,9 @@ var SoaringSheepGame = function(){
             cnt++;
         }
 
+        //First page by default
+        this.skinPagesNav(0);
+        //Update buttons
         this.updateAccessoriesPage();
 
         /* COINS */
@@ -3650,10 +3726,32 @@ var SoaringSheepGame = function(){
                 break;
             case "necklace":
             case "cape":
+                if(this.hero.cape == null || typeof this.hero.cape == "undefined"){
+                    this.hero.cape = new PIXI.Sprite(PIXI.Texture.EMPTY);
+                }
+                else if(accessory=="no_cape"){
+                    this.hero.cape.texture = PIXI.Texture.EMPTY;
+                }
+                else{
+                    this.hero.cape.texture = this.sprites.hats[accessory];
+                }
+
+                data.activated = true;
                 break;
             case "hat":
             case "cap":
             case "headdress":
+                if(this.hero.hat == null || typeof this.hero.hat == "undefined"){
+                    this.hero.hat = new PIXI.Sprite(PIXI.Texture.EMPTY);
+                }
+                else if(accessory=="no_hat"){
+                    this.hero.hat.texture = PIXI.Texture.EMPTY;
+                }
+                else{
+                    this.hero.hat.texture = this.sprites.hats[accessory];
+                }
+
+                data.activated = true;
                 break;
             default:
                 return;
@@ -3670,9 +3768,9 @@ var SoaringSheepGame = function(){
             case "body":
                 type = "skin";
                 break;
-            case "necklace":
             case "cape":
-                type = "necklace";
+            case "necklace":
+                type = "cape";
                 break;
             case "hat":
             case "cap":
@@ -3740,18 +3838,28 @@ var SoaringSheepGame = function(){
     };
 
     this.skinPagesNav = function(page){
+        var i;
+
         if(page == null || typeof page == "undefined"){
             page = 0;
         }
 
         if(page == "next"){
-            page = Math.min(this.skinsPages.totalPages,this.skinsPages.currPage+1);
+            page = Math.min(this.skinsPages.totalPages-1,this.skinsPages.currPage+1);
         }
         else if(page == "prev" || page == "previous"){
             page = Math.max(0,this.skinsPages.currPage-1);
         }
 
-        console.log("Navigating to page: "+page);
+        //Make all page containers invisible first
+        for(i=0;i<this.skinsPages.containers.length;i++){
+            this.skinsPages.containers[i].visible = false;
+        }
+
+        //Then make the page container that you want to navigate to visible.
+        this.skinsPages.containers[page].visible = true;
+
+        this.skinsPages.currPage = page;
 
         renderer.render(stage);
     }
