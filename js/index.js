@@ -58,6 +58,7 @@ var app = {
             //GPlay.noConnection = true;
             Game.isOnline = false;
             Game.ads.updateButtons();
+            Game.purchases.updateButtons();
         }
         else if(e.type == "online"){
             console.log("Yay! You are now back online!");
@@ -70,6 +71,7 @@ var app = {
             if(!Game.ads.types["rewardvideo"].loaded) Game.ads.init();
 
             Game.ads.updateButtons();
+            Game.purchases.updateButtons();
         }
     }
 };
@@ -310,7 +312,7 @@ var SoaringSheepGame = function(){
         },
         "sheep_gold":{
             "title":"Golden Sheep",
-            "desc":"All that glitters is not gold.\n\nThen again, who cares - where else can you get a golden sheep?!?.",
+            "desc":"All that glitters is not gold.\n\nThen again, who cares - Bonus +10 for every coin collected/earned!",
             "type":"skin",
             "currency":"coin",
             "cost":200,
@@ -363,6 +365,9 @@ var SoaringSheepGame = function(){
             "activated":true
         }
     }
+
+    this.goldenSheepBonus = 10;
+    this.crownBonus = 1;
 
     this.accessoriesNames = [];
     this.hatNames = [];
@@ -948,7 +953,7 @@ var SoaringSheepGame = function(){
                 else if(!Game.isOnline){
                     disabled = true;
 
-                    text = "Ad failed to load\nCheck your connection and try again";
+                    text = "Failed to load\nCheck your connection and try again";
                 }
                 else{
                     disabled = false;
@@ -2780,6 +2785,10 @@ var SoaringSheepGame = function(){
 
         this.coins+=parseInt(amt);
 
+        if(amt>0 && this.hero.sheep && this.hero.sheep.name == "sheep_gold"){
+            this.coins+=this.goldenSheepBonus;
+        }
+
         //Update coin amount on screen/shop
         if(this.shop && this.shop.coin_text)
             this.shop.coin_text.text = this.coins;
@@ -4429,7 +4438,7 @@ var SoaringSheepGame = function(){
 
         //Crown Special Bonus
         if(this.hero.hat.name == "crown"){
-            this.score += 1;
+            this.score += this.crownBonus;
         }
 
         //SEND HIGHSCORE IF PLAY GAMES AVAILABLE
