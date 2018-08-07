@@ -375,16 +375,16 @@ var SoaringSheepGame = function(){
         },
         "purple_cape":{
             "title":"Royal Cape",
-            "desc":"A cape the colour of the royalty!",
+            "desc":"A cape the colour of the royalty!\n\nBonus: Collect 10% tax on all coins earned!",
             "type":"cape",
-            "currency":"coin",
-            "cost":100,
+            "currency":"dollar",
+            "cost":0.99,
             "purchased":false,
             "activated":false
         },
         "black_cape":{
             "title":"Black Cape",
-            "desc":"Behold! The sheep of the night",
+            "desc":"Behold! The Dark Sheep.",
             "type":"cape",
             "currency":"coin",
             "cost":100,
@@ -393,7 +393,7 @@ var SoaringSheepGame = function(){
         },
         "white_cape":{
             "title":"White Cape",
-            "desc":"Sheep of the Light,\nShining Bright...\n\nBonus: 10% chance of not dying",
+            "desc":"Sheep of the Light,\nShining Bright...\n\nBonus: +10% chance of not dying",
             "type":"cape",
             "currency":"coin",
             "cost":500,
@@ -404,6 +404,8 @@ var SoaringSheepGame = function(){
 
     this.goldenSheepBonus = 10;
     this.crownBonus = 1;
+    this.whiteCapeBonus = 0.1;
+    this.royalCapeBonus = 0.1;
 
     this.accessoriesNames = [];
     this.hatNames = [];
@@ -939,7 +941,7 @@ var SoaringSheepGame = function(){
     this.purchases = {
         "loaded":false,
         "appId":"io.samleo8.soaringsheep",
-        "productIdNames":["coins500","little_lamb"],
+        "productIdNames":["coins500","little_lamb","royal_cape"],
         "productIds":[],
         "productData":null,
         "checkAvail":function(){
@@ -965,6 +967,8 @@ var SoaringSheepGame = function(){
                 }
             }
 
+            console.log(buttons);
+
             for(i=0;i<buttons.length;i++){
                 btn = buttons[i];
                 if(typeof btn == "undefined" || btn == null) continue;
@@ -978,13 +982,25 @@ var SoaringSheepGame = function(){
                             disabled = false;
                         }
                         text = "";
+
+                        btn.buttonMode = !disabled;
+                        btn.interactive = !disabled;
+                        btn.overlay.visible = disabled;
+                        btn.footnote.text = text;
+
+                        continue;
                     }
                 }
-                else if(typeof inAppPurchase == "undefined" || inAppPurchase==null){
+
+                if(typeof inAppPurchase == "undefined" || inAppPurchase==null){
                     disabled = true;
 
-                    text = "Only available\non the mobile app";
-                    if(btn==Game.restorePurchasesButton) text = text.split("\n").join(" ");
+                    if(btn==Game.restorePurchasesButton){
+                        text = "Only available on the mobile app";
+                    }
+                    else{
+                        text = "Only available\non the mobile app";
+                    }
                 }
                 else if(!Game.isOnline){
                     disabled = true;
@@ -1119,6 +1135,10 @@ var SoaringSheepGame = function(){
                     Game.incCoins(500,true);
 
                     return inAppPurchase.consume(data.type, data.receipt, data.signature);
+                case "little_lamb":
+                    Game.accessories[id].purchased = true;
+                    Game.setAccessory(id,"skin");
+                    return true;
                 case "little_lamb":
                     Game.accessories[id].purchased = true;
                     Game.setAccessory(id,"skin");
@@ -2822,8 +2842,14 @@ var SoaringSheepGame = function(){
 
         this.coins+=parseInt(amt);
 
-        if(amt>0 && this.hero.sheep && this.hero.sheep.name == "sheep_gold"){
-            this.coins+=this.goldenSheepBonus;
+        if(amt>0){
+            if(this.hero.sheep && this.hero.sheep.name == "sheep_gold"){
+                this.coins+=this.goldenSheepBonus;
+            }
+
+            if(this.hero.cape.name == "purple_cape"){
+                this.coins = this.coins*(1+this.royalCapeBonus);
+            }
         }
 
         //Update coin amount on screen/shop
@@ -4481,7 +4507,7 @@ var SoaringSheepGame = function(){
 	};
 
 	this.gameover = function(){
-        if(this.noDeathChance && Math.random()<=this.noDeathChance){
+        if( (this.noDeathChance || this.hero.cape.name == "purple_cape") && Math.random()<=(this.noDeathChance+this.whiteCapeBonus) ){
             //Just continue game
             requestAnimationFrame(this.update.bind(this));
 
