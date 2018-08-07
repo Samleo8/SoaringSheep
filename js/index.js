@@ -1022,7 +1022,6 @@ var SoaringSheepGame = function(){
                         default:
                             if(this.productData!=null){
                                 text = "";
-                                console.log(i,this.productData[i]);
 
                                 btn.text.text = this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"];
                                 btn.icon.visible = false;
