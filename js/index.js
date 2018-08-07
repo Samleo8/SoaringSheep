@@ -967,8 +967,6 @@ var SoaringSheepGame = function(){
                 }
             }
 
-            console.log(buttons);
-
             for(i=0;i<buttons.length;i++){
                 btn = buttons[i];
                 if(typeof btn == "undefined" || btn == null) continue;
@@ -3311,6 +3309,11 @@ var SoaringSheepGame = function(){
             var navArrowHeight = contentHeight;
         this.shop.navArrows = new PIXI.Container();
 
+        this.shop.navArrows.pageIndicator = new PIXI.Text("PAGE\n1 / 1",textOpt3);
+        this.shop.navArrows.pageIndicator.anchor.set(0.5,0);
+        this.shop.navArrows.pageIndicator.position.set(navArrowWidth/2,25);
+        this.shop.navArrows.addChild(this.shop.navArrows.pageIndicator);
+
         this.shop.navArrows.left = new PIXI.Container();
         this.shop.navArrows.left.name = "left";
 
@@ -4113,6 +4116,9 @@ var SoaringSheepGame = function(){
         this.skinsPages.containers[page].visible = true;
 
         this.skinsPages.currPage = page;
+
+        //Show on the page indicator
+        this.shop.navArrows.pageIndicator.text = "PAGE\n"+(this.skinsPages.currPage+1)+" / "+this.skinsPages.totalPages;
 
         renderer.render(stage);
     }
