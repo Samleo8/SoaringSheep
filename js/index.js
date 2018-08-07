@@ -951,7 +951,7 @@ var SoaringSheepGame = function(){
         },
         "updateButtons":function(){
             //-Check if purchases are available, if not, disable
-            var i, buttons = [Game.coinBuyButton,Game.restorePurchasesButton];
+            var i, buttons = [Game.coinBuyButton];
             var accessoryButtonNames = [null];
             var btn;
             var disabled = false, text = "";
@@ -966,6 +966,8 @@ var SoaringSheepGame = function(){
                     accessoryButtonNames[buttons.length-1] = i.toString();
                 }
             }
+
+            buttons.push(Game.restorePurchasesButton); //reason for this is to ensure that the productData index doesnt screw up
 
             for(i=0;i<buttons.length;i++){
                 btn = buttons[i];
@@ -1013,13 +1015,15 @@ var SoaringSheepGame = function(){
                             break;
                         case Game.coinBuyButton:
                             if(this.productData==null)
-                                text = "Buy 500 coins for $0.99";
+                                text = "Buy 500 coins\nfor $0.99";
                             else
-                                text = "Buy 500 coins for "+this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"]
+                                text = "Buy 500 coins\nfor "+this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"]
                             break;
                         default:
                             if(this.productData!=null){
                                 text = "";
+                                console.log(i,this.productData[i]);
+
                                 btn.text.text = this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"];
                                 btn.icon.visible = false;
                             }
