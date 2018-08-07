@@ -2850,6 +2850,8 @@ var SoaringSheepGame = function(){
             }
         }
 
+        this.coins = parseInt(this.coins);
+
         //Update coin amount on screen/shop
         if(this.shop && this.shop.coin_text)
             this.shop.coin_text.text = this.coins;
