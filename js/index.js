@@ -363,6 +363,42 @@ var SoaringSheepGame = function(){
             "cost":0,
             "purchased":true,
             "activated":true
+        },
+        "red_cape":{
+            "title":"Red Cape",
+            "desc":"The original red cape!",
+            "type":"cape",
+            "currency":"coin",
+            "cost":100,
+            "purchased":false,
+            "activated":false
+        },
+        "purple_cape":{
+            "title":"Royal Cape",
+            "desc":"A cape the colour of the royalty!",
+            "type":"cape",
+            "currency":"coin",
+            "cost":100,
+            "purchased":false,
+            "activated":false
+        },
+        "black_cape":{
+            "title":"Black Cape",
+            "desc":"Behold! The sheep of the night",
+            "type":"cape",
+            "currency":"coin",
+            "cost":100,
+            "purchased":false,
+            "activated":false
+        },
+        "white_cape":{
+            "title":"White Cape",
+            "desc":"Sheep of the Light,\nShining Bright...\n\nBonus: 10% chance of not dying",
+            "type":"cape",
+            "currency":"coin",
+            "cost":500,
+            "purchased":false,
+            "activated":false
         }
     }
 
@@ -706,7 +742,7 @@ var SoaringSheepGame = function(){
         "upgrades":["coinIncAmt"],
         "achievements_single":["enhanced_once","max_upgrade"],
         "achievements_increment":["enhanced"],
-        "accessories":["no_cape","no_hat","crown","top_hat"]
+        "accessories":["no_cape","no_hat","crown","top_hat","red_cape","purple_cape","black_cape","white_cape"]
     };
 
     this.partsForUpdate = {};
@@ -1437,6 +1473,7 @@ var SoaringSheepGame = function(){
             //this.hero.height = this.hero.sheep.height;
 
             this.hero.addChild(this.hero.sheep);
+            this.hero.addChild(this.hero.cape);
             this.hero.addChild(this.hero.hat);
 
 			this.allAssetsLoaded();
@@ -3371,6 +3408,10 @@ var SoaringSheepGame = function(){
                     if(this.sprites.hats[nm]){
                         this.skinsSection[nm].img.texture = this.sprites.hats[nm].texture;
                     }
+                    else if(this.sprites.capes[nm]){
+                        this.skinsSection[nm].img.scale.set(0.5,0.5);
+                        this.skinsSection[nm].img.texture = this.sprites.capes[nm].texture;
+                    }
                     else if(nm=="no_hat" || nm=="no_cape"){
 
                     }
@@ -3869,6 +3910,11 @@ var SoaringSheepGame = function(){
             case "cape":
                 if(this.hero.cape == null || typeof this.hero.cape == "undefined"){
                     this.hero.cape = new PIXI.Sprite(((accessory=="no_cape")?PIXI.Texture.EMPTY:this.sprites.capes[accessory].texture));
+
+                    this.hero.cape.displacement = -0.75;
+                    this.hero.cape.angular_displacement = 0;
+
+                    this.hero.cape.anchor.set(0.5,0.5);
                 }
                 else if(accessory=="no_cape"){
                     this.hero.cape.texture = PIXI.Texture.EMPTY;
@@ -3926,6 +3972,19 @@ var SoaringSheepGame = function(){
         }
 
         //Capes
+        if(this.hero.cape){
+            this.hero.cape.scale.x = this.hero.sheep.scale.x*0.7;
+            this.hero.cape.scale.y = this.hero.sheep.scale.y*0.7;
+
+            this.hero.cape.x = dir*(this.hero.sheep.width/2+this.hero.sheep.width*this.hero.cape.displacement);
+            this.hero.cape.y = -this.hero.sheep.height*0.19;
+
+            this.hero.cape.rotation = dir*this.hero.cape.angular_displacement;
+
+            this.hero.cape.rotation = this.hero.cape.angular_displacement;
+        }
+
+        if(renderer) renderer.render(stage);
     }
 
     this.deactivateAccessories = function(type){
