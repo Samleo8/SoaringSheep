@@ -373,9 +373,9 @@ var SoaringSheepGame = function(){
             "purchased":false,
             "activated":false
         },
-        "purple_cape":{
+        "royal_cape":{
             "title":"Royal Cape",
-            "desc":"A cape the colour of the royalty!\n\nBonus: Collect 10% tax on all coins earned!",
+            "desc":"All hail his excellecy,\nRoyal Sheep!\n\nBonus: Collect 10% tax on all coins earned!",
             "type":"cape",
             "currency":"dollar",
             "cost":0.99,
@@ -744,7 +744,7 @@ var SoaringSheepGame = function(){
         "upgrades":["coinIncAmt"],
         "achievements_single":["enhanced_once","max_upgrade"],
         "achievements_increment":["enhanced"],
-        "accessories":["no_cape","no_hat","crown","top_hat","red_cape","purple_cape","black_cape","white_cape"]
+        "accessories":["no_cape","no_hat","crown","top_hat","red_cape","royal_cape","black_cape","white_cape"]
     };
 
     this.partsForUpdate = {};
@@ -2847,7 +2847,7 @@ var SoaringSheepGame = function(){
                 this.coins+=this.goldenSheepBonus;
             }
 
-            if(this.hero.cape.name == "purple_cape"){
+            if(this.hero.cape.name == "royal_cape"){
                 this.coins = this.coins*(1+this.royalCapeBonus);
             }
         }
@@ -4507,7 +4507,7 @@ var SoaringSheepGame = function(){
 	};
 
 	this.gameover = function(){
-        if( (this.noDeathChance || this.hero.cape.name == "purple_cape") && Math.random()<=(this.noDeathChance+this.whiteCapeBonus) ){
+        if( (this.noDeathChance || this.hero.cape.name == "royal_cape") && Math.random()<=(this.noDeathChance+this.whiteCapeBonus) ){
             //Just continue game
             requestAnimationFrame(this.update.bind(this));
 
