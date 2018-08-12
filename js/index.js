@@ -3,7 +3,7 @@
 
 var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
-var forceIsApp = false;
+var forceIsApp = true;
 
 var _isApp = null;
 var _isAndroid = null;
@@ -3038,7 +3038,6 @@ var SoaringSheepGame = function(){
             case 0:
             case "coin":
                 this.incCoins(this.coinIncAmt, true);
-                this.incCoins(50, false); //coin_powerup_promo1: remove after 9 Aug
                 break;
             //SHIELD
             case 1:
@@ -4849,11 +4848,6 @@ var SoaringSheepGame = function(){
             }
 
             //Updates
-            if(!window.localStorage.getItem("coin_powerup_promo1") || !parseBoolean(window.localStorage["coin_powerup_promo1"]) ){
-                alert("Special Promotion!\nFrom 2-9 Aug, for every coin powerup you collect, 50 more coins than base will be added!");
-                window.localStorage["coin_powerup_promo1"] = true;
-            }
-
             var nm;
             for(i in this.updates){
                 if(!this.updates.hasOwnProperty(i)) continue;
