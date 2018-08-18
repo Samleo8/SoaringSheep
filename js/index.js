@@ -4808,6 +4808,11 @@ var SoaringSheepGame = function(){
                 }
             }
 
+		if(!window.localStorage.getItem("coins_reward1") || !parseBoolean(window.localStorage["coins_reward1"]) ){
+                window.localStorage["coins_reward1"] = true;
+                	this.incCoins(1000);
+		}
+
             if(!window.localStorage.getItem("achievements_coins_fix2") || !parseBoolean(window.localStorage["achievements_coins_fix2"]) ){
                 window.localStorage["achievements_coins_fix2"] = true;
 
