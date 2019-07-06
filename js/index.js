@@ -236,11 +236,11 @@ var SoaringSheepGame = function(){
         "noDeathChance":{
             "title":"Adrenaline",
             "desc":"Increases chance that you won't die from a spike",
-            "increment_value":0.05,
+            "increment_value":0.025,
             "max_increments":5,
             "increment_count":0,
             "type":"chance",
-            "cost":100,
+            "cost":250,
             "value":0
         },
         "shieldTimeInc":{
