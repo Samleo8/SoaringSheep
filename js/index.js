@@ -3,7 +3,7 @@
 
 var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
-var forceIsApp = true;
+var forceIsApp = false;
 
 var _isApp = null;
 var _isAndroid = null;
