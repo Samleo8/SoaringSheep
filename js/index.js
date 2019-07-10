@@ -4544,7 +4544,7 @@ var SoaringSheepGame = function(){
 	};
 
 	this.gameover = function(){
-        if( (this.noDeathChance || this.hero.cape.name == "royal_cape") && Math.random()<=(this.noDeathChance+this.whiteCapeBonus) ){
+        if( (this.noDeathChance || this.hero.cape.name == "royal_cape") && Math.random()<(this.noDeathChance+this.whiteCapeBonus) ){
             //Just continue game
             requestAnimationFrame(this.update.bind(this));
 
@@ -4583,6 +4583,21 @@ var SoaringSheepGame = function(){
         }
 
 		console.log("GAME OVER!\nScore: "+this.score+"\nHighscore: "+this.highscore+"\n");
+
+		//TELEGRAM: SEND SCORE OVER TO TELEGRAM BOT FOR PROCESSING
+		if(getIsTelegram()){
+			var playerid = (new URL(location.href)).searchParams.get("id");
+
+			// Submit highscore to Telegram via GET request
+			// TODO: Use POST instead
+			var xmlhttp = new XMLHttpRequest();
+
+			var url = "https://samstudiosbot.now.sh/highscore/SoaringSheep/"+score+"?id="+playerid;
+
+			xmlhttp.open("GET", url, true);
+
+			xmlhttp.send();
+		}
 
         //ACHIEVEMENT: SCORE/SCORE_TIMES
         for(i=0;i<this.achievements.single.score.length;i++){
