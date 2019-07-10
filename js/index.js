@@ -4592,7 +4592,7 @@ var SoaringSheepGame = function(){
 			// TODO: Use POST instead
 			var xmlhttp = new XMLHttpRequest();
 
-			var url = "https://samstudiosbot.now.sh/highscore/SoaringSheep/"+score+"?id="+playerid;
+			var url = "https://samstudiosbot.now.sh/highscore/SoaringSheep/"+ this.score + "?id="+playerid;
 
 			xmlhttp.open("GET", url, true);
 
