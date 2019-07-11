@@ -14,7 +14,7 @@ var Game;
 var GPlay;
 
 function getIsTelegram() {
-  return window.location.href.indexOf("id=")!=-1; 
+  return window.location.href.indexOf("?id=")!=-1;
 
   var qs = getQueryString();
   return !!qs.inlineId || !!qs.chatId || !!qs.messageId || !!qs.userId;
@@ -712,7 +712,7 @@ var SoaringSheepGame = function(){
             	'id': 'CgkI8sq82fwOEAIQGg',
             	'name': 'Strong Sheep - Clearly Addicted',
             	'points': 50,
-                'completedSteps': 0, 
+                'completedSteps': 0,
                 'completedSteps_synced': 0,
                 'totalSteps': 100,
             	'complete': false,
@@ -4588,7 +4588,6 @@ var SoaringSheepGame = function(){
 
 		//TELEGRAM: SEND SCORE OVER TO TELEGRAM BOT FOR PROCESSING
 		if(getIsTelegram()){
-
 			var playerid = (new URL(location.href)).searchParams.get("id");
 
 			// Submit highscore to Telegram via GET request
@@ -4596,10 +4595,9 @@ var SoaringSheepGame = function(){
 			var xmlhttp = new XMLHttpRequest();
 
 			var url = "https://samstudiosbot.now.sh/highscore/SoaringSheep/"+ this.score + "?id="+playerid;
-                        alert(playerid + " " + url);
+            alert(playerid + " " + url);
 
 			xmlhttp.open("GET", url, true);
-
 			xmlhttp.send();
 		}
 
