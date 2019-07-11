@@ -14,6 +14,8 @@ var Game;
 var GPlay;
 
 function getIsTelegram() {
+  return window.location.href.indexOf("id=")!=-1; 
+
   var qs = getQueryString();
   return !!qs.inlineId || !!qs.chatId || !!qs.messageId || !!qs.userId;
 }
