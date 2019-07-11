@@ -4567,7 +4567,7 @@ var SoaringSheepGame = function(){
 			var url = "https://samstudiosbot.now.sh/score";
 			var info = {
 				"score": this.score,
-				"playerID": playerid,
+				"id": playerid,
 				"game": "SoaringSheep"
 			}
 
