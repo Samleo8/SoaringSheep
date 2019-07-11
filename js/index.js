@@ -13,11 +13,6 @@ var _isMobile = false;
 var Game;
 var GPlay;
 
-function getIsTelegram() {
-	//return !!window.TelegramGameProxy;
-	return window.location.href.indexOf("id=")!=-1;
-}
-
 var app = {
     // Application Constructor
     initialize: function() {
@@ -4563,18 +4558,25 @@ var SoaringSheepGame = function(){
 		console.log("GAME OVER!\nScore: "+this.score+"\nHighscore: "+this.highscore+"\n");
 
 		//TELEGRAM: SEND SCORE OVER TO TELEGRAM BOT FOR PROCESSING
-		if(getIsTelegram()){
+		if(isTelegram()){
+			console.log("Current game is telegram!");
+
 			var playerid = (new URL(location.href)).searchParams.get("id");
 
-			// Submit highscore to Telegram via GET request
-			// TODO: Use POST instead
-			var xmlhttp = new XMLHttpRequest();
+			// Submit highscore to Telegram via POST request
+			var url = "https://samstudiosbot.now.sh/score";
+			var info = {
+				"score": this.score,
+				"playerID": playerid,
+				"game": "SoaringSheep"
+			}
 
-			var url = "https://samstudiosbot.now.sh/highscore/SoaringSheep/"+ this.score + "?id="+playerid;
-            alert(playerid + " " + url);
+			alert(JSON.stringify(info)+" "+url);
 
-			xmlhttp.open("GET", url, true);
-			xmlhttp.send();
+			var request = new window.XMLHttpRequest();
+			request.open('POST', url, true);
+			request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+			request.send(JSON.stringify(info))
 		}
 
         //ACHIEVEMENT: SCORE/SCORE_TIMES
@@ -5343,6 +5345,11 @@ function isApp(){
 function isAndroid(try_anyway){
     if(_isAndroid!=null && !try_anyway) return _isAndroid;
     else return _isAndroid=(isApp() && (device.platform.toUpperCase() === 'ANDROID'));
+}
+
+function isTelegram() {
+	return !!window.TelegramGameProxy;
+	//return window.location.href.indexOf("id=")!=-1;
 }
 
 function MobileCheck() {
