@@ -4573,12 +4573,22 @@ var SoaringSheepGame = function(){
 
 			alert(JSON.stringify(info)+" "+url);
 
+			//BUG: solve issue to do with cross origin
 			var request = new window.XMLHttpRequest();
-			request.open('POST', url, true);
-			request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-			request.send(JSON.stringify(info))
+			//request.withCredentials = true;
 
-			window.TelegramGameProxy.shareScore()
+			if ("withCredentials" in request){
+				// XHR has 'withCredentials' property only if it supports CORS
+				request.open('POST', url, true);
+
+				request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+				request.send(JSON.stringify(info))
+			} else if (typeof XDomainRequest != "undefined"){ // if IE use XDR
+				request = new XDomainRequest();
+				request.open(method, url);
+			} else {
+				alert("Unfortunately cannot send score to Telegram; browser not supported :(");
+			}
 		}
 
         //ACHIEVEMENT: SCORE/SCORE_TIMES
