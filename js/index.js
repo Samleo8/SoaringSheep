@@ -4577,6 +4577,8 @@ var SoaringSheepGame = function(){
 			request.open('POST', url, true);
 			request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 			request.send(JSON.stringify(info))
+
+			window.TelegramGameProxy.shareScore()
 		}
 
         //ACHIEVEMENT: SCORE/SCORE_TIMES
