@@ -4579,7 +4579,7 @@ var SoaringSheepGame = function(){
         for(i=this.powerups.children.length-1;i>=0;i--){
             this.powerups.removeChild(this.powerups.children[i]);
         }
-		
+
         //ADS
         if(this.score>=10){
             this.incCoins(Math.floor(1.5*this.score), true);
@@ -5317,11 +5317,6 @@ function isApp(){
 function isAndroid(try_anyway){
     if(_isAndroid!=null && !try_anyway) return _isAndroid;
     else return _isAndroid=(isApp() && (device.platform.toUpperCase() === 'ANDROID'));
-}
-
-function isTelegram() {
-	return !!window.TelegramGameProxy;
-	//return window.location.href.indexOf("id=")!=-1;
 }
 
 function MobileCheck() {
