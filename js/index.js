@@ -1197,7 +1197,8 @@ var SoaringSheepGame = function(){
             window.addEventListener("blur", this.appBlur.bind(this), false);
         }
 
-		renderer.view.addEventListener((_isMobile)?"touchend":"mouseup", this.heroJump.bind(this), false);
+		//renderer.view.addEventListener((_isMobile)?"touchend":"mouseup", this.heroJump.bind(this), false);
+		renderer.view.addEventListener((_isMobile)?"touchstart":"mousedown", this.heroJump.bind(this), false);
 
 		//LOAD IMAGES, FONTS AND MUSIC
 		this.loadFonts(); //(load fonts first to make sure start screen has proper fonts)
