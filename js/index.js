@@ -878,8 +878,8 @@ var SoaringSheepGame = function(){
 				case "reward":
 				case "rewardvideo":
 					type = "rewardvideo";
-					this.reward_type = (reward_type==null || typeof reward_type=="undefined")?"coins":reward_type;
-					this.reward_amount = (reward_amount==null || typeof reward_amount=="undefined")?(50*getRandomInt(1,5)):reward_amount;
+					this.reward_type = (reward_type==null)?"coins":reward_type;
+					this.reward_amount = (reward_amount==null)?(50*getRandomInt(1,5)):reward_amount;
 					break;
 				case "interstitial":
 				case "video":
@@ -1127,8 +1127,8 @@ var SoaringSheepGame = function(){
 		"giveReward":function(id,data){
 			//Use this function to handle the rewarding of user with whatever item he made purchase for.
 
-			if(id==null || typeof id=="undefined") return;
-			if(data==null || typeof data=="undefined") return;
+			if(id==null) return;
+			if(data==null) return;
 
 			//TODO: Some verification of sorts
 			//NOTE: The consume() function should only be called after purchasing consumable products, otherwise, you should skip this step
@@ -2837,8 +2837,8 @@ var SoaringSheepGame = function(){
 	};
 
 	this.incCoins = function(amt,sound){
-		if(amt == null || typeof amt == "undefined") return;
-		if(sound == null || typeof sound == "undefined") sound = false;
+		if(amt == null) return;
+		if(sound == null) sound = false;
 
 		this.coins+=parseInt(amt);
 
@@ -3020,9 +3020,6 @@ var SoaringSheepGame = function(){
 	};
 
 	this.collectPowerup = function(type_name){
-		if(type_name==null || typeof type_name == "undefined"){
-
-		}
 
 		var i;
 
@@ -3798,7 +3795,7 @@ var SoaringSheepGame = function(){
 	}
 
 	this.checkUpgradeAvailability = function(specific_nm){
-		var needCheck = (specific_nm != null && typeof specific_nm != "undefined");
+		var needCheck = (specific_nm != null);
 		var ret = true;
 
 		for(i in this.upgrades){
@@ -3874,8 +3871,8 @@ var SoaringSheepGame = function(){
 	}
 
 	this.setAccessory = function(accessory,type){
-		if(accessory == null || typeof accessory == "undefined") accessory = "sheep_base";
-		if(type == null || typeof type == "undefined") return;
+		if(accessory == null) accessory = "sheep_base";
+		if(type == null) return;
 
 		var data, currFrame, scaleDir;
 		if(this.accessories[accessory]){
@@ -3988,7 +3985,7 @@ var SoaringSheepGame = function(){
 	}
 
 	this.setAccessoriesPositions = function(dir){
-		if(dir == null || typeof dir == "undefined") dir = (this.hero.vx<0)?-1:1;
+		if(dir == null) dir = (this.hero.vx<0)?-1:1;
 
 		//Hats
 		if(this.hero.hat){
@@ -4098,7 +4095,7 @@ var SoaringSheepGame = function(){
 	this.skinPagesNav = function(page){
 		var i;
 
-		if(page == null || typeof page == "undefined"){
+		if(page == null){
 			page = 0;
 		}
 
@@ -4894,7 +4891,7 @@ var SoaringSheepGame = function(){
 	};
 
 	this.saveOptions = function(opt){
-		if(opt==null || typeof opt=="undefined"){
+		if(opt==null){
 			opt = "all";
 		}
 
