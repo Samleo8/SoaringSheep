@@ -3158,7 +3158,7 @@ var SoaringSheepGame = function(){
         var totalUpgrades = Object.keys(this.upgrades).length;
 
         var button;
-        var buttonHeight = 75, buttonWidth = 280, padd = 100;
+        var buttonHeight = 75, buttonWidth = 280;
         var pseudoPaddX = 15, pseudoPaddY = 55; //for making the button hitbox bigger
         var iconPos = 65;
 
@@ -3519,7 +3519,7 @@ var SoaringSheepGame = function(){
         this.updateAccessoriesPage();
 
         /* COINS */
-        buttonHeight = 105, buttonWidth = 335, padd = 100;
+        buttonHeight = 105, buttonWidth = 335;
         pseudoPaddX = 80, pseudoPaddY = 120; //for making the hitbox bigger
         iconPos = 65;
         textOpt2 = {
@@ -4037,7 +4037,6 @@ var SoaringSheepGame = function(){
                 type = "hat";
                 break;
             default:
-                type = "all";
                 return;
         }
 
