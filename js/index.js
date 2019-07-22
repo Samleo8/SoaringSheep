@@ -803,7 +803,7 @@ var SoaringSheepGame = function(){
 			if(!this.enabled) this.testing = true;
 			if(typeof admob=="undefined" || admob == null || !this.enabled) return;
 
-			var i,j,nm, opt, data;
+			var i, nm, opt, data;
 			for(i in self.types){
 				if(!self.types.hasOwnProperty(i)) continue;
 
@@ -1062,7 +1062,7 @@ var SoaringSheepGame = function(){
 			});
 		},
 		"buy":function(id){
-			var i,j,ind=-1;
+			var i, ind=-1;
 			var self = this, success = false;
 
 			if(!this.checkAvail()) return;
@@ -1072,7 +1072,6 @@ var SoaringSheepGame = function(){
 			if(typeof id=="undefined" || id==null) return;
 
 			//Check if ids are in array
-			var isValid = false;
 			for(i=0;i<this.productIdNames.length;i++){
 				if(this.productIdNames[i] == id){
 					ind = i;
@@ -2694,7 +2693,7 @@ var SoaringSheepGame = function(){
 	};
 
 	this.update = function(){
-		var i,j;
+		var i;
 
 		if(this._paused || !this._gameStarted) return;
 
@@ -2909,7 +2908,7 @@ var SoaringSheepGame = function(){
 		tempSprite.scale.set(0.2,0.2);
 		var padd = 5;
 		var obsSecWidth = tempSprite.width;
-		var startX, endX;
+		var startX;
 
 		for(i=1;i<=this.nObstacleSections;i++){
 			//Draw opacity rectangle to show where the obstacles will fall from
@@ -2997,7 +2996,6 @@ var SoaringSheepGame = function(){
 		if(Math.random()<=this.powerupChance){
 			//Add powerup
 			var type = getRandomInt(0,this.powerupNames.length-1);
-			var texture;
 
 			//console.log(this.powerupNames[type].split("_").join(" ").toUpperCase()+" powerup attached to spike!");
 			powerup = new PIXI.Sprite(this.sprites.powerups[this.powerupNames[type]].texture);
@@ -3089,8 +3087,6 @@ var SoaringSheepGame = function(){
 	this.showShop = function(e){
 		//alert("Work in progress... Watch out for the next update!");
 
-		var i,nm;
-
 		if(typeof e == "object"){
 			if(e.type=="mouseup" || e.type=="touchend"){
 				this.preventHeroJump++;
@@ -3154,7 +3150,6 @@ var SoaringSheepGame = function(){
 		/* UPGRADES */
 		var totalUpgrades = Object.keys(this.upgrades).length;
 
-		var button;
 		var buttonHeight = 75, buttonWidth = 280;
 		var pseudoPaddX = 15, pseudoPaddY = 55; //for making the button hitbox bigger
 		var iconPos = 65;
@@ -4123,7 +4118,6 @@ var SoaringSheepGame = function(){
 	}
 
 	this.showInfo = function(e){
-		var i,nm;
 
 		if(typeof e == "object"){
 			if(e.type=="mouseup" || e.type=="touchend"){
@@ -4159,7 +4153,7 @@ var SoaringSheepGame = function(){
 	this.initPlayGames = function(e){
 		console.log("Initializing Google Play Games...");
 
-		var i,j,k;
+		var i,j;
 
 		this.loadOptions();
 
@@ -4262,7 +4256,6 @@ var SoaringSheepGame = function(){
 	}
 
 	this.pressPlayGamesButton = function(button_name){
-		var i;
 
 		if(typeof button_name != "string") return;
 
@@ -4306,7 +4299,6 @@ var SoaringSheepGame = function(){
 	}
 
 	this.showPlayGamesMenu = function(e){
-		var i,nm;
 
 		if(typeof event == "object"){
 			if(e.type=="mouseup" || e.type=="touchend"){
@@ -4718,7 +4710,6 @@ var SoaringSheepGame = function(){
 	}
 
 	this.share_social = function(){
-		var r;
 		var options = {
 		  message: 'Can you beat my score of '+this.score+' on Soaring Sheep?', // not supported on some apps (Facebook, Instagram)
 		  subject: 'Soaring Sheep Highscore', // fi. for email
@@ -5068,9 +5059,6 @@ var SoaringSheepGame = function(){
 	this.hitTest = function(obj1, obj2, leewayX, leewayY, setAnchor){
 		if(typeof obj1.anchor!="undefined" && typeof obj2.anchor!="undefined" && setAnchor){
 			//Ensure both objects anchor points are centered
-			var an1 = obj1.anchor;
-			var an2 = obj2.anchor;
-
 			obj1.anchor.set(0.5); obj2.anchor.set(0.5);
 		}
 
