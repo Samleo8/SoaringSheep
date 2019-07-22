@@ -814,7 +814,7 @@ var SoaringSheepGame = function(){
 					id: data["id"],
 					isTesting: self.testing,
 					autoShow: data["autoShow"]
-				}
+				};
 
 				admob[nm].config(opt);
 				admob[nm].prepare();
@@ -1018,7 +1018,7 @@ var SoaringSheepGame = function(){
 							if(this.productData==null)
 								text = "Buy 500 coins\nfor $0.99";
 							else
-								text = "Buy 500 coins\nfor "+this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"]
+								text = "Buy 500 coins\nfor "+this.productData[i]["currency"]+" "+this.productData[i]["priceAsDecimal"];
 							break;
 						default:
 							if(this.productData!=null){
@@ -1162,7 +1162,7 @@ var SoaringSheepGame = function(){
 			resolution: window.devicePixelRatio,
 			autoResize: true,
 			backgroundColor: 0x90a4ae
-		}
+		};
 
 		renderer = PIXI.autoDetectRenderer(rendererOptions);
 
@@ -2206,7 +2206,7 @@ var SoaringSheepGame = function(){
 			"achievements": new PIXI.Container(),
 			//"saved_games": new PIXI.Container(),
 			"logout": new PIXI.Container()
-		}
+		};
 		var tabsNamesArr = ["Leaderboard","Achievements",/*"Saved Games",*/"Logout"];
 		var tab, _nm;
 
@@ -3191,7 +3191,7 @@ var SoaringSheepGame = function(){
 			align: 'center',
 			padding: 10,
 			fontSize: 40
-		}
+		};
 
 		var textOpt4 = {
 			fontFamily: 'TimeBurnerBold',
@@ -3439,7 +3439,7 @@ var SoaringSheepGame = function(){
 					else if(nm=="no_hat" || nm=="no_cape"){
 
 					}
-					break
+					break;
 			}
 
 				//-Desc
@@ -4858,15 +4858,15 @@ var SoaringSheepGame = function(){
 								//It exists, now check if desc and title needs an update
 								if(i=="accessories" || i=="upgrades"){
 									if(this[i][nm].title != this.partsForUpdate[i][nm].title){
-										this[i][nm].title = this.partsForUpdate[i][nm].title
+										this[i][nm].title = this.partsForUpdate[i][nm].title;
 									}
 
 									if(this[i][nm].desc != this.partsForUpdate[i][nm].desc){
-										this[i][nm].desc = this.partsForUpdate[i][nm].desc
+										this[i][nm].desc = this.partsForUpdate[i][nm].desc;
 									}
 
 									if(this[i][nm].cost != this.partsForUpdate[i][nm].cost){
-										this[i][nm].cost = this.partsForUpdate[i][nm].cost
+										this[i][nm].cost = this.partsForUpdate[i][nm].cost;
 									}
 								}
 							}
@@ -5034,7 +5034,7 @@ var SoaringSheepGame = function(){
 			var data = {
 					"achievementId": achievementID.toString(),
 					"numSteps": steps
-			}
+			};
 
 			window.plugins.playGamesServices.incrementAchievement(data, function(){
 				console.log("Achievement "+achData["name"]+" incremented by "+steps+" steps");
