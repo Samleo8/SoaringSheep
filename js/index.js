@@ -410,6 +410,7 @@ var SoaringSheepGame = function(){
     this.accessoriesNames = [];
     this.hatNames = [];
     this.capeNames = [];
+    var ii = this.accessories[0];
     for(ii in this.accessories){
         if(!this.accessories.hasOwnProperty(ii)) continue;
         this.accessoriesNames.push(ii.toString());
@@ -1662,7 +1663,7 @@ var SoaringSheepGame = function(){
         line.lineStyle(1,0xeceff1).moveTo(0,0).lineTo(468,0);
         this.pauseOverlay.addChild(line);
 
-        text2 = new PIXI.Text(((_isMobile)?"Tap":"Click")+" to continue ",
+        var text2 = new PIXI.Text(((_isMobile)?"Tap":"Click")+" to continue ",
         Object.assign(textOpt,{
             fontFamily:'TimeBurner',
             fontSize:40,
@@ -2596,6 +2597,7 @@ var SoaringSheepGame = function(){
 		this.hero.y = this.canvasHeight/2;
 
         //--Reset direction of all hero's children to the right
+        var i = 0;
         for(i=0;i<this.hero.children.length;i++){
             this.hero.children[i].scale.x = Math.abs(this.hero.children[i].scale.x);
         }
