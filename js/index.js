@@ -121,7 +121,7 @@ var SoaringSheepGame = function(){
     this.heroJumpStrength_lamb = 7.5;
 
     this.startingShield = false;
-    this.shieldTimer;
+    this.shieldTimer = null;
     this.shieldTimeInc = 500; //ms
     this.shieldFadeInc = 0.1;
 
@@ -179,32 +179,32 @@ var SoaringSheepGame = function(){
     //Icons and Buttons
 	this.iconNames = ["pause","play","music_on","music_off","fx_on","fx_off","games","info","web","logout","leaderboard","achievements","restart","ad","shop","coin","dollar","post","back","left_arrow","right_arrow","shirt","tick","restore"];
 
-	this.pauseButton;
-	this.muteMusicButton;
-	this.muteFXButton;
+	this.pauseButton = null;
+	this.muteMusicButton = null;
+	this.muteFXButton = null;
 
-	this.gamesButton;
-    this.webButton;
+	this.gamesButton = null;
+    this.webButton = null;
 
-    this.infoButton;
-    this.infoOverlay;
+    this.infoButton = null;
+    this.infoOverlay = null;
 
     //Fonts
 	this.fonts = {};
-	this.totalFonts;
+	this.totalFonts = 0;
 	this.totalFontsFailed = 0;
 	this.totalFontsLoaded = 0;
 
     //Obstacles
-	this.obstacles;
-	this.obstacleTimer;
+	this.obstacles = null;
+	this.obstacleTimer = null;
 	this.obstacleSpawnTime = 1000; //in ms
 
     this.obstaclesFrozen = false;
-    this.freezeTimer;
+    this.freezeTimer = null;
     this.obstaclesFreezeTime = 3000; //in ms
 
-	this.obstacleSections;
+	this.obstacleSections = null;
 	this.obstacleSectionActive = [];
 	this.nObstacleSections = 1;
 
@@ -212,9 +212,9 @@ var SoaringSheepGame = function(){
     this.coins = 500;
     this.coinIncAmt = 60;
 
-    this.shop;
+    this.shop = null;
 
-    this.shopButton;
+    this.shopButton = null;
     this.shopTabNames = ["upgrades","accessories","coins"];
 
     //-Upgrades
@@ -288,7 +288,7 @@ var SoaringSheepGame = function(){
 
     //--Powerups
     this.powerupNames = ["coin","freeze","shield"];
-    this.powerups;
+    this.powerups = null;
     this.powerupChance = 0.3;
 
     this.noDeathChance = 0;
@@ -430,15 +430,15 @@ var SoaringSheepGame = function(){
     this.restorePurchasesButton = null;
 
     //Pausing
-	this.pauseTime;
-	this.pauseTimer;
-	this.pauseOverlay;
+	this.pauseTime = null;
+	this.pauseTimer = null;
+	this.pauseOverlay = null;
 
     //Gameover Screen
-    this.gameoverScreen;
-    this.restartButton;
-    this.reviveButton;
-    this.shareButton;
+    this.gameoverScreen = null;
+    this.restartButton = null;
+    this.reviveButton = null;
+    this.shareButton = null;
 
     this.tips = [
         "Did you know about the achievements under Google Play Games?",
@@ -461,7 +461,7 @@ var SoaringSheepGame = function(){
 
     //Google Play
     this.isLoggedIn = false;
-    this.playGamesMenu;
+    this.playGamesMenu = null;
     this.leaderboardID = "CgkI8sq82fwOEAIQIA";//"CgkI8sq82fwOEAIQAg";
     this.leaderboard = {
         "id":"CgkI8sq82fwOEAIQIA",//"CgkI8sq82fwOEAIQAg", //GPlay leaderboardID
@@ -1151,7 +1151,7 @@ var SoaringSheepGame = function(){
         }
     }
 
-    this.backButton;
+    this.backButton = null;
 
     //Functions
 	this.initStage = function(){
