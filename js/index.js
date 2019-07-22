@@ -1141,10 +1141,6 @@ var SoaringSheepGame = function(){
                     Game.accessories[id].purchased = true;
                     Game.setAccessory(id,"skin");
                     return true;
-                case "little_lamb":
-                    Game.accessories[id].purchased = true;
-                    Game.setAccessory(id,"skin");
-                    return true;
                 default:
                     return;
             }
