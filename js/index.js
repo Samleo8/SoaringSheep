@@ -410,7 +410,7 @@ var SoaringSheepGame = function(){
 	this.accessoriesNames = [];
 	this.hatNames = [];
 	this.capeNames = [];
-	var ii = this.accessories[0];
+	var ii = null;
 	for(ii in this.accessories){
 		if(!this.accessories.hasOwnProperty(ii)) continue;
 		this.accessoriesNames.push(ii.toString());
