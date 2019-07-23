@@ -410,8 +410,8 @@ var SoaringSheepGame = function(){
 	this.accessoriesNames = [];
 	this.hatNames = [];
 	this.capeNames = [];
-	var ii = null;
-	for(ii in this.accessories){
+	
+	for(var ii in this.accessories){
 		if(!this.accessories.hasOwnProperty(ii)) continue;
 		this.accessoriesNames.push(ii.toString());
 
@@ -1570,7 +1570,7 @@ var SoaringSheepGame = function(){
 
 		this.startScreen.addChild(text);
 
-		text2 = new PIXI.Text("SHEEP",Object.assign(textOpt));
+		var text2 = new PIXI.Text("SHEEP",Object.assign(textOpt));
 		text2.anchor.set(0.5,0.5);
 		text2.x = this.canvasWidth/2+73;
 		text2.y = this.canvasHeight/2-20;
@@ -2592,8 +2592,7 @@ var SoaringSheepGame = function(){
 		this.hero.y = this.canvasHeight/2;
 
 		//--Reset direction of all hero's children to the right
-		var i = 0;
-		for(i=0;i<this.hero.children.length;i++){
+		for(var i=0; i<this.hero.children.length; i++){
 			this.hero.children[i].scale.x = Math.abs(this.hero.children[i].scale.x);
 		}
 
