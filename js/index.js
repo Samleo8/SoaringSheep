@@ -1202,7 +1202,7 @@ var SoaringSheepGame = function(){
 	}
 
 	this.initPreload = function(){
-		var i;
+		var i, j;
 
 		//PRELOADING OF IMAGES INTO PIXI LOADER
 		this.loader = new PIXI.loaders.Loader();
@@ -1276,7 +1276,7 @@ var SoaringSheepGame = function(){
 
 			stage.addChild(this.sprites.background);
 
-			var nm;
+			var nm, i, j;
 
 			//HATS AND CAPES
 			this.sprites.hats = {};
@@ -1347,7 +1347,7 @@ var SoaringSheepGame = function(){
 			this.muteMusicButton.getChildByName("music_on").alpha = 1;
 
 			//--Text
-			textOpt = {
+			var textOpt = {
 				fontFamily: 'TimeBurnerBold',
 				fill: "0x90a4ae",
 				letterSpacing: 5,
@@ -1355,7 +1355,7 @@ var SoaringSheepGame = function(){
 				fontSize: 20
 			};
 
-			text = new PIXI.Text("MUSIC",textOpt);
+			var text = new PIXI.Text("MUSIC",textOpt);
 			text.anchor.set(0.5,0.5);
 			text.alpha = 1;
 			text.y = 55;
@@ -1517,7 +1517,6 @@ var SoaringSheepGame = function(){
 	};
 
 	this.checkAllFontsLoaded = function(success){
-
 		if(success) this.totalFontsLoaded++;
 		else this.totalFontsFailed++;
 
@@ -2317,7 +2316,7 @@ var SoaringSheepGame = function(){
 			this.sprites.background.alpha = 0;
 
 			//Sheep
-			sheep = new PIXI.Sprite(this.animations.sheep_base.frames[0]);
+			var sheep = new PIXI.Sprite(this.animations.sheep_base.frames[0]);
 			sheep.anchor.set(0.5,0.5);
 			sheep.scale.set(0.35,0.35);
 			sheep.rotation = -Math.PI/40;
@@ -3128,6 +3127,7 @@ var SoaringSheepGame = function(){
 		}
 
 		//Tab overlays
+		var i;
 		for(i=0;i<this.shopTabNames.length;i++){
 			this.shop.tabs[this.shopTabNames[i]].overlay.visible = true;
 			this.shop.tabContent[this.shopTabNames[i]].visible = false;
@@ -3679,7 +3679,7 @@ var SoaringSheepGame = function(){
 		this.saveOptions();
 	};
 
-	this.performUpgrade = function(nm,e){
+	this.performUpgrade = function(nm, e){
 		if(typeof e == "object"){
 			if(e.type=="mouseup" || e.type=="touchend"){
 				//this.preventHeroJump++;
@@ -3689,7 +3689,8 @@ var SoaringSheepGame = function(){
 		var avail = this.checkUpgradeAvailability(nm);
 		if(!avail) return;
 
-		data = this.upgrades[nm];
+		var i;
+		var data = this.upgrades[nm];
 		var trueCost = parseInt(data["cost"]*(data["increment_count"]+1));
 
 		this.incCoins(-trueCost,false);
@@ -3718,7 +3719,7 @@ var SoaringSheepGame = function(){
 	};
 
 	this.updateUpgradesPage = function(){
-		var nm, data, trueCost;
+		var nm, data, trueCost, i;
 
 		for(i in this.upgrades){
 			if(!this.upgrades.hasOwnProperty(i)) continue;
@@ -3791,6 +3792,7 @@ var SoaringSheepGame = function(){
 	this.checkUpgradeAvailability = function(specific_nm){
 		var needCheck = (specific_nm != null);
 		var ret = true;
+		var i, nm, data;
 
 		for(i in this.upgrades){
 			if(!this.upgrades.hasOwnProperty(i)) continue;
@@ -4440,7 +4442,7 @@ var SoaringSheepGame = function(){
 	};
 
 	this.togglePause = function(forcedVal,event){
-		var i;
+		var i, e;
 
 		if(!this._gameStarted) return;
 
@@ -4765,7 +4767,7 @@ var SoaringSheepGame = function(){
 				if(window.localStorage["upgrades"] != null){
 					this.upgrades = JSON.parse(window.localStorage["upgrades"]);
 
-					var nm;
+					var i, nm;
 					for(i in this.upgrades){
 						if(!this.upgrades.hasOwnProperty(i)) continue;
 
@@ -4778,7 +4780,7 @@ var SoaringSheepGame = function(){
 				window.localStorage["upgrades_fix"] = true;
 				//this.incCoins(5000,false);
 				this.saveOptions("upgrades");
-				var nm;
+				var i, nm;
 				for(i in this.upgrades){
 					if(!this.upgrades.hasOwnProperty(i)) continue;
 
@@ -4799,6 +4801,7 @@ var SoaringSheepGame = function(){
 				if(window.localStorage["achievements"] != null){
 					alert("In this latest update, all completed achievements earns you coins to use in the shop!");
 
+					var i, j;
 					//Achievement obj exists, therefore need to give the coins accordingly
 					for(i in this.achievements.single){
 						if(!this.achievements.single.hasOwnProperty(i)) continue;
@@ -4832,7 +4835,7 @@ var SoaringSheepGame = function(){
 			}
 
 			//Updates
-			var nm;
+			var i, j, nm;
 			for(i in this.updates){
 				if(!this.updates.hasOwnProperty(i)) continue;
 
