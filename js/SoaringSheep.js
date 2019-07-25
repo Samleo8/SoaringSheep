@@ -1116,7 +1116,7 @@ var SoaringSheepGame = function(){
 			window.addEventListener("blur", this.appBlur.bind(this), false);
 		}
 
-		//renderer.view.addEventListener((_isMobile)?"touchend":"mouseup", this.heroJump.bind(this), false);
+		//renderer.view.addEventListener((_isMobile)?"touchstart":"mousedown", this.heroJump.bind(this), false);
 		renderer.view.addEventListener((_isMobile)?"touchstart":"mousedown", this.heroJump.bind(this), false);
 
 		//LOAD IMAGES, FONTS AND MUSIC
@@ -1248,7 +1248,7 @@ var SoaringSheepGame = function(){
 			this.pauseButton.interactive = true;
 			this.pauseButton.buttonMode = true;
 
-			this.pauseButton.on((_isMobile)?"touchend":"mouseup",this.togglePause.bind(this));
+			this.pauseButton.on((_isMobile)?"touchstart":"mousedown",this.togglePause.bind(this));
 
 			this.pauseButton.position.set(this.canvasWidth-60,50);
 
@@ -1261,7 +1261,7 @@ var SoaringSheepGame = function(){
 			this.muteMusicButton.interactive = true;
 			this.muteMusicButton.buttonMode = true;
 
-			this.muteMusicButton.on((_isMobile)?"touchend":"mouseup",this.toggleMuteMain.bind(this));
+			this.muteMusicButton.on((_isMobile)?"touchstart":"mousedown",this.toggleMuteMain.bind(this));
 
 			this.muteMusicButton.position.set(this.canvasWidth-145,50);
 
@@ -1289,7 +1289,7 @@ var SoaringSheepGame = function(){
 			this.muteFXButton.interactive = true;
 			this.muteFXButton.buttonMode = true;
 
-			this.muteFXButton.on((_isMobile)?"touchend":"mouseup",this.toggleMuteFX.bind(this));
+			this.muteFXButton.on((_isMobile)?"touchstart":"mousedown",this.toggleMuteFX.bind(this));
 
 			this.muteFXButton.position.set(this.canvasWidth-235,50);
 
@@ -1310,7 +1310,7 @@ var SoaringSheepGame = function(){
 			this.gamesButton.interactive = true;
 			this.gamesButton.buttonMode = true;
 
-			this.gamesButton.on((_isMobile)?"touchend":"mouseup",this.showPlayGamesMenu.bind(this));
+			this.gamesButton.on((_isMobile)?"touchstart":"mousedown",this.showPlayGamesMenu.bind(this));
 
 			this.gamesButton.position.set(80,50);
 
@@ -1330,7 +1330,7 @@ var SoaringSheepGame = function(){
 			this.infoButton.interactive = true;
 			this.infoButton.buttonMode = true;
 
-			this.infoButton.on((_isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
+			this.infoButton.on((_isMobile)?"touchstart":"mousedown",this.showInfo.bind(this));
 
 			this.infoButton.position.set(190,50);
 
@@ -1350,7 +1350,7 @@ var SoaringSheepGame = function(){
 			this.webButton.interactive = true;
 			this.webButton.buttonMode = true;
 
-			this.webButton.on((_isMobile)?"touchend":"mouseup",this.gotoURL.bind(this,"https://samleo8.github.io/games/"));
+			this.webButton.on((_isMobile)?"touchstart":"mousedown",this.gotoURL.bind(this,"https://samleo8.github.io/games/"));
 
 			this.webButton.position.set(292,50);
 
@@ -1370,7 +1370,7 @@ var SoaringSheepGame = function(){
 			this.shopButton.interactive = true;
 			this.shopButton.buttonMode = true;
 
-			this.shopButton.on((_isMobile)?"touchend":"mouseup",this.showShop.bind(this));
+			this.shopButton.on((_isMobile)?"touchstart":"mousedown",this.showShop.bind(this));
 
 			this.shopButton.position.set(395,51);
 
@@ -1595,7 +1595,7 @@ var SoaringSheepGame = function(){
 		this.pauseOverlay.addChild(text2);
 
 		//-Add Event Listener
-		this.pauseOverlay.on((_isMobile)?"touchend":"mouseup",this.togglePause.bind(this,false));
+		this.pauseOverlay.on((_isMobile)?"touchstart":"mousedown",this.togglePause.bind(this,false));
 
 		/* INFO OVERLAY */
 		this.infoOverlay = new PIXI.Container();
@@ -1677,7 +1677,7 @@ var SoaringSheepGame = function(){
 
 		this.infoOverlay.addChild(text2);
 
-		this.infoOverlay.on((_isMobile)?"touchend":"mouseup",this.showInfo.bind(this));
+		this.infoOverlay.on((_isMobile)?"touchstart":"mousedown",this.showInfo.bind(this));
 
 		this.infoOverlay.alpha = 0;
 
@@ -1774,7 +1774,7 @@ var SoaringSheepGame = function(){
 
 		this.restartButton.interactive = true;
 		this.restartButton.buttonMode = true;
-		this.restartButton.on((_isMobile)?"touchend":"mouseup",this.newGame.bind(this));
+		this.restartButton.on((_isMobile)?"touchstart":"mousedown",this.newGame.bind(this));
 
 		textOpt3 = {
 			fontFamily: 'TimeBurnerBold',
@@ -1828,7 +1828,7 @@ var SoaringSheepGame = function(){
 
 		this.reviveButton.interactive = true;
 		this.reviveButton.buttonMode = true;
-		this.reviveButton.on((_isMobile)?"touchend":"mouseup",this.try_revive.bind(this));
+		this.reviveButton.on((_isMobile)?"touchstart":"mousedown",this.try_revive.bind(this));
 
 		this.reviveButton.overlay = new PIXI.Graphics();
 		this.reviveButton.overlay.beginFill(0xb0bec5,0.75)
@@ -1884,7 +1884,7 @@ var SoaringSheepGame = function(){
 
 		this.shareButton.buttonMode = true;
 		this.shareButton.interactive = true;
-		this.shareButton.on((_isMobile)?"touchend":"mouseup",this.share_social.bind(this));
+		this.shareButton.on((_isMobile)?"touchstart":"mousedown",this.share_social.bind(this));
 
 		this.gameoverScreen.addChild(this.shareButton);
 
@@ -2025,7 +2025,7 @@ var SoaringSheepGame = function(){
 
 			tab.interactive = true;
 			tab.buttonMode = true;
-			tab.on((_isMobile)?"touchend":"mouseup",this.switchShopTab.bind(this,tab.name));
+			tab.on((_isMobile)?"touchstart":"mousedown",this.switchShopTab.bind(this,tab.name));
 		}
 
 		var content;
@@ -2058,7 +2058,7 @@ var SoaringSheepGame = function(){
 
 		this.shop.interactive = true;
 		this.shop.buttonMode = true;
-		this.shop.on((_isMobile)?"touchend":"mouseup",function(){
+		this.shop.on((_isMobile)?"touchstart":"mousedown",function(){
 			this.preventHeroJump++;
 		}.bind(this));
 
@@ -2180,12 +2180,12 @@ var SoaringSheepGame = function(){
 
 			tab.interactive = true;
 			tab.buttonMode = true;
-			tab.on((_isMobile)?"touchend":"mouseup",this.pressPlayGamesButton.bind(this,tab.name));
+			tab.on((_isMobile)?"touchstart":"mousedown",this.pressPlayGamesButton.bind(this,tab.name));
 		}
 
 		this.playGamesMenu.interactive = true;
 		this.playGamesMenu.buttonMode = true;
-		this.playGamesMenu.on((_isMobile)?"touchend":"mouseup",function(){
+		this.playGamesMenu.on((_isMobile)?"touchstart":"mousedown",function(){
 			this.preventHeroJump++;
 		}.bind(this));
 
@@ -2222,7 +2222,7 @@ var SoaringSheepGame = function(){
 
 		this.backButton.interactive = true;
 		this.backButton.buttonMode = true;
-		this.backButton.on((_isMobile)?"touchend":"mouseup", this.closeAllMenus.bind(this));
+		this.backButton.on((_isMobile)?"touchstart":"mousedown", this.closeAllMenus.bind(this));
 
 		this.backButton.visible = false;
 	};
@@ -3009,7 +3009,7 @@ var SoaringSheepGame = function(){
 		//alert("Work in progress... Watch out for the next update!");
 
 		if(typeof e == "object"){
-			if(e.type=="mouseup" || e.type=="touchend"){
+			if(e.type=="mousedown" || e.type=="touchstart"){
 				this.preventHeroJump++;
 			}
 		}
@@ -3180,7 +3180,7 @@ var SoaringSheepGame = function(){
 
 			this.upgradesSection[nm].button.interactive = true;
 			this.upgradesSection[nm].button.buttonMode = true;
-			this.upgradesSection[nm].button.on((_isMobile)?"touchend":"mouseup",this.performUpgrade.bind(this,nm));
+			this.upgradesSection[nm].button.on((_isMobile)?"touchstart":"mousedown",this.performUpgrade.bind(this,nm));
 
 			this.upgradesSection[nm].button.footnote = new PIXI.Text(footnoteText,textOpt2);
 			this.upgradesSection[nm].button.footnote.anchor.set(0.5,0);
@@ -3249,7 +3249,7 @@ var SoaringSheepGame = function(){
 		this.shop.navArrows.left.addChild(this.shop.navArrows.left.bg);
 		this.shop.navArrows.left.addChild(this.shop.navArrows.left.icon);
 
-		this.shop.navArrows.left.on((_isMobile)?"touchend":"mouseup",this.skinPagesNav.bind(this,"prev"));
+		this.shop.navArrows.left.on((_isMobile)?"touchstart":"mousedown",this.skinPagesNav.bind(this,"prev"));
 		this.shop.navArrows.left.buttonMode = true;
 		this.shop.navArrows.left.interactive = true;
 
@@ -3273,7 +3273,7 @@ var SoaringSheepGame = function(){
 		this.shop.navArrows.right.addChild(this.shop.navArrows.right.bg);
 		this.shop.navArrows.right.addChild(this.shop.navArrows.right.icon);
 
-		this.shop.navArrows.right.on((_isMobile)?"touchend":"mouseup",this.skinPagesNav.bind(this,"next"));
+		this.shop.navArrows.right.on((_isMobile)?"touchstart":"mousedown",this.skinPagesNav.bind(this,"next"));
 		this.shop.navArrows.right.buttonMode = true;
 		this.shop.navArrows.right.interactive = true;
 
@@ -3397,7 +3397,7 @@ var SoaringSheepGame = function(){
 
 			this.skinsSection[nm].button.interactive = true;
 			this.skinsSection[nm].button.buttonMode = true;
-			this.skinsSection[nm].button.on((_isMobile)?"touchend":"mouseup",this.setAccessory.bind(this,nm,data["type"]));
+			this.skinsSection[nm].button.on((_isMobile)?"touchstart":"mousedown",this.setAccessory.bind(this,nm,data["type"]));
 
 			this.skinsSection[nm].button.footnote = new PIXI.Text("",textOpt2);
 			this.skinsSection[nm].button.footnote.anchor.set(0.5,0);
@@ -3474,7 +3474,7 @@ var SoaringSheepGame = function(){
 
 		this.coinAdButton.interactive = true;
 		this.coinAdButton.buttonMode = true;
-		this.coinAdButton.on((_isMobile)?"touchend":"mouseup",this.ads.showAd.bind(this.ads,"rewardvideo","coins",10*getRandomInt(1,15)));
+		this.coinAdButton.on((_isMobile)?"touchstart":"mousedown",this.ads.showAd.bind(this.ads,"rewardvideo","coins",10*getRandomInt(1,15)));
 
 		this.coinAdButton.overlay = new PIXI.Graphics();
 		this.coinAdButton.overlay.beginFill(0xb0bec5,0.75)
@@ -3524,7 +3524,7 @@ var SoaringSheepGame = function(){
 
 		this.coinBuyButton.interactive = true;
 		this.coinBuyButton.buttonMode = true;
-		this.coinBuyButton.on((_isMobile)?"touchend":"mouseup",this.purchases.buy.bind(this.purchases,"coins500"));
+		this.coinBuyButton.on((_isMobile)?"touchstart":"mousedown",this.purchases.buy.bind(this.purchases,"coins500"));
 
 		this.coinBuyButton.overlay = new PIXI.Graphics();
 		this.coinBuyButton.overlay.beginFill(0xb0bec5,0.75)
@@ -3575,7 +3575,7 @@ var SoaringSheepGame = function(){
 
 		this.restorePurchasesButton.interactive = true;
 		this.restorePurchasesButton.buttonMode = true;
-		this.restorePurchasesButton.on((_isMobile)?"touchend":"mouseup",this.purchases.restore.bind(this.purchases));
+		this.restorePurchasesButton.on((_isMobile)?"touchstart":"mousedown",this.purchases.restore.bind(this.purchases));
 
 		this.restorePurchasesButton.overlay = new PIXI.Graphics();
 		this.restorePurchasesButton.overlay.beginFill(0xb0bec5,0.75)
@@ -3604,7 +3604,7 @@ var SoaringSheepGame = function(){
 
 	this.performUpgrade = function(nm, e){
 		if(typeof e == "object"){
-			if(e.type=="mouseup" || e.type=="touchend"){
+			if(e.type=="mousedown" || e.type=="touchstart"){
 				//this.preventHeroJump++;
 			}
 		}
@@ -4044,7 +4044,7 @@ var SoaringSheepGame = function(){
 	this.showInfo = function(e){
 
 		if(typeof e == "object"){
-			if(e.type=="mouseup" || e.type=="touchend"){
+			if(e.type=="mousedown" || e.type=="touchstart"){
 				this.preventHeroJump++;
 			}
 		}
@@ -4225,7 +4225,7 @@ var SoaringSheepGame = function(){
 	this.showPlayGamesMenu = function(e){
 
 		if(typeof event == "object"){
-			if(e.type=="mouseup" || e.type=="touchend"){
+			if(e.type=="mousedown" || e.type=="touchstart"){
 				this.preventHeroJump++;
 			}
 		}
@@ -4282,7 +4282,7 @@ var SoaringSheepGame = function(){
 
 	this.toggleMuteMain = function(forcedVal){
 		if(typeof forcedVal == "object"){
-			if(forcedVal.type=="mouseup" || forcedVal.type=="touchend"){
+			if(forcedVal.type=="mousedown" || forcedVal.type=="touchstart"){
 				this.preventHeroJump++;
 			}
 		}
@@ -4320,7 +4320,7 @@ var SoaringSheepGame = function(){
 		var i,nm;
 
 		if(typeof forcedVal == "object"){
-			if(forcedVal.type=="mouseup" || forcedVal.type=="touchend"){
+			if(forcedVal.type=="mousedown" || forcedVal.type=="touchstart"){
 				this.preventHeroJump++;
 			}
 		}
@@ -4371,7 +4371,7 @@ var SoaringSheepGame = function(){
 
 		if(typeof event == "object" || typeof forcedVal == "object"){
 			e = (typeof event == "object")?event:forcedVal; //sometimes `forcedVal` is the `event`
-			if(e.type=="mouseup" || e.type=="touchend"){
+			if(e.type=="mousedown" || e.type=="touchstart"){
 				this.preventHeroJump++;
 			}
 		}
@@ -4531,7 +4531,7 @@ var SoaringSheepGame = function(){
 
 	this.closeAllMenus = function(e){
 		if(typeof e == "object"){
-			if(e.type=="mouseup" || e.type=="touchend"){
+			if(e.type=="mousedown" || e.type=="touchstart"){
 				this.preventHeroJump++;
 			}
 		}
@@ -5027,7 +5027,7 @@ var SoaringSheepGame = function(){
 
 	this.gotoURL = function(url,e){
 		if(typeof e == "object"){
-			if(e.type=="mouseup" || e.type=="touchend"){
+			if(e.type=="mousedown" || e.type=="touchstart"){
 				this.preventHeroJump++;
 			}
 		}
