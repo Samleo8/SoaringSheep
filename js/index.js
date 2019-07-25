@@ -69,9 +69,9 @@ var app = {
 	}
 };
 
-var sheep;
 var SoaringSheepGame = function(){
 	var self = this;
+	var sheep;
 
 	this.isOnline = navigator.onLine;
 
