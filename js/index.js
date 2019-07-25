@@ -107,7 +107,7 @@ var SoaringSheepGame = function(){
 			"keys":["S".charCodeAt()], //S
 			"callback":"showShop"
 		}
-	}
+	};
 
 	this.hero = null;
 	this.heroShield = null;
