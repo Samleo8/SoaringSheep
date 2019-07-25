@@ -3,13 +3,6 @@
 
 var requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame;
 
-var forceIsApp = false;
-
-var _isApp = null;
-var _isAndroid = null;
-
-var _isMobile = false;
-
 var Game;
 var GPlay;
 

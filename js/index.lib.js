@@ -1,8 +1,13 @@
 //*--------UNIVERSAL FUNCTIONS--------*//
+var forceIsApp = false;
+
+var _isApp = null;
+var _isAndroid = null;
+
+var _isMobile = false;
+
 function isApp(){
 	if(!MobileCheck()) return false;
-
-	if(_isApp == true) return true;
 
 	//Only the mobile app has admob and google play services
 	return _isApp = (forceIsApp || (typeof admob)!="undefined" || (typeof device) != "undefined");
