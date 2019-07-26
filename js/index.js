@@ -1706,7 +1706,11 @@ var SoaringSheepGame = function(){
 			padding: 10,
 			fontSize: 30
 		};
-		var text2 = new PIXI.Text("This game was created by Samuel Leong Chee Weng\nusing PIXI.js renderer library.\n\nThe web version is available on my website at\n https://samleo8.github.io/SoaringSheep",textOpt2);
+		var text2 = new PIXI.Text(
+			"This game was created by Samuel Leong Chee Weng\nusing PIXI.js renderer library.\n\n"+
+			((isApp())?"The web version is available on my website at\n https://samleo8.github.io/SoaringSheep":"The mobile app is available on the Google Play Store under the name \'Soaring Sheep\'"),
+			textOpt2
+		);
 		text2.anchor.set(0.5,0);
 		text2.alpha = 0.98;
 		text2.x = this.canvasWidth/2;
