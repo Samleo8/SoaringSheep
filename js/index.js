@@ -3864,7 +3864,7 @@ var SoaringSheepGame = function(){
 		renderer.render(stage);
 	}
 
-	this.setAccessory = function(accessory,type){
+	this.setAccessory = function(accessory, type){
 		if(accessory == null) accessory = "sheep_base";
 		if(type == null) return;
 
@@ -3895,11 +3895,8 @@ var SoaringSheepGame = function(){
 			case "skin":
 			case "body":
 				if(this.hero.sheep == null || typeof this.hero.sheep == "undefined"){
-					console.log(accessory);
-					console.log(this.animations);
-
 					//Initializing of the sheep
-					this.hero.sheep = new PIXI.extras.AnimatedSprite(this.animations[((accessory=="little_lamb")?"sheep_base":accessory)].frames);
+					this.hero.sheep = new PIXI.extras.AnimatedSprite(this.animations[((accessory=="little_lamb" || accessory == "sheep_running")?"sheep_base":accessory)].frames);
 					this.hero.sheep.animationSpeed = 0.15;
 					this.hero.sheep.loop = false;
 					this.hero.sheep.anchor.set(0.5);
@@ -3914,7 +3911,7 @@ var SoaringSheepGame = function(){
 				}
 				else{
 					currFrame = this.hero.sheep.currentFrame;
-					this.hero.sheep.textures = this.animations[((accessory=="little_lamb")?"sheep_base":accessory)].frames;
+					this.hero.sheep.textures = this.animations[((accessory=="little_lamb" || accessory == "sheep_running")?"sheep_base":accessory)].frames;
 					this.hero.sheep.gotoAndPlay(currFrame);
 
 					scaleDir = (this.hero.sheep.scale.x<0)?-1:1;
