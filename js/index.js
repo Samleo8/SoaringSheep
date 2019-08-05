@@ -295,106 +295,106 @@ var SoaringSheepGame = function(){
 	*/
 
 	this.accessories = {
-		"sheep_base":{
-			"title":"Base Sheep",
-			"desc":"Back to basics",
-			"type":"skin",
-			"currency":"coin",
-			"cost":0,
-			"purchased":true,
-			"activated":true
+		"sheep_base": {
+			"title": "Base Sheep",
+			"desc": "Back to basics",
+			"type": "skin",
+			"currency": "coin",
+			"cost": 0,
+			"purchased": true,
+			"activated": true
 		},
-		"sheep_gold":{
-			"title":"Golden Sheep",
-			"desc":"All that glitters is not gold.\n\nThen again, who cares - Bonus +10 for every coin collected/earned!",
-			"type":"skin",
-			"currency":"coin",
-			"cost":200,
-			"purchased":false,
-			"activated":false
+		"sheep_gold": {
+			"title": "Golden Sheep",
+			"desc": "All that glitters is not gold.\n\nThen again, who cares - Bonus +10 for every coin collected/earned!",
+			"type": "skin",
+			"currency": "coin",
+			"cost": 200,
+			"purchased": false,
+			"activated": false
 		},
-		"little_lamb":{
-			"title":"Little Lamb",
-			"desc":"A cute little lamb.\n\nSmaller surface area, but jumping is harder to control",
-			"type":"skin",
-			"currency":"dollar",
-			"cost":1.99,
-			"purchased":false,
-			"activated":false
+		"little_lamb": {
+			"title": "Little Lamb",
+			"desc": "A cute little lamb.\n\nSmaller surface area, but jumping is harder to control",
+			"type": "skin",
+			"currency": "dollar",
+			"cost": 1.99,
+			"purchased": false,
+			"activated": false
 		},
-		"no_hat":{
-			"title":"Invisible\nHat",
-			"desc":"An invisible hat!",
-			"type":"hat",
-			"currency":"coin",
-			"cost":0,
-			"purchased":true,
-			"activated":true
+		"no_hat": {
+			"title": "Invisible\nHat",
+			"desc": "An invisible hat!",
+			"type": "hat",
+			"currency": "coin",
+			"cost": 0,
+			"purchased": true,
+			"activated": true
 		},
-		"top_hat":{
-			"title":"Top Hat",
-			"desc":"Fancy top hat for fancy chaps",
-			"type":"hat",
-			"currency":"coin",
-			"cost":100,
-			"purchased":false,
-			"activated":false
+		"top_hat": {
+			"title": "Top Hat",
+			"desc": "Fancy top hat for fancy chaps",
+			"type": "hat",
+			"currency": "coin",
+			"cost": 100,
+			"purchased": false,
+			"activated": false
 		},
-		"crown":{
-			"title":"Crown",
-			"desc":"Who's the king?\nI'm the king!\n\nBonus: +1 to final score",
-			"type":"hat",
-			"currency":"coin",
-			"cost":300,
-			"purchased":false,
-			"activated":false
+		"crown": {
+			"title": "Crown",
+			"desc": "Who's the king?\nI'm the king!\n\nBonus: +1 to final score",
+			"type": "hat",
+			"currency": "coin",
+			"cost": 300,
+			"purchased": false,
+			"activated": false
 		},
-		"no_cape":{
-			"title":"Invisible\nCape",
-			"desc":"An invisible cape!",
-			"type":"cape",
-			"currency":"coin",
-			"cost":0,
-			"purchased":true,
-			"activated":true
+		"no_cape": {
+			"title": "Invisible\nCape",
+			"desc": "An invisible cape!",
+			"type": "cape",
+			"currency": "coin",
+			"cost": 0,
+			"purchased": true,
+			"activated": true
 		},
-		"red_cape":{
-			"title":"Red Cape",
-			"desc":"The original red cape!",
-			"type":"cape",
-			"currency":"coin",
-			"cost":100,
-			"purchased":false,
-			"activated":false
+		"red_cape": {
+			"title": "Red Cape",
+			"desc": "The original red cape!",
+			"type": "cape",
+			"currency": "coin",
+			"cost": 100,
+			"purchased": false,
+			"activated": false
 		},
-		"royal_cape":{
-			"title":"Royal Cape",
-			"desc":"All hail his excellecy,\nRoyal Sheep!\n\nBonus: Collect 10% tax on all coins earned!",
-			"type":"cape",
-			"currency":"dollar",
-			"cost":0.99,
-			"purchased":false,
-			"activated":false
+		"royal_cape": {
+			"title": "Royal Cape",
+			"desc": "All hail his excellecy,\nRoyal Sheep!\n\nBonus: Collect 10% tax on all coins earned!",
+			"type": "cape",
+			"currency": "dollar",
+			"cost": 0.99,
+			"purchased": false,
+			"activated": false
 		},
-		"black_cape":{
-			"title":"Black Cape",
-			"desc":"Behold! The Dark Sheep.",
-			"type":"cape",
-			"currency":"coin",
-			"cost":100,
-			"purchased":false,
-			"activated":false
+		"black_cape": {
+			"title": "Black Cape",
+			"desc": "Behold! The Dark Sheep.",
+			"type": "cape",
+			"currency": "coin",
+			"cost": 100,
+			"purchased": false,
+			"activated": false
 		},
-		"white_cape":{
-			"title":"White Cape",
-			"desc":"Sheep of the Light,\nShining Bright...\n\nBonus: +10% chance of not dying",
-			"type":"cape",
-			"currency":"coin",
-			"cost":500,
-			"purchased":false,
-			"activated":false
+		"white_cape": {
+			"title": "White Cape",
+			"desc": "Sheep of the Light,\nShining Bright...\n\nBonus: +10% chance of not dying",
+			"type": "cape",
+			"currency": "coin",
+			"cost": 500,
+			"purchased": false,
+			"activated": false
 		}
-	}
+	};
 
 	this.goldenSheepBonus = 10;
 	this.crownBonus = 1;
@@ -3895,8 +3895,10 @@ var SoaringSheepGame = function(){
 			case "skin":
 			case "body":
 				if(this.hero.sheep == null || typeof this.hero.sheep == "undefined"){
-					//Initializing of the sheep
+					console.log(accessory);
+					console.log(this.animations);
 
+					//Initializing of the sheep
 					this.hero.sheep = new PIXI.extras.AnimatedSprite(this.animations[((accessory=="little_lamb")?"sheep_base":accessory)].frames);
 					this.hero.sheep.animationSpeed = 0.15;
 					this.hero.sheep.loop = false;
