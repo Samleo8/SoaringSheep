@@ -407,7 +407,6 @@ var SoaringSheepGame = function(){
 
 	for(var ii in this.accessories){
 		if(!this.accessories.hasOwnProperty(ii)) continue;
-		if(ii.toString() == "sheep_running") ii = "sheep_base";
 
 		this.accessoriesNames.push(ii.toString());
 
@@ -4760,6 +4759,11 @@ var SoaringSheepGame = function(){
 
 			if(window.localStorage.getItem("accessories") != null){
 				this.accessories = JSON.parse(window.localStorage["accessories"]);
+				if(this.accessories.hasOwnProperty("sheep_running")){ //weird issue with sheep_running
+					this.accessories["sheep_base"] = this.accessories["sheep_running"];
+					delete this.accessories["sheep_running"];
+					this.saveOptions("accessories");
+				}
 			}
 
 			if(window.localStorage.getItem("upgrades_fix")!=null && parseBoolean(window.localStorage["upgrades_fix"]) ){
@@ -4888,10 +4892,10 @@ var SoaringSheepGame = function(){
 		}
 
 		if(window.localStorage){
-			this.highscore = Math.max(this.score,this.highscore);
-
-			if(opt=="all" || opt=="score" || opt=="highscore")
+			if(opt=="all" || opt=="score" || opt=="highscore"){
+				this.highscore = Math.max(this.score,this.highscore);
 				window.localStorage["highscore"] = this.highscore;
+			}
 
 			if(opt=="all" || opt=="muteFX")
 				window.localStorage["muteFX"] = this._FXMuted;
