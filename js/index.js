@@ -407,6 +407,8 @@ var SoaringSheepGame = function(){
 
 	for(var ii in this.accessories){
 		if(!this.accessories.hasOwnProperty(ii)) continue;
+		if(ii.toString() == "sheep_running") ii = "sheep_base";
+
 		this.accessoriesNames.push(ii.toString());
 
 		if(ii == "no_cape" || ii=="no_hat") continue;
