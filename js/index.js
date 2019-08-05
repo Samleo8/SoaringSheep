@@ -3861,6 +3861,12 @@ var SoaringSheepGame = function(){
 	this.setAllAccessories = function(){
 		if(window.localStorage && window.localStorage.getItem("accessories")!=null){
 			this.accessories = JSON.parse(localStorage["accessories"]);
+
+			if(this.accessories.hasOwnProperty("sheep_running")){ //weird issue with sheep_running
+				this.accessories["sheep_base"] = this.accessories["sheep_running"];
+				delete this.accessories["sheep_running"];
+				this.saveOptions("accessories");
+			}
 		}
 
 		var i, nm;
