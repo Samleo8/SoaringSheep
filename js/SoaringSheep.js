@@ -336,7 +336,15 @@ var SoaringSheepGame = function(){
 
 	for(var ii in this.accessories){
 		if(!this.accessories.hasOwnProperty(ii)) continue;
-		this.accessoriesNames.push(ii.toString());
+
+		//To avoid issues where sheep base is not initialised first, place skins at the front, so that they will be handled first
+		//Inefficient, but it works
+		if (this.accessories[ii].type == "skin") {
+			this.accessoriesNames.unshift(ii.toString());
+		}
+		else {
+			this.accessoriesNames.push(ii.toString());
+		}
 
 		if(ii == "no_cape" || ii=="no_hat") continue;
 
